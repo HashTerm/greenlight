@@ -1,0 +1,67 @@
+services:
+  greenlight:
+    build: ./core
+    container_name: greenlight-dev
+    restart: unless-stopped
+    ports:
+      - "8100:8100"
+    env_file: .env
+    environment:
+      USE_AUTH: "true"
+      API_KEY: ${API_KEY}
+      ADMIN_INTERNAL_TOKEN: ${ADMIN_INTERNAL_TOKEN}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8100/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+
+  greenlight-ui:
+    build:
+      context: .
+      dockerfile: ui/Dockerfile
+    container_name: greenlight-ui-dev
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      PORT: "3000"
+      GREENLIGHT_API_URL: http://greenlight:8100
+      GREENLIGHT_API_KEY: ${API_KEY}
+      GREENLIGHT_ADMIN_TOKEN: ${ADMIN_INTERNAL_TOKEN}
+      PUBLIC_WEBHOOK_URL: ${PUBLIC_WEBHOOK_URL}
+      DATABASE_URL: postgresql://greenlight:greenlight@postgres:5432/greenlight
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_URL: http://localhost:3000
+      AUTH_TRUST_HOST: "true"
+    depends_on:
+      greenlight:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: greenlight-postgres-dev
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: greenlight
+      POSTGRES_PASSWORD: greenlight
+      POSTGRES_DB: greenlight
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U greenlight -d greenlight"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data_dev:

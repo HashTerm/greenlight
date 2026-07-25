@@ -1,0 +1,13 @@
+{
+  "name": "greenlight",
+  "private": true,
+  "license": "BUSL-1.1",
+  "workspaces": ["core", "ui", "docs-site"],
+  "scripts": {
+    "dev:core": "npm run dev -w core",
+    "dev:ui": "npm run dev -w ui",
+    "dev:docs": "npm run dev -w docs-site",
+    "build": "npm run build -w core && npm run build -w ui && npm run build -w docs-site",
+    "test": "npm run test -w core"
+  }
+}

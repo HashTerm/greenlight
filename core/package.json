@@ -1,0 +1,40 @@
+{
+  "name": "greenlight-core",
+  "version": "0.1.0",
+  "description": "Multi-platform Chat SDK gateway for human-in-the-loop AI agents",
+  "license": "BUSL-1.1",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc && cp src/db/schema.sql dist/db/schema.sql",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@chat-adapter/discord": "^4.32.0",
+    "@chat-adapter/gchat": "^4.32.0",
+    "@chat-adapter/messenger": "^4.32.0",
+    "@chat-adapter/slack": "^4.32.0",
+    "@chat-adapter/state-pg": "^4.32.0",
+    "@chat-adapter/teams": "^4.32.0",
+    "@chat-adapter/telegram": "^4.32.0",
+    "@chat-adapter/whatsapp": "^4.32.0",
+    "@hono/node-server": "^1.14.4",
+    "@hono/zod-validator": "^0.5.0",
+    "chat": "^4.32.0",
+    "hono": "^4.8.3",
+    "pg": "^8.16.0",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.30",
+    "@types/pg": "^8.15.4",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}
