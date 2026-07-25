@@ -126,7 +126,7 @@ docs-site/  — Product documentation (Nextra, port 3001)
 ## Self-host / Dokploy
 
 ```bash
-# Self-host: docker-compose.self-host.yml (+ optional -f docker-compose.docs.yml)
+# Self-host: docker-compose.self-host.yml
 # Swarm: add -c docker-compose.self-host.stack.yml — see docs-site Self-Hosting
 ```
 
