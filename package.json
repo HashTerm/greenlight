@@ -2,6 +2,9 @@
   "name": "greenlight",
   "private": true,
   "license": "BUSL-1.1",
+  "engines": {
+    "node": ">=22"
+  },
   "workspaces": ["core", "ui", "docs-site"],
   "scripts": {
     "dev:core": "npm run dev -w core",

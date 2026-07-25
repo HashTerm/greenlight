@@ -12,7 +12,7 @@
     "test:watch": "vitest"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "dependencies": {
     "@chat-adapter/discord": "^4.32.0",

@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -9,11 +9,11 @@ RUN npm install -w ui
 COPY ui ./ui
 WORKDIR /app/ui
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV DATABASE_URL=postgresql://botstop:botstop@postgres:5432/botstop
+ENV DATABASE_URL=postgresql://greenlight:greenlight@postgres:5432/greenlight
 ENV AUTH_SECRET=build-time-placeholder-not-used-at-runtime
 RUN npm run build
 
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
