@@ -10,17 +10,16 @@ Read [Licensing](/legal/licensing) for self-host permissions and restrictions.
 
 ```bash
 cp .env.example .env
-npm install
-docker compose -f docker-compose.dev.yml up -d postgres
-npm run dev:core    # API on :8100
-npm run dev:ui      # Admin UI on :3000
-npm run dev:docs    # Docs on :3001
+# Edit secrets — for hybrid UI, set GREENLIGHT_API_KEY and GREENLIGHT_ADMIN_TOKEN
+# to match API_KEY and ADMIN_INTERNAL_TOKEN (see .env.example)
+npm run setup       # install + Postgres + migrate
+npm run dev         # core :8100, ui :3000, docs :3001
 ```
 
-Or run the full stack:
+Or run the full containerized stack (Compose maps `GREENLIGHT_*` from core secrets):
 
 ```bash
-docker compose -f docker-compose.dev.yml up -d --build
+npm run docker:full
 ```
 
 ## Tests

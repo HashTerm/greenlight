@@ -7,7 +7,7 @@ Greenlight is source-available under BUSL-1.1 (not OSI open source until the Cha
 ## Docs
 
 - [Introduction](/): Product overview and choose-your-path
-- [Quickstart](/getting-started/quickstart): 5-minute Docker setup
+- [Quickstart](/getting-started/quickstart): Hybrid local setup (Postgres in Docker, apps via npm)
 - [Concepts](/getting-started/concepts): PROMPT vs MESSAGE, auth layers, Chat SDK
 - [Admin UI](/getting-started/admin-ui): Setup, channels, prompts, settings
 - [Docker](/self-hosting/docker): Dev and production Compose

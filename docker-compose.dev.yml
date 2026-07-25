@@ -1,5 +1,14 @@
+# Local development Compose.
+#
+# Default (hybrid): Postgres only — run apps with npm (npm run dev)
+#   docker compose up -d
+#
+# Full containerized stack (smoke / no Node on host):
+#   docker compose --profile full up -d --build
+
 services:
   greenlight:
+    profiles: [full]
     build: ./core
     container_name: greenlight-dev
     restart: unless-stopped
@@ -10,6 +19,8 @@ services:
       USE_AUTH: "true"
       API_KEY: ${API_KEY}
       ADMIN_INTERNAL_TOKEN: ${ADMIN_INTERNAL_TOKEN}
+      # Override host-side localhost URL from .env for in-network access
+      DATABASE_URL: postgresql://greenlight:greenlight@postgres:5432/greenlight
     depends_on:
       postgres:
         condition: service_healthy
@@ -23,6 +34,7 @@ services:
       start_period: 20s
 
   greenlight-ui:
+    profiles: [full]
     build:
       context: .
       dockerfile: ui/Dockerfile
@@ -46,6 +58,7 @@ services:
         condition: service_healthy
 
   greenlight-docs:
+    profiles: [full]
     build:
       context: .
       dockerfile: docs-site/Dockerfile
@@ -63,7 +76,7 @@ services:
     container_name: greenlight-postgres-dev
     restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     environment:
       POSTGRES_USER: greenlight
       POSTGRES_PASSWORD: greenlight

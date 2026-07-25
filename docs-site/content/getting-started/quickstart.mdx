@@ -1,6 +1,6 @@
 # Quickstart
 
-Get Greenlight running locally with Docker in a few minutes.
+Get Greenlight running locally in a few minutes.
 
 ## 1. Clone and configure
 
@@ -14,13 +14,19 @@ cp .env.example .env
 #   AUTH_SECRET
 ```
 
+Or run `npm run setup`, which copies `.env.example` if needed, installs
+dependencies, starts Postgres, and applies migrations.
+
 For local Telegram testing, `PUBLIC_WEBHOOK_URL=http://localhost:8100` is enough
 (Telegram uses long polling when no public HTTPS URL is required).
 
-## 2. Start the stack
+## 2. Start (hybrid — recommended)
+
+Postgres in Docker; API, admin UI, and docs on the host with hot reload:
 
 ```bash
-docker compose -f docker-compose.dev.yml up -d --build
+npm run setup          # first time
+npm run dev
 curl http://localhost:8100/healthz
 ```
 
@@ -29,7 +35,13 @@ curl http://localhost:8100/healthz
 | API + webhooks | http://localhost:8100 |
 | Admin UI | http://localhost:3000 |
 | Docs (this site) | http://localhost:3001 |
-| Postgres | localhost:5432 |
+| Postgres | localhost:5432 (`POSTGRES_PORT` if remapped) |
+
+**Full Docker** (optional):
+
+```bash
+npm run docker:full
+```
 
 ## 3. Create an admin account
 
@@ -82,3 +94,4 @@ You should see the prompt in Telegram. Tap a button to complete the loop.
 - [Platforms](/platforms) — Slack, Teams, Discord, and more
 - [Agent integration](/guides/agent-integration) — verify signed callbacks
 - [Automation platforms](/guides/automation-platforms) — n8n, Zapier, Make, and similar
+- [Docker](/self-hosting/docker) — hybrid vs full stack and self-host Compose

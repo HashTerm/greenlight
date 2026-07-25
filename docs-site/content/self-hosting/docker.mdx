@@ -3,17 +3,52 @@
 Greenlight ships with Compose files for development, self-hosting,
 optional docs, and Swarm.
 
-## Development
+## Development (hybrid — recommended)
+
+Postgres runs in Docker; the API, admin UI, and docs run on the host with
+hot reload.
 
 ```bash
 cp .env.example .env
 # Set API_KEY, ADMIN_INTERNAL_TOKEN, AUTH_SECRET, CALLBACK_SIGNING_SECRET, WEBHOOK_SECRET
 
-docker compose up -d --build
-# same as: docker compose -f docker-compose.dev.yml up -d --build
+npm run setup          # install + start Postgres + migrate
+npm run dev            # core :8100, ui :3000, docs :3001
+curl http://localhost:8100/healthz
 ```
 
-Services:
+`docker compose up -d` (default) starts **Postgres only**. App services use
+Compose profile `full`.
+
+| Service | Host port | Role |
+|---------|-----------|------|
+| `postgres` | 5432 (`POSTGRES_PORT`) | PostgreSQL 16 |
+| npm `dev:core` | 8100 | API + webhooks |
+| npm `dev:ui` | 3000 | Admin UI |
+| npm `dev:docs` | 3001 | Product docs |
+
+Useful commands:
+
+```bash
+npm run infra:up          # start Postgres
+npm run infra:down        # stop Postgres
+npm run infra:reset       # wipe Postgres volume
+npm run db:migrate        # UI admin_users migration
+npm run docker:logs       # logs when using full profile
+```
+
+If `5432` is already in use, set `POSTGRES_PORT=5433` in `.env` and use the
+same port in `DATABASE_URL`.
+
+## Full Docker stack
+
+All services containerized (no host hot reload):
+
+```bash
+npm run docker:full
+# same as: docker compose --profile full up -d --build
+curl http://localhost:8100/healthz
+```
 
 | Service | Host port | Role |
 |---------|-----------|------|
@@ -22,27 +57,9 @@ Services:
 | `greenlight-docs` | 3001 | Product docs |
 | `postgres` | 5432 | PostgreSQL 16 |
 
-Useful commands:
-
 ```bash
-docker compose -f docker-compose.dev.yml ps
-docker compose -f docker-compose.dev.yml logs -f greenlight greenlight-ui greenlight-docs
-curl http://localhost:8100/healthz
-```
-
-## Hybrid local development
-
-Run Postgres (and optionally core) in Docker; run apps with npm:
-
-```bash
-npm install
-cp .env.example .env
-# DATABASE_URL=postgresql://greenlight:greenlight@localhost:5432/greenlight
-
-docker compose -f docker-compose.dev.yml up -d postgres
-npm run dev:core    # API on :8100
-npm run dev:ui      # Admin UI on :3000
-npm run dev:docs    # Docs on :3001
+npm run docker:full:down
+docker compose --profile full logs -f greenlight greenlight-ui greenlight-docs
 ```
 
 ## Migrations
@@ -51,14 +68,14 @@ npm run dev:docs    # Docs on :3001
 |-----------|-----------|------|
 | **core** | `schema.sql` applied on boot | Every start (`prompts`, `channels`, …) |
 | **ui** | Drizzle SQL via Docker entrypoint | Container start (`admin_users`) |
-| **ui (manual)** | `cd ui && npm run db:migrate` | Local hybrid setups |
+| **ui (hybrid)** | `npm run db:migrate` | After `infra:up` / as part of `npm run dev` |
 
 ## Self-host Compose
 
 | File | Role |
 |------|------|
 | `docker-compose.yml` | Default entry — includes `docker-compose.dev.yml` |
-| `docker-compose.dev.yml` | Local development — build all services + host ports |
+| `docker-compose.dev.yml` | Local development — Postgres by default; apps under `full` profile |
 | `docker-compose.self-host.yml` | Self-host — API + UI + Postgres (GHCR images) |
 | `docker-compose.docs.yml` | Optional overlay — adds product docs |
 | `docker-compose.self-host.stack.yml` | Swarm overlay — deploy policies + overlay network |

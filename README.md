@@ -26,18 +26,38 @@
 
 ## Quick start (local dev)
 
+**Hybrid (recommended):** Postgres in Docker, apps with hot reload via npm.
+
 ```bash
 cp .env.example .env
-# Edit .env — set DATABASE_URL, CALLBACK_SIGNING_SECRET, WEBHOOK_SECRET
+# Edit .env — set CALLBACK_SIGNING_SECRET, WEBHOOK_SECRET, API_KEY,
+# ADMIN_INTERNAL_TOKEN, AUTH_SECRET (or use npm run setup)
 
-docker compose -f docker-compose.dev.yml up -d --build
+npm run setup          # install + start Postgres + migrate
+npm run dev            # core :8100, ui :3000, docs :3001
 curl http://localhost:8100/healthz
+```
+
+| Service | URL |
+|---------|-----|
+| API + webhooks | http://localhost:8100 |
+| Admin UI | http://localhost:3000 |
+| Docs | http://localhost:3001 |
+| Postgres | localhost:5432 (`POSTGRES_PORT` if remapped) |
+
+**Full Docker** (no Node hot reload — smoke / demos):
+
+```bash
+npm run docker:full    # docker compose --profile full up -d --build
 ```
 
 Register a channel, then send a prompt:
 
 ```bash
+export API_KEY="$(grep '^API_KEY=' .env | cut -d= -f2)"
+
 curl -X POST http://localhost:8100/register-channel \
+  -H "X-API-Key: $API_KEY" \
   -H 'Content-Type: application/json' \
   -d '{
     "channel_id": "my-telegram-prompts",
@@ -48,6 +68,7 @@ curl -X POST http://localhost:8100/register-channel \
   }'
 
 curl -X POST http://localhost:8100/v1/prompts \
+  -H "X-API-Key: $API_KEY" \
   -H 'Content-Type: application/json' \
   -d '{
     "channel_id": "my-telegram-prompts",
@@ -75,13 +96,12 @@ Full guides: [Quickstart](docs-site/content/getting-started/quickstart.mdx), [Pl
 
 ## Admin UI
 
-Compose includes the optional **greenlight-ui** admin app at `http://localhost:3000`.
-
-1. Start the stack: `docker compose -f docker-compose.dev.yml up -d --build`
+1. Run `npm run dev` (or `npm run docker:full`)
 2. Open `http://localhost:3000/setup` to create the super admin
 3. Sign in at `/login` — manage channels, prompts, and dashboard stats
 
-Hands-on Telegram walkthrough (internal runbook): [docs/USER_SETUP.md](docs/USER_SETUP.md). Canonical product docs live in `docs-site/`.
+Telegram walkthrough: [Quickstart](docs-site/content/getting-started/quickstart.mdx) and
+[Telegram](docs-site/content/platforms/telegram.mdx). Canonical product docs live in `docs-site/`.
 
 ## Repository layout
 
@@ -91,23 +111,23 @@ ui/         — Next.js admin app (port 3000)
 docs-site/  — Product documentation (Nextra, port 3001)
 ```
 
-## Docker / Dokploy
+## Useful npm scripts
+
+| Script | Purpose |
+|--------|---------|
+| `npm run setup` | First-time: `.env`, install, Postgres, migrate |
+| `npm run dev` | Hybrid: infra + core + ui + docs |
+| `npm run infra:up` / `infra:down` | Start/stop Postgres only |
+| `npm run infra:reset` | Wipe Postgres volume |
+| `npm run db:migrate` | Apply UI `admin_users` migration |
+| `npm run docker:full` | Full containerized stack |
+| `npm run docker:full:down` | Stop full stack |
+
+## Self-host / Dokploy
 
 ```bash
-cp .env.example .env
-docker compose up -d --build   # dev (docker-compose.yml → docker-compose.dev.yml)
 # Self-host: docker-compose.self-host.yml (+ optional -f docker-compose.docs.yml)
 # Swarm: add -c docker-compose.self-host.stack.yml — see docs-site Self-Hosting
-```
-
-Local without the app containers:
-
-```bash
-npm install
-docker compose -f docker-compose.dev.yml up -d postgres
-npm run dev:core    # API on :8100
-npm run dev:ui      # Admin UI on :3000
-npm run dev:docs    # Docs on :3001
 ```
 
 ## Contributing

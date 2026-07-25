@@ -16,15 +16,31 @@ Environment variables for `core` and `ui`. Copy `.env.example` as a starting poi
 | `WEBHOOK_SECRET` | core | Platform webhook verification secret |
 | `DEFAULT_PROMPT_CHANNEL_ID` | core | Optional default when prompts omit `channel_id` |
 
-## Security
+## Security (core)
 
 | Variable | Used by | Default / notes |
 |----------|---------|-----------------|
 | `CALLBACK_SIGNING_SECRET` | core | HMAC secret for prompt answer callbacks |
-| `USE_AUTH` | core | `false` in `.env.example`; set `true` to require `X-API-Key`. Dev Compose often forces `true` |
-| `API_KEY` | core, ui | Agent API key (required when `USE_AUTH=true`) |
-| `ADMIN_INTERNAL_TOKEN` | core, ui | Admin API token. If unset, `/admin/v1/*` is not mounted |
-| `AUTH_SECRET` | ui | NextAuth session secret |
+| `USE_AUTH` | core | Set `true` to require `X-API-Key`. Dev Compose often forces `true` |
+| `API_KEY` | core | Agent API key (required when `USE_AUTH=true`) |
+| `ADMIN_INTERNAL_TOKEN` | core | Admin API token. If unset, `/admin/v1/*` is not mounted |
+
+## Admin UI
+
+The UI talks to core with **`GREENLIGHT_*`** names (not `API_KEY` / `ADMIN_INTERNAL_TOKEN` directly).
+
+| Variable | Purpose |
+|----------|---------|
+| `GREENLIGHT_API_URL` | Core base URL (default `http://localhost:8100`) |
+| `GREENLIGHT_API_KEY` | Sent as `X-API-Key` — must match core `API_KEY` |
+| `GREENLIGHT_ADMIN_TOKEN` | Sent as `X-Admin-Token` — must match core `ADMIN_INTERNAL_TOKEN` |
+| `AUTH_SECRET` | NextAuth session secret |
+| `DATABASE_URL` | Same Postgres as core (admin users table) |
+| `PUBLIC_WEBHOOK_URL` | Shown on channel detail pages |
+
+**Hybrid `npm run dev`:** set `GREENLIGHT_*` in the root `.env` (see `.env.example`). Values should match `API_KEY` and `ADMIN_INTERNAL_TOKEN`.
+
+**Docker / self-host Compose:** injects `GREENLIGHT_API_KEY` and `GREENLIGHT_ADMIN_TOKEN` from `API_KEY` and `ADMIN_INTERNAL_TOKEN` — you do not need duplicate entries in the container env file.
 
 ## Media
 

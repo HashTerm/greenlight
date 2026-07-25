@@ -8,7 +8,7 @@ dashboard stats. It talks to the core API server-side:
 
 ## First-time setup
 
-1. Start the stack (`docker compose -f docker-compose.dev.yml up -d --build`)
+1. Start the stack (`npm run dev` or `npm run docker:full`)
 2. Open **http://localhost:3000/setup**
 3. Create the super admin (email + password, min 8 characters)
 4. Sign in at **/login**
@@ -59,9 +59,13 @@ Webhook pattern:
 | Variable | Purpose |
 |----------|---------|
 | `DATABASE_URL` | Same Postgres as core (admin users table) |
-| `API_KEY` | Calls Agent API |
-| `ADMIN_INTERNAL_TOKEN` | Calls Admin API |
+| `GREENLIGHT_API_URL` | Core base URL (default `http://localhost:8100`) |
+| `GREENLIGHT_API_KEY` | Calls Agent API (`X-API-Key`) — match core `API_KEY` |
+| `GREENLIGHT_ADMIN_TOKEN` | Calls Admin API (`X-Admin-Token`) — match core `ADMIN_INTERNAL_TOKEN` |
 | `AUTH_SECRET` | NextAuth sessions |
+
+For hybrid `npm run dev`, set `GREENLIGHT_*` in the root `.env`. Docker Compose
+maps them from `API_KEY` / `ADMIN_INTERNAL_TOKEN` automatically.
 
 See [Configuration](/self-hosting/configuration) for the full list.
 

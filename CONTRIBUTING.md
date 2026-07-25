@@ -11,21 +11,35 @@ what is reserved for enterprise, and what uses are not allowed.
 
 ## Development setup
 
+**Hybrid (recommended):** Postgres in Docker, apps with npm hot reload.
+
 ```bash
 cp .env.example .env
 # Set CALLBACK_SIGNING_SECRET, WEBHOOK_SECRET, API_KEY, ADMIN_INTERNAL_TOKEN, AUTH_SECRET
 
-npm install
-docker compose -f docker-compose.dev.yml up -d postgres
-npm run dev:core    # API on :8100
-npm run dev:ui      # Admin UI on :3000
+npm run setup       # install + Postgres + migrate
+npm run dev         # core :8100, ui :3000, docs :3001
 ```
 
-Or run the full stack:
+Or step by step:
 
 ```bash
-docker compose -f docker-compose.dev.yml up -d --build
+npm install
+npm run infra:up
+npm run db:migrate
+npm run dev:core    # API on :8100
+npm run dev:ui      # Admin UI on :3000
+npm run dev:docs    # Docs on :3001
 ```
+
+**Full Docker** (optional smoke / no hot reload):
+
+```bash
+npm run docker:full
+```
+
+If host port `5432` is taken (e.g. Postgres.app), set `POSTGRES_PORT=5433` in
+`.env` and match the port in `DATABASE_URL`.
 
 ## Tests
 

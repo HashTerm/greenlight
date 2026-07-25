@@ -7,10 +7,22 @@
   },
   "workspaces": ["core", "ui", "docs-site"],
   "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "infra:up": "docker compose up -d postgres",
+    "infra:down": "docker compose stop postgres",
+    "infra:reset": "docker compose down -v",
+    "db:migrate": "node --env-file=.env ui/scripts/migrate.mjs",
+    "dev": "npm run infra:up && node scripts/wait-for-postgres.mjs && npm run db:migrate && concurrently -n core,ui,docs -c blue,green,magenta \"npm run dev:core\" \"npm run dev:ui\" \"npm run dev:docs\"",
     "dev:core": "npm run dev -w core",
     "dev:ui": "npm run dev -w ui",
     "dev:docs": "npm run dev --prefix docs-site",
+    "docker:full": "docker compose --profile full up -d --build",
+    "docker:full:down": "docker compose --profile full down",
+    "docker:logs": "docker compose --profile full logs -f",
     "build": "npm run build -w core && npm run build -w ui && npm run build -w docs-site",
     "test": "npm run test -w core"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
   }
 }
