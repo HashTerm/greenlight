@@ -17,7 +17,7 @@
 </p>
 
 <p align="center">
-  Built with <a href="https://chat-sdk.dev/">Chat SDK</a>. Platform credentials are registered per channel via API (not global env vars).
+  Platform credentials are registered per channel via API (not global env vars).
 </p>
 
 <p align="center">

@@ -1,6 +1,6 @@
 # Architecture
 
-Greenlight is a small gateway: HTTP API + Chat SDK bots + Postgres.
+Greenlight is a small gateway: HTTP API + platform bots + Postgres.
 
 ```mermaid
 %%{init: {'theme': 'neutral'}}%%
@@ -14,7 +14,7 @@ flowchart LR
   agent -->|X-API-Key| core
   ui -->|"X-API-Key and X-Admin-Token"| core
   core --> db
-  core <-->|Chat SDK adapters| platforms
+  core <-->|adapters| platforms
   core -->|signed prompt callbacks| agent
   core -->|message.created| agent
   platforms -->|webhooks or polling| core

@@ -11,7 +11,7 @@ flowchart LR
   chat[Telegram, Slack, Teams, …]
 
   agent -->|HTTP API| core
-  core -->|Chat SDK| chat
+  core -->|platform adapters| chat
   core --> db
   chat -->|answers and messages| core
   core -->|signed callbacks| agent
@@ -99,8 +99,7 @@ Prompt IDs look like `#123`. In URLs, encode as `%23123`.
 
 See [Callbacks](/guides/callbacks) for payload shapes and verification.
 
-## Chat SDK
+## Platform adapters
 
-Greenlight uses [Chat SDK](https://chat-sdk.dev/) adapters under the hood.
 You do not import platform SDKs yourself for basic flows — register credentials
 via the API and Greenlight starts/stops bots per channel.
