@@ -8,6 +8,7 @@ const layoutAlias = path.join(projectDir, 'lib/nextra-layout.js')
 
 const withNextra = nextra({
   search: true,
+  defaultShowCopyCode: true,
 })
 
 export default withNextra({
