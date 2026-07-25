@@ -1,24 +1,9 @@
 # Greenlight Docs Site
 
-Public **documentation site** for Greenlight: guides, self-host setup, and API
-reference. This is a workspace inside the community monorepo (`core/`, `ui/`,
-`docs-site/`).
+Public documentation for Greenlight: getting started, self-hosting, platform
+guides, agent integration, and API reference.
 
-## Status
-
-Placeholder only — no app scaffold yet.
-
-## Intended stack (later)
-
-- Next.js docs generator such as **Fumadocs** or **Nextra**
-- MDX for guides
-- OpenAPI from `../core` for the API reference (Scalar / similar)
-
-## Content sources
-
-- Guides: MDX in this workspace
-- API: generated from OpenAPI exported by the community gateway (`../core`)
-- Keep the monorepo root `README.md` as a short quickstart that points here
+Built with [Nextra 4](https://nextra.site) and Next.js App Router.
 
 ## Develop
 
@@ -27,3 +12,25 @@ Placeholder only — no app scaffold yet.
 npm install
 npm run dev:docs
 ```
+
+Docs run on **http://localhost:3001** (admin UI stays on `:3000`).
+
+## Content
+
+MDX lives in `content/`. Sidebar order is controlled by `_meta.ts` files.
+
+## OpenAPI
+
+```bash
+npm run sync:openapi -w docs-site
+```
+
+Copies the enriched OpenAPI document from `core` into `public/openapi.json`.
+This runs automatically on `npm run build`.
+
+## Stack
+
+- Nextra 4 + `nextra-theme-docs`
+- Next.js 15 App Router
+- MDX content in `content/`
+- OpenAPI from `../core`

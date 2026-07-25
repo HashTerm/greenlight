@@ -1,0 +1,700 @@
+/**
+ * OpenAPI 3.0 document for Greenlight Agent + Admin APIs.
+ * Served at GET /openapi.json when ENABLE_DOCS=true.
+ * Also synced into docs-site/public/openapi.json.
+ */
+export function getOpenApiDocument(): Record<string, unknown> {
+  return {
+    openapi: "3.0.3",
+    info: {
+      title: "Greenlight — Multi-Platform Prompt & Channel Gateway",
+      version: "0.1.0",
+      description:
+        "Self-hosted HTTP gateway for human-in-the-loop AI agents across Telegram, Slack, Teams, Discord, Google Chat, WhatsApp, and Messenger.",
+      license: {
+        name: "BUSL-1.1",
+        url: "https://spdx.org/licenses/BUSL-1.1.html",
+      },
+    },
+    servers: [
+      {
+        url: "http://localhost:8100",
+        description: "Local development",
+      },
+      {
+        url: "https://{host}",
+        description: "Self-hosted production (PUBLIC_WEBHOOK_URL origin)",
+        variables: {
+          host: {
+            default: "api.example.com",
+            description: "Your Greenlight host (no scheme)",
+          },
+        },
+      },
+    ],
+    tags: [
+      { name: "Health" },
+      { name: "Prompts" },
+      { name: "Channels" },
+      { name: "Webhooks" },
+      { name: "Admin" },
+    ],
+    components: {
+      securitySchemes: {
+        ApiKeyAuth: {
+          type: "apiKey",
+          in: "header",
+          name: "X-API-Key",
+          description:
+            "Agent API key. Required when USE_AUTH=true. Never use on Admin routes.",
+        },
+        AdminToken: {
+          type: "apiKey",
+          in: "header",
+          name: "X-Admin-Token",
+          description:
+            "Admin API token (ADMIN_INTERNAL_TOKEN). Required for /admin/v1/*. Routes are only mounted when the token is configured.",
+        },
+      },
+      schemas: {
+        Error: {
+          type: "object",
+          required: ["detail"],
+          properties: {
+            detail: { type: "string" },
+          },
+        },
+        Platform: {
+          type: "string",
+          enum: [
+            "telegram",
+            "slack",
+            "teams",
+            "discord",
+            "gchat",
+            "whatsapp",
+            "messenger",
+          ],
+        },
+        ChannelType: {
+          type: "string",
+          enum: ["MESSAGE", "PROMPT"],
+          default: "MESSAGE",
+        },
+        CreatePromptRequest: {
+          type: "object",
+          required: ["text"],
+          properties: {
+            channel_id: {
+              type: "string",
+              nullable: true,
+              description:
+                "Target PROMPT channel. Optional if DEFAULT_PROMPT_CHANNEL_ID is set.",
+            },
+            text: { type: "string", maxLength: 4096 },
+            options: {
+              type: "array",
+              items: { type: "string", maxLength: 64 },
+              maxItems: 10,
+              nullable: true,
+              description: "Button labels. Max 3 on WhatsApp/Messenger.",
+            },
+            allow_text: {
+              type: "boolean",
+              default: false,
+              description: "Allow free-text replies matching ID:#N patterns.",
+            },
+            callback_url: {
+              type: "string",
+              nullable: true,
+              description: "HTTPS URL for signed answer callbacks.",
+            },
+            correlation_id: {
+              type: "string",
+              maxLength: 255,
+              nullable: true,
+            },
+            ttl_sec: {
+              type: "integer",
+              minimum: 0,
+              maximum: 604800,
+              nullable: true,
+              description: "Default 3600.",
+            },
+            media_url: { type: "string", nullable: true },
+            media_path: {
+              type: "string",
+              nullable: true,
+              description: "Path under MEDIA_ALLOWED_DIR.",
+            },
+          },
+        },
+        CreatePromptResponse: {
+          type: "object",
+          required: ["prompt_id", "channel_id", "message_id"],
+          properties: {
+            prompt_id: {
+              type: "string",
+              example: "#123",
+              description: "Prompt id including leading #.",
+            },
+            channel_id: { type: "string" },
+            message_id: {
+              oneOf: [{ type: "string" }, { type: "integer" }],
+              description: "Platform message identifier.",
+            },
+          },
+        },
+        Prompt: {
+          type: "object",
+          properties: {
+            id: { type: "string", example: "#123" },
+            prompt_num: { type: "integer" },
+            chat_id: { type: "string" },
+            text: { type: "string" },
+            media_url: { type: "string", nullable: true },
+            options: {
+              type: "array",
+              items: { type: "string" },
+            },
+            allow_text: { type: "boolean" },
+            callback_url: { type: "string", nullable: true },
+            correlation_id: { type: "string", nullable: true },
+            state: {
+              type: "string",
+              enum: ["pending", "answered", "expired"],
+            },
+            created_at: { type: "string", format: "date-time" },
+            expires_at: { type: "string", format: "date-time", nullable: true },
+            answered_at: {
+              type: "string",
+              format: "date-time",
+              nullable: true,
+            },
+            answered_by_id: { type: "string", nullable: true },
+            answered_by_username: { type: "string", nullable: true },
+            answer: { type: "string", nullable: true },
+          },
+        },
+        RegisterChannelRequest: {
+          type: "object",
+          required: [
+            "channel_id",
+            "platform",
+            "target_chat_id",
+            "credentials",
+          ],
+          properties: {
+            channel_id: { type: "string", minLength: 1 },
+            platform: { $ref: "#/components/schemas/Platform" },
+            target_chat_id: { type: "string", minLength: 1 },
+            credentials: {
+              type: "object",
+              additionalProperties: { type: "string" },
+              description:
+                "Platform-specific credential map (bot_token, signing_secret, etc.).",
+            },
+            callback_url: {
+              type: "string",
+              nullable: true,
+              description: "Required when channel_type is MESSAGE.",
+            },
+            channel_type: { $ref: "#/components/schemas/ChannelType" },
+          },
+        },
+        RegisterChannelResponse: {
+          type: "object",
+          required: ["status"],
+          properties: {
+            status: { type: "string" },
+          },
+        },
+        SendMessageRequest: {
+          type: "object",
+          required: ["channel_id", "text"],
+          properties: {
+            channel_id: { type: "string" },
+            text: { type: "string" },
+          },
+        },
+        Channel: {
+          type: "object",
+          properties: {
+            channel_id: { type: "string" },
+            platform: { $ref: "#/components/schemas/Platform" },
+            target_chat_id: { type: "string" },
+            channel_type: { $ref: "#/components/schemas/ChannelType" },
+            is_active: { type: "boolean" },
+            callback_url: { type: "string", nullable: true },
+          },
+        },
+        AdminStatus: {
+          type: "object",
+          properties: {
+            status: { type: "string", enum: ["ok", "error"] },
+            database: { type: "string" },
+            channels_active: { type: "integer" },
+            prompts_pending: { type: "integer" },
+            prompts_answered_24h: { type: "integer" },
+            platforms: {
+              type: "object",
+              additionalProperties: { type: "integer" },
+            },
+          },
+        },
+        MessageCreatedEvent: {
+          type: "object",
+          description: "Unsigned MESSAGE channel callback payload.",
+          properties: {
+            type: { type: "string", enum: ["message.created"] },
+            platform: { $ref: "#/components/schemas/Platform" },
+            channel_id: { type: "string" },
+            from: { type: "string" },
+            text: { type: "string" },
+          },
+        },
+      },
+    },
+    paths: {
+      "/healthz": {
+        get: {
+          tags: ["Health"],
+          summary: "Health check",
+          security: [],
+          responses: {
+            "200": {
+              description: "Service is up",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      status: { type: "string", example: "ok" },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/v1/prompts": {
+        post: {
+          tags: ["Prompts"],
+          summary: "Create and send a prompt",
+          security: [{ ApiKeyAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/CreatePromptRequest" },
+              },
+            },
+          },
+          responses: {
+            "200": {
+              description: "Prompt created and posted",
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "#/components/schemas/CreatePromptResponse",
+                  },
+                },
+              },
+            },
+            "400": {
+              description: "Validation or business error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/Error" },
+                },
+              },
+            },
+            "401": {
+              description: "Missing or invalid API key",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/Error" },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/v1/prompts/upload": {
+        post: {
+          tags: ["Prompts"],
+          summary: "Create prompt with multipart file upload",
+          security: [{ ApiKeyAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              "multipart/form-data": {
+                schema: {
+                  type: "object",
+                  required: ["text"],
+                  properties: {
+                    text: { type: "string" },
+                    channel_id: { type: "string" },
+                    options: {
+                      type: "string",
+                      description: "JSON array of option strings",
+                    },
+                    allow_text: { type: "string" },
+                    callback_url: { type: "string" },
+                    correlation_id: { type: "string" },
+                    ttl_sec: { type: "string" },
+                    media_url: { type: "string" },
+                    file: { type: "string", format: "binary" },
+                  },
+                },
+              },
+            },
+          },
+          responses: {
+            "200": {
+              description: "Prompt created",
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "#/components/schemas/CreatePromptResponse",
+                  },
+                },
+              },
+            },
+            "400": {
+              description: "Validation error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/Error" },
+                },
+              },
+            },
+            "401": {
+              description: "Unauthorized",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/Error" },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/v1/prompts/pending": {
+        get: {
+          tags: ["Prompts"],
+          summary: "List unanswered prompts",
+          security: [{ ApiKeyAuth: [] }],
+          responses: {
+            "200": {
+              description: "Pending prompts",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "array",
+                    items: { $ref: "#/components/schemas/Prompt" },
+                  },
+                },
+              },
+            },
+            "401": {
+              description: "Unauthorized",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/Error" },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/v1/prompts/{id}": {
+        get: {
+          tags: ["Prompts"],
+          summary: "Get prompt by id",
+          description: "Encode `#` as `%23` (e.g. `%23123` for `#123`).",
+          security: [{ ApiKeyAuth: [] }],
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              schema: { type: "string", example: "%23123" },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "Prompt found",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/Prompt" },
+                },
+              },
+            },
+            "404": {
+              description: "Not found",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/Error" },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/register-channel": {
+        post: {
+          tags: ["Channels"],
+          summary: "Register or update a channel",
+          security: [{ ApiKeyAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  $ref: "#/components/schemas/RegisterChannelRequest",
+                },
+              },
+            },
+          },
+          responses: {
+            "200": {
+              description: "Channel registered or updated",
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "#/components/schemas/RegisterChannelResponse",
+                  },
+                },
+              },
+            },
+            "400": {
+              description: "Validation error",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/Error" },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/send": {
+        post: {
+          tags: ["Channels"],
+          summary: "Send a message via channel",
+          security: [{ ApiKeyAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: { $ref: "#/components/schemas/SendMessageRequest" },
+              },
+            },
+          },
+          responses: {
+            "200": {
+              description: "Sent",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      status: { type: "string", example: "sent" },
+                    },
+                  },
+                },
+              },
+            },
+            "404": {
+              description: "Channel not found",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/Error" },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/channels": {
+        get: {
+          tags: ["Channels"],
+          summary: "List active channels",
+          security: [{ ApiKeyAuth: [] }],
+          responses: {
+            "200": {
+              description: "Active channels",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "array",
+                    items: { $ref: "#/components/schemas/Channel" },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/channels/{id}": {
+        delete: {
+          tags: ["Channels"],
+          summary: "Unregister channel",
+          security: [{ ApiKeyAuth: [] }],
+          parameters: [
+            {
+              name: "id",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "Unregistered",
+              content: {
+                "application/json": {
+                  schema: {
+                    $ref: "#/components/schemas/RegisterChannelResponse",
+                  },
+                },
+              },
+            },
+            "404": {
+              description: "Not found",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/Error" },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/webhooks/{platform}/{channelId}": {
+        get: {
+          tags: ["Webhooks"],
+          summary: "Platform webhook verification (WhatsApp, Messenger)",
+          security: [],
+          parameters: [
+            {
+              name: "platform",
+              in: "path",
+              required: true,
+              schema: { $ref: "#/components/schemas/Platform" },
+            },
+            {
+              name: "channelId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+            },
+          ],
+          responses: {
+            "200": { description: "Verification challenge response" },
+          },
+        },
+        post: {
+          tags: ["Webhooks"],
+          summary: "Platform webhook handler",
+          security: [],
+          parameters: [
+            {
+              name: "platform",
+              in: "path",
+              required: true,
+              schema: { $ref: "#/components/schemas/Platform" },
+            },
+            {
+              name: "channelId",
+              in: "path",
+              required: true,
+              schema: { type: "string" },
+            },
+          ],
+          responses: {
+            "200": { description: "Event accepted" },
+          },
+        },
+      },
+      "/admin/v1/status": {
+        get: {
+          tags: ["Admin"],
+          summary: "Deep health / operator status",
+          description:
+            "Only available when ADMIN_INTERNAL_TOKEN is set (otherwise 404).",
+          security: [{ AdminToken: [] }],
+          responses: {
+            "200": {
+              description: "Status payload",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/AdminStatus" },
+                },
+              },
+            },
+            "401": {
+              description: "Invalid admin token",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/Error" },
+                },
+              },
+            },
+          },
+        },
+      },
+      "/admin/v1/prompts": {
+        get: {
+          tags: ["Admin"],
+          summary: "List prompts for operators",
+          security: [{ AdminToken: [] }],
+          parameters: [
+            {
+              name: "state",
+              in: "query",
+              schema: {
+                type: "string",
+                enum: ["pending", "answered", "expired", "all"],
+                default: "all",
+              },
+            },
+            {
+              name: "limit",
+              in: "query",
+              schema: {
+                type: "integer",
+                minimum: 1,
+                maximum: 200,
+                default: 50,
+              },
+            },
+          ],
+          responses: {
+            "200": {
+              description: "Prompt history",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "array",
+                    items: { $ref: "#/components/schemas/Prompt" },
+                  },
+                },
+              },
+            },
+            "401": {
+              description: "Invalid admin token",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/Error" },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+}

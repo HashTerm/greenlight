@@ -1,0 +1,45 @@
+# API-only mode
+
+Run Greenlight without the Admin UI when agents and scripts are your only
+clients.
+
+## Compose
+
+Remove (or comment out) the `greenlight-ui` service from `docker-compose.yml`.
+You can also omit `ADMIN_INTERNAL_TOKEN` on the `greenlight` service — Admin API
+routes will not be mounted.
+
+The gateway on port **8100** is unchanged:
+
+- `POST /register-channel`
+- `POST /v1/prompts`
+- `GET /channels`
+- Platform webhooks under `/webhooks/...`
+
+## Auth
+
+For production, set:
+
+```env
+USE_AUTH=true
+API_KEY=replace-with-a-strong-random-api-key
+CALLBACK_SIGNING_SECRET=replace-with-a-strong-random-string
+WEBHOOK_SECRET=replace-with-a-strong-random-string
+PUBLIC_WEBHOOK_URL=https://api.example.com
+```
+
+All agent routes then require `X-API-Key`.
+
+## Managing channels without the UI
+
+```bash
+curl -X POST https://api.example.com/register-channel \
+  -H "X-API-Key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{ ... }'
+
+curl https://api.example.com/channels \
+  -H "X-API-Key: $API_KEY"
+```
+
+See [Agent API](/api-reference/agent-api) for the full surface.

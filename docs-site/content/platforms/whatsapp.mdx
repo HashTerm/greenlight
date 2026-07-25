@@ -1,0 +1,47 @@
+# WhatsApp
+
+WhatsApp Business Cloud API uses Meta webhooks (GET verification + POST events).
+Prompts support at most **3** button options.
+
+## Setup
+
+1. Create a Meta WhatsApp Business app
+2. Copy access token, app secret, and phone number ID
+3. Choose a `verify_token` string and configure the Callback URL in Meta
+4. Use the user WhatsApp ID (phone without `+`) as `target_chat_id`
+
+## Register
+
+```json
+{
+  "channel_id": "support-wa",
+  "platform": "whatsapp",
+  "target_chat_id": "15551234567",
+  "credentials": {
+    "access_token": "...",
+    "app_secret": "...",
+    "phone_number_id": "...",
+    "verify_token": "my-verify-secret"
+  },
+  "callback_url": "https://agent.example/hook",
+  "channel_type": "MESSAGE"
+}
+```
+
+### Credentials
+
+| Field | Required |
+|-------|----------|
+| `access_token` | Yes |
+| `app_secret` | Yes |
+| `phone_number_id` | Yes |
+| `verify_token` | Yes (must match Meta) |
+
+## Webhook URL
+
+```
+{PUBLIC_WEBHOOK_URL}/webhooks/whatsapp/{channel_id}
+```
+
+Meta calls `GET` for verification and `POST` for message events. The
+`verify_token` in credentials must match what you enter in the Meta app.

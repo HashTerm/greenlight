@@ -2,10 +2,26 @@
   "name": "greenlight-docs-site",
   "version": "0.0.0",
   "private": true,
-  "description": "Placeholder for Greenlight product docs site (Fumadocs/Nextra)",
+  "description": "Greenlight product documentation site",
   "license": "BUSL-1.1",
   "scripts": {
-    "dev": "echo \"docs-site scaffold not yet implemented\"",
-    "build": "echo \"docs-site scaffold not yet implemented\""
+    "dev": "next dev --port 3001",
+    "prebuild": "node scripts/sync-openapi.mjs",
+    "build": "next build",
+    "start": "next start --port 3001",
+    "sync:openapi": "node scripts/sync-openapi.mjs"
+  },
+  "dependencies": {
+    "next": "15.5.20",
+    "nextra": "^4.6.1",
+    "nextra-theme-docs": "^4.6.1",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "typescript": "^5"
   }
 }

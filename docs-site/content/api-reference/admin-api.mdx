@@ -1,0 +1,59 @@
+# Admin API
+
+Mounted at `/admin/v1` **only when** `ADMIN_INTERNAL_TOKEN` is set. Otherwise
+these routes return **404**.
+
+Authenticate with:
+
+```http
+X-Admin-Token: <ADMIN_INTERNAL_TOKEN>
+```
+
+Do **not** send `X-API-Key` here — it will be rejected.
+
+## `GET /admin/v1/status`
+
+Deep health for operators and the Admin UI dashboard.
+
+### Response `200`
+
+```json
+{
+  "status": "ok",
+  "database": "ok",
+  "channels_active": 2,
+  "prompts_pending": 1,
+  "prompts_answered_24h": 4,
+  "platforms": {
+    "telegram": 1,
+    "slack": 1
+  }
+}
+```
+
+On database failure the endpoint still returns `200` with `"status": "error"`
+and zeroed counters.
+
+## `GET /admin/v1/prompts`
+
+Prompt history for operators.
+
+### Query
+
+| Param | Type | Default | Notes |
+|-------|------|---------|-------|
+| `state` | string | `all` | `pending` \| `answered` \| `expired` \| `all` |
+| `limit` | int | `50` | 1–200 |
+
+### Response
+
+Array of prompt records including `id`, `prompt_num`, `text`, `state`,
+`options`, `answer`, and timestamps.
+
+## Errors
+
+| Status | Meaning |
+|--------|---------|
+| 401 | Missing/invalid `X-Admin-Token` |
+| 404 | Admin API not mounted |
+| 503 | Admin middleware misconfigured |

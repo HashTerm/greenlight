@@ -1,5 +1,10 @@
 # Greenlight — steps that need you
 
+> **Note:** Canonical product documentation lives in [`docs-site/`](../docs-site/)
+> (`npm run dev:docs` → http://localhost:3001). This file remains as an internal
+> hands-on runbook (Telegram / local secrets). Prefer the docs site for setup,
+> platforms, and API reference.
+
 Local dev stack is running via Docker. Secrets are in `.env` (recreated for this session).  
 **Do not commit `.env`** — it contains your API keys.
 

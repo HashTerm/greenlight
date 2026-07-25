@@ -1,0 +1,35 @@
+# OpenAPI
+
+Greenlight publishes an OpenAPI 3 document for the Agent and Admin HTTP APIs.
+
+## Live from core
+
+When `ENABLE_DOCS=true` on the gateway:
+
+```bash
+curl http://localhost:8100/openapi.json
+```
+
+## Static copy in this docs site
+
+This documentation build ships a synced copy:
+
+- Download: [`/openapi.json`](/openapi.json)
+
+Regenerate from the monorepo:
+
+```bash
+npm run sync:openapi -w docs-site
+```
+
+The sync script imports the OpenAPI document from `core` (same schema served by
+`GET /openapi.json`).
+
+## Using the spec
+
+Import into Postman, Insomnia, Scalar, or Redoc. Prefer the hand-written pages
+for narrative context:
+
+- [Agent API](/api-reference/agent-api)
+- [Admin API](/api-reference/admin-api)
+- [Webhooks](/api-reference/webhooks)

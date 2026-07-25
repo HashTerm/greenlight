@@ -1,0 +1,44 @@
+# Discord
+
+Discord uses Interactions (webhook) plus a Gateway listener when
+`PUBLIC_WEBHOOK_URL` is set.
+
+## Setup
+
+1. Create a Discord application and bot
+2. Copy **bot token**, **public key**, and **application ID**
+3. Set Interactions Endpoint URL to your Greenlight webhook URL
+4. Invite the bot to your server
+5. Use the text channel ID as `target_chat_id`
+
+## Register
+
+```json
+{
+  "channel_id": "ops-discord",
+  "platform": "discord",
+  "target_chat_id": "123456789012345678",
+  "credentials": {
+    "bot_token": "...",
+    "public_key": "...",
+    "application_id": "..."
+  },
+  "channel_type": "PROMPT"
+}
+```
+
+### Credentials
+
+| Field | Required |
+|-------|----------|
+| `bot_token` | Yes |
+| `public_key` | Yes |
+| `application_id` | Yes |
+
+## Webhook URL
+
+```
+{PUBLIC_WEBHOOK_URL}/webhooks/discord/{channel_id}
+```
+
+Set this as the Interactions Endpoint URL in the Discord developer portal.

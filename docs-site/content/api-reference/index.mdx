@@ -1,0 +1,42 @@
+# API Reference
+
+Greenlight exposes an HTTP API on the core service (default port **8100**).
+
+## Base URL
+
+| Environment | Example |
+|-------------|---------|
+| Local Docker | `http://localhost:8100` |
+| Production | `https://api.example.com` (`PUBLIC_WEBHOOK_URL`) |
+
+## Auth summary
+
+| API | Header | When |
+|-----|--------|------|
+| Agent | `X-API-Key: <API_KEY>` | When `USE_AUTH=true` |
+| Admin | `X-Admin-Token: <ADMIN_INTERNAL_TOKEN>` | Always, if Admin API is mounted |
+| Health / webhooks / OpenAPI | None | Public |
+
+Admin routes are only mounted when `ADMIN_INTERNAL_TOKEN` is set.
+
+## Error shape
+
+Most application errors return:
+
+```json
+{ "detail": "Invalid or missing API key" }
+```
+
+Zod validation failures from `@hono/zod-validator` may return structured Zod
+issues with status `400`.
+
+## Sections
+
+- [Agent API](/api-reference/agent-api) — prompts, channels, send
+- [Admin API](/api-reference/admin-api) — status and prompt history
+- [Webhooks](/api-reference/webhooks) — inbound platform endpoints
+- [OpenAPI](/api-reference/openapi) — machine-readable spec
+
+Interactive OpenAPI document (when enabled on core): `GET /openapi.json`
+(`ENABLE_DOCS=true`). A static copy ships with this docs site at
+[`/openapi.json`](/openapi.json).

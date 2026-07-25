@@ -1,0 +1,45 @@
+# Messenger
+
+Facebook Messenger uses Meta Page webhooks. Prompts support at most **3**
+button options.
+
+## Setup
+
+1. Create a Facebook Page app with the Messenger product
+2. Generate a page access token
+3. Choose a `verify_token` and configure the Callback URL
+4. Use the recipient Page-Scoped ID (PSID) as `target_chat_id`
+
+## Register
+
+```json
+{
+  "channel_id": "support-fb",
+  "platform": "messenger",
+  "target_chat_id": "27161130920158013",
+  "credentials": {
+    "page_access_token": "...",
+    "app_secret": "...",
+    "verify_token": "my-verify-secret"
+  },
+  "callback_url": "https://agent.example/hook",
+  "channel_type": "MESSAGE"
+}
+```
+
+### Credentials
+
+| Field | Required |
+|-------|----------|
+| `page_access_token` | Yes |
+| `app_secret` | Yes |
+| `verify_token` | Yes (must match Meta) |
+
+## Webhook URL
+
+```
+{PUBLIC_WEBHOOK_URL}/webhooks/messenger/{channel_id}
+```
+
+Subscribe to message events for the Page. Meta verifies with `GET` using your
+`verify_token`, then delivers messages via `POST`.

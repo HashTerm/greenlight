@@ -1,0 +1,70 @@
+# Telegram
+
+Telegram is the fastest path for local development. Without a public HTTPS URL,
+Greenlight uses **long polling**. When `PUBLIC_WEBHOOK_URL` is set, Greenlight
+calls `setWebhook` automatically.
+
+## 1. Create a bot
+
+1. Message [@BotFather](https://t.me/BotFather)
+2. Send `/newbot` and follow the prompts
+3. Copy the **bot token** (`123456789:AAH…`)
+
+Keep the token out of git — paste it only into Greenlight.
+
+## 2. Add the bot to a chat
+
+**Group (recommended for prompts)**
+
+1. Create or open a group
+2. Add the bot
+3. Optionally promote it to admin if it must see all messages
+
+**Private chat**
+
+1. Open the bot and press **Start**
+2. Use your user ID as `target_chat_id`
+
+## 3. Get `target_chat_id`
+
+- Forward a group message to `@userinfobot` / `@getidsbot`, or
+- Send a message, then open
+  `https://api.telegram.org/botTOKEN/getUpdates` and read
+  `"chat":{"id": -100…}` (negative for groups)
+
+## 4. Register the channel
+
+```bash
+curl -X POST http://localhost:8100/register-channel \
+  -H "X-API-Key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channel_id": "my-telegram-prompts",
+    "platform": "telegram",
+    "target_chat_id": "-1001234567890",
+    "credentials": { "bot_token": "YOUR_BOT_TOKEN" },
+    "channel_type": "PROMPT"
+  }'
+```
+
+### Credentials
+
+| Field | Required |
+|-------|----------|
+| `bot_token` | Yes |
+
+## 5. Webhook URL
+
+```
+{PUBLIC_WEBHOOK_URL}/webhooks/telegram/{channel_id}
+```
+
+Local `.env` with `PUBLIC_WEBHOOK_URL=http://localhost:8100` is fine for polling.
+
+## Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| `AuthenticationError` / `AUTH_FAILED` | Invalid `bot_token` — recreate with BotFather |
+| Bot silent in group | Add bot to group; confirm `target_chat_id` |
+| No updates | Ensure the bot can see messages (privacy mode / admin) |

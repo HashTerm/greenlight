@@ -1,0 +1,62 @@
+# Callbacks
+
+Greenlight notifies your agent when prompts are answered or when inbound
+messages arrive on `MESSAGE` channels.
+
+## Prompt answer callbacks (signed)
+
+Delivered to the prompt's `callback_url` as `POST` with:
+
+```http
+X-Signature: sha256=<hmac-sha256-hex-of-raw-body>
+```
+
+Secret: `CALLBACK_SIGNING_SECRET`. Retries up to 5 times with exponential backoff.
+
+### Payload
+
+```json
+{
+  "prompt_id": "#123",
+  "correlation_id": "deploy-42",
+  "text": "Approve production deploy?",
+  "answer": {
+    "type": "option",
+    "value": "Approve",
+    "user_id": null,
+    "username": null
+  },
+  "answered_at": "2026-07-25T12:00:00.000Z"
+}
+```
+
+| `answer.type` | When |
+|---------------|------|
+| `option` | Human tapped a button — `value` is the option label |
+| `text` | Free-text reply — `value` is the reply body |
+
+## Channel message callbacks (unsigned)
+
+For `MESSAGE` channels with `callback_url`, inbound text becomes:
+
+```json
+{
+  "type": "message.created",
+  "platform": "slack",
+  "channel_id": "ops-slack",
+  "from": "alice",
+  "text": "Looks good"
+}
+```
+
+These events are **not** signed. Retries use `CHANNEL_CALLBACK_MAX_RETRIES`
+(default 3) and `CHANNEL_CALLBACK_RETRY_DELAY` seconds (default 5).
+
+## Verification checklist
+
+1. Read the raw request body bytes
+2. Compute HMAC-SHA256 with `CALLBACK_SIGNING_SECRET`
+3. Compare to the `sha256=` hex in `X-Signature` (timing-safe)
+4. Reject mismatches with 401
+
+See [Security](/guides/security) for SSRF protections on callback URLs.

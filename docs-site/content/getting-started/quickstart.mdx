@@ -1,0 +1,83 @@
+# Quickstart
+
+Get Greenlight running locally with Docker in a few minutes.
+
+## 1. Clone and configure
+
+```bash
+cp .env.example .env
+# Set at least:
+#   CALLBACK_SIGNING_SECRET
+#   WEBHOOK_SECRET
+#   API_KEY
+#   ADMIN_INTERNAL_TOKEN
+#   AUTH_SECRET
+```
+
+For local Telegram testing, `PUBLIC_WEBHOOK_URL=http://localhost:8100` is enough
+(Telegram uses long polling when no public HTTPS URL is required).
+
+## 2. Start the stack
+
+```bash
+docker compose -f docker-compose.dev.yml up -d --build
+curl http://localhost:8100/healthz
+```
+
+| Service | URL |
+|---------|-----|
+| API + webhooks | http://localhost:8100 |
+| Admin UI | http://localhost:3000 |
+| Docs (this site) | http://localhost:3001 |
+| Postgres | localhost:5432 |
+
+## 3. Create an admin account
+
+1. Open http://localhost:3000/setup
+2. Enter email and password (min 8 characters)
+3. Sign in at `/login`
+
+## 4. Register a Telegram prompt channel
+
+Create a bot with [@BotFather](https://t.me/BotFather), add it to a group, and
+copy the chat ID (negative for groups). Then:
+
+```bash
+export API_KEY="$(grep '^API_KEY=' .env | cut -d= -f2)"
+
+curl -X POST http://localhost:8100/register-channel \
+  -H "X-API-Key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channel_id": "my-telegram-prompts",
+    "platform": "telegram",
+    "target_chat_id": "-1001234567890",
+    "credentials": { "bot_token": "123456789:YOUR_TOKEN" },
+    "channel_type": "PROMPT"
+  }'
+```
+
+Or use **Admin UI → Channels → Add channel**.
+
+## 5. Send a test prompt
+
+```bash
+curl -X POST http://localhost:8100/v1/prompts \
+  -H "X-API-Key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channel_id": "my-telegram-prompts",
+    "text": "Ready to deploy v2.4.1?",
+    "options": ["Deploy", "Cancel"],
+    "callback_url": "https://your-agent.example.com/on_answer"
+  }'
+```
+
+You should see the prompt in Telegram. Tap a button to complete the loop.
+
+## Next steps
+
+- [Concepts](/getting-started/concepts) — channel types and auth layers
+- [Admin UI](/getting-started/admin-ui) — manage channels and prompts in the browser
+- [Platforms](/platforms) — Slack, Teams, Discord, and more
+- [Agent integration](/guides/agent-integration) — verify signed callbacks

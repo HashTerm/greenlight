@@ -1,0 +1,43 @@
+# Microsoft Teams
+
+Teams bots use Azure Bot messaging endpoints.
+
+## Setup
+
+1. Register an Azure Bot / Teams app
+2. Note **App ID** and **client secret** (app password)
+3. Optional: set tenant ID as `app_tenant_id`
+4. Configure the messaging endpoint to your Greenlight webhook URL
+5. Use the conversation / chat ID as `target_chat_id`
+
+## Register
+
+```json
+{
+  "channel_id": "ops-teams",
+  "platform": "teams",
+  "target_chat_id": "19:abcdef@thread.v2",
+  "credentials": {
+    "app_id": "...",
+    "app_password": "...",
+    "app_tenant_id": "..."
+  },
+  "channel_type": "PROMPT"
+}
+```
+
+### Credentials
+
+| Field | Required |
+|-------|----------|
+| `app_id` | Yes |
+| `app_password` | Yes |
+| `app_tenant_id` | No |
+
+## Webhook URL
+
+```
+{PUBLIC_WEBHOOK_URL}/webhooks/teams/{channel_id}
+```
+
+Set this as the bot messaging endpoint in Azure Bot registration.

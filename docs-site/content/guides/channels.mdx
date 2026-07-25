@@ -1,0 +1,56 @@
+# Channels
+
+Channels bind a platform, credentials, and target chat to a stable `channel_id`.
+
+## Register
+
+`POST /register-channel`
+
+```json
+{
+  "channel_id": "ops-slack",
+  "platform": "slack",
+  "target_chat_id": "C01234567",
+  "credentials": {
+    "bot_token": "xoxb-...",
+    "signing_secret": "..."
+  },
+  "callback_url": "https://agent.example/on_message",
+  "channel_type": "MESSAGE"
+}
+```
+
+| Field | Type | Notes |
+|-------|------|-------|
+| `channel_id` | string | Required, stable slug |
+| `platform` | enum | `telegram` \| `slack` \| `teams` \| `discord` \| `gchat` \| `whatsapp` \| `messenger` |
+| `target_chat_id` | string | Platform-specific chat / channel / space / PSID |
+| `credentials` | object | Platform-specific strings |
+| `callback_url` | string | Required for `MESSAGE` |
+| `channel_type` | enum | `MESSAGE` (default) or `PROMPT` |
+
+Re-registering an active channel updates config and returns
+`already registered (config updated)`.
+
+## List and delete
+
+```bash
+GET    /channels
+DELETE /channels/{id}
+```
+
+Both require `X-API-Key` when auth is enabled.
+
+## Send a message
+
+```bash
+POST /send
+```
+
+Use a registered channel to deliver a plain message (not a prompt card). Useful
+after a `MESSAGE` channel callback.
+
+## Platform credentials
+
+See the [Platforms](/platforms) section for per-platform credential tables and
+portal setup.

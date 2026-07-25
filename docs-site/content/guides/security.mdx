@@ -1,0 +1,41 @@
+# Security
+
+## Secrets
+
+Rotate and store securely:
+
+- `API_KEY` — agent access
+- `ADMIN_INTERNAL_TOKEN` — admin API (never give to agents)
+- `AUTH_SECRET` — UI sessions
+- `CALLBACK_SIGNING_SECRET` — prompt callback HMAC
+- `WEBHOOK_SECRET` — platform webhook verification
+- Per-channel platform credentials in the database
+
+## Auth recommendations
+
+- Production: `USE_AUTH=true`
+- Separate agent keys from admin tokens
+- Prefer API-only mode when you do not need the Admin UI
+
+## Callback URL validation
+
+Prompt and channel `callback_url` values are validated (HTTP/HTTPS). Private /
+link-local targets are rejected to reduce SSRF risk. Docker setups may rewrite
+`host.docker.internal` for local agent callbacks — treat that as a development
+convenience, not a production pattern.
+
+## Signature verification
+
+Always verify `X-Signature` on prompt answer callbacks. Channel
+`message.created` events are unsigned — authenticate those endpoints yourself
+(VPN, mTLS, shared secret header, etc.).
+
+## Media paths
+
+`media_path` must resolve under `MEDIA_ALLOWED_DIR`. Uploads are size-capped by
+`MAX_MEDIA_SIZE_MB`.
+
+## Licensing boundaries
+
+Community self-host is allowed under BUSL-1.1. Selling Greenlight as a competing
+hosted subscription is not. See [Licensing](/legal/licensing).

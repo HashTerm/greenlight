@@ -1,0 +1,64 @@
+# Docker
+
+Greenlight ships with two Compose files: development (host ports) and production
+(Dokploy-oriented, expose-only).
+
+## Development
+
+```bash
+cp .env.example .env
+# Set API_KEY, ADMIN_INTERNAL_TOKEN, AUTH_SECRET, CALLBACK_SIGNING_SECRET, WEBHOOK_SECRET
+
+docker compose -f docker-compose.dev.yml up -d --build
+```
+
+Services:
+
+| Service | Host port | Role |
+|---------|-----------|------|
+| `greenlight` | 8100 | API + webhooks |
+| `greenlight-ui` | 3000 | Admin UI |
+| `greenlight-docs` | 3001 | Product docs |
+| `postgres` | 5432 | PostgreSQL 16 |
+
+Useful commands:
+
+```bash
+docker compose -f docker-compose.dev.yml ps
+docker compose -f docker-compose.dev.yml logs -f greenlight greenlight-ui greenlight-docs
+curl http://localhost:8100/healthz
+```
+
+## Hybrid local development
+
+Run Postgres (and optionally core) in Docker; run apps with npm:
+
+```bash
+npm install
+cp .env.example .env
+# DATABASE_URL=postgresql://greenlight:greenlight@localhost:5432/greenlight
+
+docker compose -f docker-compose.dev.yml up -d postgres
+npm run dev:core    # API on :8100
+npm run dev:ui      # Admin UI on :3000
+npm run dev:docs    # Docs on :3001
+```
+
+## Migrations
+
+| Component | Mechanism | When |
+|-----------|-----------|------|
+| **core** | `schema.sql` applied on boot | Every start (`prompts`, `channels`, …) |
+| **ui** | Drizzle SQL via Docker entrypoint | Container start (`admin_users`) |
+| **ui (manual)** | `cd ui && npm run db:migrate` | Local hybrid setups |
+
+## Production Compose
+
+Use `docker-compose.yml` for Dokploy or similar. Prefer
+[`.env.production.example`](https://github.com/greenlight/greenlight/blob/main/.env.production.example)
+and route:
+
+- API + webhooks → `greenlight:8100`
+- Admin UI → `greenlight-ui:3000`
+
+Continue with [Dokploy](/self-hosting/dokploy) or [Configuration](/self-hosting/configuration).

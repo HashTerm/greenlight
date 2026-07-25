@@ -1,0 +1,30 @@
+# Webhooks
+
+Inbound platform traffic hits:
+
+```
+{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channelId}
+```
+
+| Method | Platforms | Purpose |
+|--------|-----------|---------|
+| `GET` | `whatsapp`, `messenger` | Meta verification challenge |
+| `POST` | all | Event / interaction delivery |
+
+Supported `{platform}` values: `telegram`, `slack`, `teams`, `discord`, `gchat`,
+`whatsapp`, `messenger`.
+
+## Behavior notes
+
+- **Telegram** — Greenlight calls `setWebhook` when `PUBLIC_WEBHOOK_URL` is set;
+  otherwise long polling
+- **Slack** — configure Events API Request URL in the Slack app
+- **Teams** — Azure Bot messaging endpoint
+- **Discord** — Interactions Endpoint URL; Gateway listener starts when public URL is set
+- **Google Chat** — App URL (+ Pub/Sub if used)
+- **WhatsApp / Messenger** — Meta Callback URL; `verify_token` must match credentials
+
+Webhook routes are **not** protected by `X-API-Key`. Platform signing / verify
+tokens provide authenticity.
+
+See each [platform guide](/platforms) for portal steps.

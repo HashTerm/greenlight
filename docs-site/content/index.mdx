@@ -1,0 +1,39 @@
+# Greenlight
+
+Self-hosted HTTP gateway that gives AI agents a **human-in-the-loop** line to
+Telegram, Slack, Microsoft Teams, Discord, Google Chat, WhatsApp, and Messenger.
+
+Agents send interactive prompts (buttons or free text). Humans answer in chat.
+Greenlight delivers signed callbacks back to your agent.
+
+Built with [Chat SDK](https://chat-sdk.dev/). Platform credentials are registered
+**per channel via API** — not as global environment variables.
+
+## Choose your path
+
+| I want to… | Start here |
+|------------|------------|
+| Run Greenlight locally in minutes | [Quickstart](/getting-started/quickstart) |
+| Understand PROMPT vs MESSAGE, auth, and architecture | [Concepts](/getting-started/concepts) |
+| Deploy with Docker or Dokploy | [Self-Hosting](/self-hosting/docker) |
+| Connect Slack, Telegram, and other platforms | [Platforms](/platforms) |
+| Integrate an AI agent | [Agent integration](/guides/agent-integration) |
+| Look up HTTP endpoints | [API Reference](/api-reference) |
+| Understand BUSL licensing | [Licensing](/legal/licensing) |
+
+## What Greenlight does
+
+1. You register a **channel** (platform + credentials + target chat).
+2. Your agent creates a **prompt** or listens for inbound **messages**.
+3. Humans interact in the chat app they already use.
+4. Greenlight posts answers or messages to your `callback_url`.
+
+## Editions
+
+| Edition | Where | License |
+|---------|-------|---------|
+| Community | This repository (`core/`, `ui/`, `docs-site/`) | BUSL-1.1 |
+| Enterprise / Cloud | Separate commercial offering | Proprietary |
+
+Self-host for yourself or your organization is allowed. Selling Greenlight as a
+competing hosted subscription is not. See [Licensing](/legal/licensing).

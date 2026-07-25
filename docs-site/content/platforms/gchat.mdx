@@ -1,0 +1,46 @@
+# Google Chat
+
+Google Chat apps authenticate with a service account JSON key and project number.
+
+## Setup
+
+1. Create a Google Chat app with a service account
+2. Download the service account key JSON
+3. Note the GCP project **number** (not project ID)
+4. Configure the HTTP App URL (and Pub/Sub push endpoint if using Workspace Events)
+5. Use the space name as `target_chat_id` (for example `spaces/AAAA`)
+
+## Register
+
+```json
+{
+  "channel_id": "ops-gchat",
+  "platform": "gchat",
+  "target_chat_id": "spaces/AAAA",
+  "credentials": {
+    "service_account_json": "{\"type\":\"service_account\",...}",
+    "google_chat_project_number": "123456789"
+  },
+  "channel_type": "PROMPT"
+}
+```
+
+`service_account_json` is the **full key file contents as a JSON string**.
+
+### Credentials
+
+| Field | Required |
+|-------|----------|
+| `service_account_json` | Yes (valid JSON string) |
+| `google_chat_project_number` | Yes |
+| `pubsub_topic` | No |
+| `pubsub_audience` | No |
+| `impersonate_user` | No |
+
+## Webhook URL
+
+```
+{PUBLIC_WEBHOOK_URL}/webhooks/gchat/{channel_id}
+```
+
+Set this as the App URL in Chat API configuration.

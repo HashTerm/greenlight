@@ -1,0 +1,43 @@
+# Contributing
+
+Thanks for contributing. Greenlight is **source-available** under BUSL-1.1.
+By submitting a pull request, you agree that your contribution is licensed under
+the same BUSL-1.1 terms as the community edition (`core/`, `ui/`, `docs-site/`).
+
+Read [Licensing](/legal/licensing) for self-host permissions and restrictions.
+
+## Development setup
+
+```bash
+cp .env.example .env
+npm install
+docker compose -f docker-compose.dev.yml up -d postgres
+npm run dev:core    # API on :8100
+npm run dev:ui      # Admin UI on :3000
+npm run dev:docs    # Docs on :3001
+```
+
+Or run the full stack:
+
+```bash
+docker compose -f docker-compose.dev.yml up -d --build
+```
+
+## Tests
+
+```bash
+npm test            # core unit tests
+cd ui && npm run build
+```
+
+Add or update tests when changing behavior in `core/`.
+
+## Pull requests
+
+1. Fork and branch from `main`
+2. Keep changes focused
+3. Put community features in `core/`, `ui/`, or `docs-site/` only
+4. Do **not** open PRs for proprietary enterprise or SaaS control-plane work here
+5. Ensure tests and (for UI) `npm run build` pass
+
+See repository `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md` for the full policy.

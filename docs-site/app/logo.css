@@ -1,0 +1,12 @@
+/* Light theme: dark mark. Dark theme: light mark. */
+.docs-logo-mark--light {
+  display: none;
+}
+
+:is(html.dark, html[data-theme='dark']) .docs-logo-mark--dark {
+  display: none;
+}
+
+:is(html.dark, html[data-theme='dark']) .docs-logo-mark--light {
+  display: inline-block;
+}

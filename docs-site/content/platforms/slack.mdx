@@ -1,0 +1,47 @@
+# Slack
+
+Slack channels use Event Subscriptions webhooks. Greenlight verifies requests
+with your app signing secret.
+
+## Setup
+
+1. Create a Slack app with bot scopes such as `chat:write` and `channels:history`
+2. Install the app to your workspace
+3. Copy the **Bot User OAuth Token** (`xoxb-…`)
+4. Copy **Signing Secret** from Basic Information
+5. Optional: App-Level Token (`xapp-…`) as `app_token` if you need it
+6. Set Event Subscriptions Request URL to your Greenlight webhook URL
+7. Invite the bot to the target channel and copy the channel ID (`C…`)
+
+## Register
+
+```json
+{
+  "channel_id": "ops-slack",
+  "platform": "slack",
+  "target_chat_id": "C01234567",
+  "credentials": {
+    "bot_token": "xoxb-...",
+    "signing_secret": "..."
+  },
+  "callback_url": "https://agent.example/on_message",
+  "channel_type": "MESSAGE"
+}
+```
+
+### Credentials
+
+| Field | Required |
+|-------|----------|
+| `bot_token` | Yes |
+| `signing_secret` | Yes |
+| `app_token` | No |
+
+## Webhook URL
+
+```
+{PUBLIC_WEBHOOK_URL}/webhooks/slack/{channel_id}
+```
+
+Configure that URL as the Slack Events API request URL. Slack must be able to
+reach it over HTTPS in production.

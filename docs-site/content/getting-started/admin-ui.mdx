@@ -1,0 +1,70 @@
+# Admin UI
+
+The optional **greenlight-ui** Next.js app manages channels, prompts, and
+dashboard stats. It talks to the core API server-side:
+
+- Agent routes via `X-API-Key`
+- Admin routes via `X-Admin-Token`
+
+## First-time setup
+
+1. Start the stack (`docker compose -f docker-compose.dev.yml up -d --build`)
+2. Open **http://localhost:3000/setup**
+3. Create the super admin (email + password, min 8 characters)
+4. Sign in at **/login**
+
+If `/setup` redirects to `/login` and you never created an account, reset:
+
+```bash
+docker exec greenlight-postgres-dev psql -U greenlight -d greenlight \
+  -c "DELETE FROM admin_users;"
+```
+
+Then visit `/setup` again.
+
+## Pages
+
+| Path | Purpose |
+|------|---------|
+| `/setup` | First-run admin creation |
+| `/login` | Sign in |
+| `/dashboard` | Health and prompt stats |
+| `/channels` | Register / list / delete channels |
+| `/prompts` | Create prompts and view history |
+| `/settings` | Environment-facing settings display |
+
+## Register a channel in the UI
+
+1. Go to **Channels → Add channel**
+2. Choose platform and channel type (`PROMPT` or `MESSAGE`)
+3. Enter `channel_id` (stable slug), `target_chat_id`, and credentials
+4. For `MESSAGE` channels, set a reachable `callback_url`
+5. Save — the channel detail page shows the webhook URL
+
+Webhook pattern:
+
+```
+{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}
+```
+
+## Create a prompt in the UI
+
+1. Go to **Prompts → New prompt**
+2. Pick a `PROMPT` channel
+3. Enter text and optional button options
+4. Optionally set `callback_url`, TTL, and allow free-text replies
+
+## Required env vars for the UI
+
+| Variable | Purpose |
+|----------|---------|
+| `DATABASE_URL` | Same Postgres as core (admin users table) |
+| `API_KEY` | Calls Agent API |
+| `ADMIN_INTERNAL_TOKEN` | Calls Admin API |
+| `AUTH_SECRET` | NextAuth sessions |
+
+See [Configuration](/self-hosting/configuration) for the full list.
+
+## API-only deployments
+
+You can omit the UI entirely. See [API-only mode](/self-hosting/api-only).
