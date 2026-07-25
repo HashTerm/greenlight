@@ -7,7 +7,7 @@ const meta: MetaRecord = {
   guides: 'Guides',
   platforms: 'Platforms',
   'api-reference': 'API Reference',
-  legal: 'Legal'
+  legal: 'Legal',
 }
 
 export default meta

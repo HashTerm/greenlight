@@ -13,10 +13,10 @@ services:
     container_name: greenlight-dev
     restart: unless-stopped
     ports:
-      - "8100:8100"
+      - '8100:8100'
     env_file: .env
     environment:
-      USE_AUTH: "true"
+      USE_AUTH: 'true'
       API_KEY: ${API_KEY}
       ADMIN_INTERNAL_TOKEN: ${ADMIN_INTERNAL_TOKEN}
       # Override host-side localhost URL from .env for in-network access
@@ -25,9 +25,9 @@ services:
       postgres:
         condition: service_healthy
     extra_hosts:
-      - "host.docker.internal:host-gateway"
+      - 'host.docker.internal:host-gateway'
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8100/healthz"]
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:8100/healthz']
       interval: 30s
       timeout: 5s
       retries: 3
@@ -41,10 +41,10 @@ services:
     container_name: greenlight-ui-dev
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - '3000:3000'
     env_file: .env
     environment:
-      PORT: "3000"
+      PORT: '3000'
       GREENLIGHT_API_URL: http://greenlight:8100
       GREENLIGHT_API_KEY: ${API_KEY}
       GREENLIGHT_ADMIN_TOKEN: ${ADMIN_INTERNAL_TOKEN}
@@ -52,7 +52,7 @@ services:
       DATABASE_URL: postgresql://greenlight:greenlight@postgres:5432/greenlight
       AUTH_SECRET: ${AUTH_SECRET}
       AUTH_URL: http://localhost:3000
-      AUTH_TRUST_HOST: "true"
+      AUTH_TRUST_HOST: 'true'
     depends_on:
       greenlight:
         condition: service_healthy
@@ -65,10 +65,10 @@ services:
     container_name: greenlight-docs-dev
     restart: unless-stopped
     ports:
-      - "3001:3001"
+      - '3001:3001'
     environment:
-      PORT: "3001"
-      HOSTNAME: "0.0.0.0"
+      PORT: '3001'
+      HOSTNAME: '0.0.0.0'
       NEXT_PUBLIC_DOCS_URL: ${NEXT_PUBLIC_DOCS_URL:-http://localhost:3001}
 
   postgres:
@@ -76,7 +76,7 @@ services:
     container_name: greenlight-postgres-dev
     restart: unless-stopped
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - '${POSTGRES_PORT:-5432}:5432'
     environment:
       POSTGRES_USER: greenlight
       POSTGRES_PASSWORD: greenlight
@@ -84,7 +84,7 @@ services:
     volumes:
       - postgres_data_dev:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U greenlight -d greenlight"]
+      test: ['CMD-SHELL', 'pg_isready -U greenlight -d greenlight']
       interval: 5s
       timeout: 5s
       retries: 5

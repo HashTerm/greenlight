@@ -4,17 +4,17 @@ Requires `X-API-Key` when `USE_AUTH=true`.
 
 ## Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| `GET` | `/healthz` | Health check (**no auth**) |
-| `POST` | `/v1/prompts` | Create and send a prompt |
-| `POST` | `/v1/prompts/upload` | Create prompt with file upload |
-| `GET` | `/v1/prompts/pending` | List unanswered prompts |
-| `GET` | `/v1/prompts/{id}` | Get prompt (`%23123` for `#123`) |
-| `POST` | `/register-channel` | Register or update a channel |
-| `POST` | `/send` | Send a message via channel |
-| `GET` | `/channels` | List active channels |
-| `DELETE` | `/channels/{id}` | Unregister channel |
+| Method   | Path                  | Description                      |
+| -------- | --------------------- | -------------------------------- |
+| `GET`    | `/healthz`            | Health check (**no auth**)       |
+| `POST`   | `/v1/prompts`         | Create and send a prompt         |
+| `POST`   | `/v1/prompts/upload`  | Create prompt with file upload   |
+| `GET`    | `/v1/prompts/pending` | List unanswered prompts          |
+| `GET`    | `/v1/prompts/{id}`    | Get prompt (`%23123` for `#123`) |
+| `POST`   | `/register-channel`   | Register or update a channel     |
+| `POST`   | `/send`               | Send a message via channel       |
+| `GET`    | `/channels`           | List active channels             |
+| `DELETE` | `/channels/{id}`      | Unregister channel               |
 
 Platforms: `telegram`, `slack`, `teams`, `discord`, `gchat`, `whatsapp`,
 `messenger`.
@@ -23,17 +23,17 @@ Platforms: `telegram`, `slack`, `teams`, `discord`, `gchat`, `whatsapp`,
 
 ### Request body
 
-| Field | Type | Required | Notes |
-|-------|------|----------|-------|
-| `text` | string | Yes | Max 4096 |
-| `channel_id` | string | Conditional | Or use `DEFAULT_PROMPT_CHANNEL_ID` |
-| `options` | string[] | No | Max 10 (3 on WhatsApp/Messenger) |
-| `allow_text` | boolean | No | Default `false` |
-| `callback_url` | string | No | Validated HTTP(S) |
-| `correlation_id` | string | No | Max 255 |
-| `ttl_sec` | int | No | Default `3600`, max 604800 |
-| `media_url` | string | No | Mutually exclusive media sources |
-| `media_path` | string | No | Under `MEDIA_ALLOWED_DIR` |
+| Field            | Type     | Required    | Notes                              |
+| ---------------- | -------- | ----------- | ---------------------------------- |
+| `text`           | string   | Yes         | Max 4096                           |
+| `channel_id`     | string   | Conditional | Or use `DEFAULT_PROMPT_CHANNEL_ID` |
+| `options`        | string[] | No          | Max 10 (3 on WhatsApp/Messenger)   |
+| `allow_text`     | boolean  | No          | Default `false`                    |
+| `callback_url`   | string   | No          | Validated HTTP(S)                  |
+| `correlation_id` | string   | No          | Max 255                            |
+| `ttl_sec`        | int      | No          | Default `3600`, max 604800         |
+| `media_url`      | string   | No          | Mutually exclusive media sources   |
+| `media_path`     | string   | No          | Under `MEDIA_ALLOWED_DIR`          |
 
 ### Response `200`
 
@@ -69,9 +69,9 @@ Returns prompt state including `answer`, timestamps, and options. Encode `#` as
 
 ## Common errors
 
-| Status | `detail` example |
-|--------|------------------|
-| 400 | Validation / missing `callback_url` for MESSAGE |
-| 401 | Invalid or missing API key |
-| 404 | Prompt or channel not found |
-| 500 | Unexpected server error |
+| Status | `detail` example                                |
+| ------ | ----------------------------------------------- |
+| 400    | Validation / missing `callback_url` for MESSAGE |
+| 401    | Invalid or missing API key                      |
+| 404    | Prompt or channel not found                     |
+| 500    | Unexpected server error                         |

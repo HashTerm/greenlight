@@ -1,4 +1,4 @@
-"use client";
+'use client'
 
 import {
   Bar,
@@ -10,17 +10,17 @@ import {
   Tooltip,
   XAxis,
   YAxis,
-} from "recharts";
-import type { Prompt } from "@/lib/greenlight-client";
+} from 'recharts'
+import type { Prompt } from '@/lib/greenlight-client'
 
 export function PlatformChart({ data }: { data: Record<string, number> }) {
   const chartData = Object.entries(data).map(([platform, count]) => ({
     platform,
     count,
-  }));
+  }))
 
   if (!chartData.length) {
-    return <p className="text-sm text-neutral-500">No channels registered yet.</p>;
+    return <p className="text-sm text-neutral-500">No channels registered yet.</p>
   }
 
   return (
@@ -35,29 +35,29 @@ export function PlatformChart({ data }: { data: Record<string, number> }) {
         </BarChart>
       </ResponsiveContainer>
     </div>
-  );
+  )
 }
 
 export function PromptStatsChart({ prompts }: { prompts: Prompt[] }) {
-  const byDay = new Map<string, { day: string; created: number; answered: number }>();
+  const byDay = new Map<string, { day: string; created: number; answered: number }>()
 
   for (const p of prompts) {
-    const day = p.created_at.slice(0, 10);
-    const entry = byDay.get(day) ?? { day, created: 0, answered: 0 };
-    entry.created += 1;
+    const day = p.created_at.slice(0, 10)
+    const entry = byDay.get(day) ?? { day, created: 0, answered: 0 }
+    entry.created += 1
     if (p.answered_at) {
-      const aDay = p.answered_at.slice(0, 10);
-      const aEntry = byDay.get(aDay) ?? { day: aDay, created: 0, answered: 0 };
-      aEntry.answered += 1;
-      byDay.set(aDay, aEntry);
+      const aDay = p.answered_at.slice(0, 10)
+      const aEntry = byDay.get(aDay) ?? { day: aDay, created: 0, answered: 0 }
+      aEntry.answered += 1
+      byDay.set(aDay, aEntry)
     }
-    byDay.set(day, entry);
+    byDay.set(day, entry)
   }
 
-  const chartData = [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day)).slice(-14);
+  const chartData = [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day)).slice(-14)
 
   if (!chartData.length) {
-    return <p className="text-sm text-neutral-500">No prompt activity yet.</p>;
+    return <p className="text-sm text-neutral-500">No prompt activity yet.</p>
   }
 
   return (
@@ -73,5 +73,5 @@ export function PromptStatsChart({ prompts }: { prompts: Prompt[] }) {
         </LineChart>
       </ResponsiveContainer>
     </div>
-  );
+  )
 }

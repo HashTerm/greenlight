@@ -5,7 +5,11 @@
   "engines": {
     "node": ">=22"
   },
-  "workspaces": ["core", "ui", "docs-site"],
+  "workspaces": [
+    "core",
+    "ui",
+    "docs-site"
+  ],
   "scripts": {
     "setup": "node scripts/setup.mjs",
     "infra:up": "docker compose up -d postgres",
@@ -20,9 +24,17 @@
     "docker:full:down": "docker compose --profile full down",
     "docker:logs": "docker compose --profile full logs -f",
     "build": "npm run build -w core && npm run build -w ui && npm run build -w docs-site",
-    "test": "npm run test -w core"
+    "test": "npm run test -w core",
+    "fallow": "fallow",
+    "fallow:audit": "fallow audit",
+    "lint": "npm run lint -w ui",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check": "npm run fallow && npm run lint && npm run format:check"
   },
   "devDependencies": {
-    "concurrently": "^9.2.1"
+    "concurrently": "^9.2.1",
+    "fallow": "^3.9.1",
+    "prettier": "^3.4.2"
   }
 }

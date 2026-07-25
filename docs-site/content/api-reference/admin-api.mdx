@@ -40,10 +40,10 @@ Prompt history for operators.
 
 ### Query
 
-| Param | Type | Default | Notes |
-|-------|------|---------|-------|
-| `state` | string | `all` | `pending` \| `answered` \| `expired` \| `all` |
-| `limit` | int | `50` | 1–200 |
+| Param   | Type   | Default | Notes                                         |
+| ------- | ------ | ------- | --------------------------------------------- |
+| `state` | string | `all`   | `pending` \| `answered` \| `expired` \| `all` |
+| `limit` | int    | `50`    | 1–200                                         |
 
 ### Response
 
@@ -52,8 +52,8 @@ Array of prompt records including `id`, `prompt_num`, `text`, `state`,
 
 ## Errors
 
-| Status | Meaning |
-|--------|---------|
-| 401 | Missing/invalid `X-Admin-Token` |
-| 404 | Admin API not mounted |
-| 503 | Admin middleware misconfigured |
+| Status | Meaning                         |
+| ------ | ------------------------------- |
+| 401    | Missing/invalid `X-Admin-Token` |
+| 404    | Admin API not mounted           |
+| 503    | Admin middleware misconfigured  |

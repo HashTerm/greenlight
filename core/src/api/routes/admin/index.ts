@@ -1,8 +1,8 @@
-import { Hono } from "hono";
-import { adminStatusRoutes } from "./status.js";
-import { adminPromptRoutes } from "./prompts.js";
+import { Hono } from 'hono'
+import { adminStatusRoutes } from './status.js'
+import { adminPromptRoutes } from './prompts.js'
 
-export const adminRoutes = new Hono();
+export const adminRoutes = new Hono()
 
-adminRoutes.route("/", adminStatusRoutes);
-adminRoutes.route("/", adminPromptRoutes);
+adminRoutes.route('/', adminStatusRoutes)
+adminRoutes.route('/', adminPromptRoutes)

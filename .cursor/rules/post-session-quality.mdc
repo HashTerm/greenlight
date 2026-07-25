@@ -1,0 +1,26 @@
+---
+description: After every coding turn, run fallow, lint, and format check
+alwaysApply: true
+---
+
+# Post-session quality gates
+
+After every coding turn or session in this repository, before finishing, run quality checks from the **greenlight** monorepo root:
+
+```bash
+npm run check
+```
+
+This runs, in order:
+
+1. `npm run fallow` — [Fallow](https://docs.fallow.tools/) static analysis
+2. `npm run lint` — ESLint (deprecations are errors)
+3. `npm run format:check` — Prettier check
+
+## If checks fail
+
+- **Format only:** run `npm run format`, then re-run `npm run check`
+- **Lint / deprecation errors:** fix the reported issues; do not leave `@deprecated` usage or Node deprecation warnings from lint
+- **Fallow findings:** triage using [Fallow docs](https://docs.fallow.tools/); fix or intentionally configure (entry points / ignorePatterns). Prefer fixing over suppressing
+
+Do not hand off work with a failing `npm run check`.

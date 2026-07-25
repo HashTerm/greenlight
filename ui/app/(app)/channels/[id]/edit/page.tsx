@@ -1,16 +1,12 @@
-import { notFound } from "next/navigation";
-import { fetchChannels } from "@/lib/actions";
-import { ChannelForm } from "@/components/channel-form";
+import { notFound } from 'next/navigation'
+import { fetchChannels } from '@/lib/actions'
+import { ChannelForm } from '@/components/channel-form'
 
-export default async function EditChannelPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const channels = await fetchChannels().catch(() => []);
-  const channel = channels.find((c) => c.channel_id === id);
-  if (!channel) notFound();
+export default async function EditChannelPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const channels = await fetchChannels().catch(() => [])
+  const channel = channels.find((c) => c.channel_id === id)
+  if (!channel) notFound()
 
   return (
     <div className="space-y-6">
@@ -24,10 +20,10 @@ export default async function EditChannelPage({
           platform: channel.platform,
           target_chat_id: channel.target_chat_id,
           channel_type: channel.channel_type,
-          callback_url: channel.callback_url ?? "",
+          callback_url: channel.callback_url ?? '',
         }}
         lockChannelId
       />
     </div>
-  );
+  )
 }

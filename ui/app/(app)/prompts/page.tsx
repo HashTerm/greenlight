@@ -1,23 +1,23 @@
-import Link from "next/link";
-import { fetchPrompts } from "@/lib/actions";
-import { PromptsTable } from "@/components/prompts-table";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from 'next/link'
+import { fetchPrompts } from '@/lib/actions'
+import { PromptsTable } from '@/components/prompts-table'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 export default async function PromptsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ state?: string; q?: string }>;
+  searchParams: Promise<{ state?: string; q?: string }>
 }) {
-  const { state = "all", q = "" } = await searchParams;
-  const validState = ["pending", "answered", "expired", "all"].includes(state)
-    ? (state as "pending" | "answered" | "expired" | "all")
-    : "all";
+  const { state = 'all', q = '' } = await searchParams
+  const validState = ['pending', 'answered', 'expired', 'all'].includes(state)
+    ? (state as 'pending' | 'answered' | 'expired' | 'all')
+    : 'all'
 
-  const prompts = await fetchPrompts(validState).catch(() => []);
+  const prompts = await fetchPrompts(validState).catch(() => [])
   const filtered = q
     ? prompts.filter((p) => p.correlation_id?.includes(q) || p.id.includes(q))
-    : prompts;
+    : prompts
 
   return (
     <div className="space-y-6">
@@ -33,9 +33,9 @@ export default async function PromptsPage({
 
       <Tabs defaultValue={validState}>
         <TabsList>
-          {(["pending", "answered", "expired", "all"] as const).map((s) => (
+          {(['pending', 'answered', 'expired', 'all'] as const).map((s) => (
             <TabsTrigger key={s} value={s} asChild>
-              <Link href={`/prompts?state=${s}${q ? `&q=${q}` : ""}`}>{s}</Link>
+              <Link href={`/prompts?state=${s}${q ? `&q=${q}` : ''}`}>{s}</Link>
             </TabsTrigger>
           ))}
         </TabsList>
@@ -52,5 +52,5 @@ export default async function PromptsPage({
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }

@@ -4,17 +4,17 @@ Prompts are interactive questions delivered to a `PROMPT` channel.
 
 ## Create (`POST /v1/prompts`)
 
-| Field | Type | Default | Notes |
-|-------|------|---------|-------|
-| `channel_id` | string | `DEFAULT_PROMPT_CHANNEL_ID` | Required unless default set |
-| `text` | string | — | Required, max 4096 |
-| `options` | string[] | `[]` | Max 10 items (3 on WhatsApp/Messenger), each max 64 chars |
-| `allow_text` | boolean | `false` | Allow free-text replies |
-| `callback_url` | string | — | Validated HTTP(S) URL |
-| `correlation_id` | string | — | Echoed in answer callback |
-| `ttl_sec` | int | `3600` | 0–604800 (7 days) |
-| `media_url` | string | — | Remote attachment URL |
-| `media_path` | string | — | Local path under `MEDIA_ALLOWED_DIR` |
+| Field            | Type     | Default                     | Notes                                                     |
+| ---------------- | -------- | --------------------------- | --------------------------------------------------------- |
+| `channel_id`     | string   | `DEFAULT_PROMPT_CHANNEL_ID` | Required unless default set                               |
+| `text`           | string   | —                           | Required, max 4096                                        |
+| `options`        | string[] | `[]`                        | Max 10 items (3 on WhatsApp/Messenger), each max 64 chars |
+| `allow_text`     | boolean  | `false`                     | Allow free-text replies                                   |
+| `callback_url`   | string   | —                           | Validated HTTP(S) URL                                     |
+| `correlation_id` | string   | —                           | Echoed in answer callback                                 |
+| `ttl_sec`        | int      | `3600`                      | 0–604800 (7 days)                                         |
+| `media_url`      | string   | —                           | Remote attachment URL                                     |
+| `media_path`     | string   | —                           | Local path under `MEDIA_ALLOWED_DIR`                      |
 
 Only one media source is allowed among `media_url`, `media_path`, and upload file.
 
@@ -40,11 +40,11 @@ Greenlight records `answer.type = "text"` and posts a confirmation in the thread
 
 ## States
 
-| State | Meaning |
-|-------|---------|
-| `PENDING` | Waiting for an answer |
+| State      | Meaning                       |
+| ---------- | ----------------------------- |
+| `PENDING`  | Waiting for an answer         |
 | `ANSWERED` | Button or text reply recorded |
-| `EXPIRED` | TTL elapsed |
+| `EXPIRED`  | TTL elapsed                   |
 
 Background expiry runs periodically. `CLEAN_ON_BOOT` can clear stale state on
 startup.

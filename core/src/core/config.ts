@@ -1,7 +1,7 @@
-import { z } from "zod";
+import { z } from 'zod'
 
-const DEFAULT_SIGNING_SECRET = "super-secret";
-const DEFAULT_WEBHOOK_SECRET = "change-me";
+const DEFAULT_SIGNING_SECRET = 'super-secret'
+const DEFAULT_WEBHOOK_SECRET = 'change-me'
 
 const envSchema = z
   .object({
@@ -13,11 +13,11 @@ const envSchema = z
     CLEAN_ON_BOOT: z
       .string()
       .optional()
-      .transform((v) => v !== "false"),
+      .transform((v) => v !== 'false'),
     USE_AUTH: z
       .string()
       .optional()
-      .transform((v) => v === "true"),
+      .transform((v) => v === 'true'),
     API_KEY: z.string().optional(),
     ADMIN_INTERNAL_TOKEN: z.string().optional(),
     MEDIA_ALLOWED_DIR: z.string().optional(),
@@ -28,7 +28,7 @@ const envSchema = z
     ENABLE_DOCS: z
       .string()
       .optional()
-      .transform((v) => v === "true"),
+      .transform((v) => v === 'true'),
     CHANNEL_CALLBACK_MAX_RETRIES: z
       .string()
       .optional()
@@ -39,53 +39,50 @@ const envSchema = z
       .transform((v) => (v ? Number(v) : 5)),
     CHANNEL_OFFLINE_NOTIFICATION: z
       .string()
-      .default("Assistant offline, could not deliver message."),
+      .default('Assistant offline, could not deliver message.'),
     PORT: z
       .string()
       .optional()
       .transform((v) => (v ? Number(v) : 8100)),
-    HOST: z.string().default("0.0.0.0"),
+    HOST: z.string().default('0.0.0.0'),
   })
   .superRefine((data, ctx) => {
     if (data.CALLBACK_SIGNING_SECRET === DEFAULT_SIGNING_SECRET) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message:
-          "CALLBACK_SIGNING_SECRET is still set to the default value. Set a strong unique secret in your .env file.",
-        path: ["CALLBACK_SIGNING_SECRET"],
-      });
+          'CALLBACK_SIGNING_SECRET is still set to the default value. Set a strong unique secret in your .env file.',
+        path: ['CALLBACK_SIGNING_SECRET'],
+      })
     }
-    if (
-      data.PUBLIC_WEBHOOK_URL?.trim() &&
-      data.WEBHOOK_SECRET === DEFAULT_WEBHOOK_SECRET
-    ) {
+    if (data.PUBLIC_WEBHOOK_URL?.trim() && data.WEBHOOK_SECRET === DEFAULT_WEBHOOK_SECRET) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message:
-          "WEBHOOK_SECRET is still set to the default value. Set a strong unique secret when using PUBLIC_WEBHOOK_URL.",
-        path: ["WEBHOOK_SECRET"],
-      });
+          'WEBHOOK_SECRET is still set to the default value. Set a strong unique secret when using PUBLIC_WEBHOOK_URL.',
+        path: ['WEBHOOK_SECRET'],
+      })
     }
     if (data.USE_AUTH && !data.API_KEY) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        message: "API_KEY must be set when USE_AUTH=true",
-        path: ["API_KEY"],
-      });
+        message: 'API_KEY must be set when USE_AUTH=true',
+        path: ['API_KEY'],
+      })
     }
-  });
+  })
 
-export type Config = z.infer<typeof envSchema>;
+export type Config = z.infer<typeof envSchema>
 
-let cached: Config | null = null;
+let cached: Config | null = null
 
 export function loadConfig(): Config {
   if (!cached) {
-    cached = envSchema.parse(process.env);
+    cached = envSchema.parse(process.env)
   }
-  return cached;
+  return cached
 }
 
 export function resetConfigForTests(): void {
-  cached = null;
+  cached = null
 }

@@ -1,7 +1,7 @@
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic'
 
-import { AppShell } from "@/components/app-shell";
+import { AppShell } from '@/components/app-shell'
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  return <AppShell>{children}</AppShell>;
+  return <AppShell>{children}</AppShell>
 }

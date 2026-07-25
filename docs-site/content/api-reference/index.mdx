@@ -4,18 +4,18 @@ Greenlight exposes an HTTP API on the core service (default port **8100**).
 
 ## Base URL
 
-| Environment | Example |
-|-------------|---------|
-| Local Docker | `http://localhost:8100` |
-| Production | `https://api.example.com` (`PUBLIC_WEBHOOK_URL`) |
+| Environment  | Example                                          |
+| ------------ | ------------------------------------------------ |
+| Local Docker | `http://localhost:8100`                          |
+| Production   | `https://api.example.com` (`PUBLIC_WEBHOOK_URL`) |
 
 ## Auth summary
 
-| API | Header | When |
-|-----|--------|------|
-| Agent | `X-API-Key: <API_KEY>` | When `USE_AUTH=true` |
-| Admin | `X-Admin-Token: <ADMIN_INTERNAL_TOKEN>` | Always, if Admin API is mounted |
-| Health / webhooks / OpenAPI | None | Public |
+| API                         | Header                                  | When                            |
+| --------------------------- | --------------------------------------- | ------------------------------- |
+| Agent                       | `X-API-Key: <API_KEY>`                  | When `USE_AUTH=true`            |
+| Admin                       | `X-Admin-Token: <ADMIN_INTERNAL_TOKEN>` | Always, if Admin API is mounted |
+| Health / webhooks / OpenAPI | None                                    | Public                          |
 
 Admin routes are only mounted when `ADMIN_INTERNAL_TOKEN` is set.
 

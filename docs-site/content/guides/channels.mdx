@@ -20,14 +20,14 @@ Channels bind a platform, credentials, and target chat to a stable `channel_id`.
 }
 ```
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `channel_id` | string | Required, stable slug |
-| `platform` | enum | `telegram` \| `slack` \| `teams` \| `discord` \| `gchat` \| `whatsapp` \| `messenger` |
-| `target_chat_id` | string | Platform-specific chat / channel / space / PSID |
-| `credentials` | object | Platform-specific strings |
-| `callback_url` | string | Required for `MESSAGE` |
-| `channel_type` | enum | `MESSAGE` (default) or `PROMPT` |
+| Field            | Type   | Notes                                                                                 |
+| ---------------- | ------ | ------------------------------------------------------------------------------------- |
+| `channel_id`     | string | Required, stable slug                                                                 |
+| `platform`       | enum   | `telegram` \| `slack` \| `teams` \| `discord` \| `gchat` \| `whatsapp` \| `messenger` |
+| `target_chat_id` | string | Platform-specific chat / channel / space / PSID                                       |
+| `credentials`    | object | Platform-specific strings                                                             |
+| `callback_url`   | string | Required for `MESSAGE`                                                                |
+| `channel_type`   | enum   | `MESSAGE` (default) or `PROMPT`                                                       |
 
 Re-registering an active channel updates config and returns
 `already registered (config updated)`.

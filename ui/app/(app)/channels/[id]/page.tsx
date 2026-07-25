@@ -1,32 +1,24 @@
-import Link from "next/link";
-import { notFound } from "next/navigation";
-export const dynamic = "force-dynamic";
+import Link from 'next/link'
+import { notFound } from 'next/navigation'
+export const dynamic = 'force-dynamic'
 
-import {
-  deleteChannelAction,
-  fetchChannels,
-  sendMessageAction,
-} from "@/lib/actions";
-import { getPublicWebhookUrl } from "@/lib/greenlight-client";
-import { formatGuideSteps } from "@/lib/platform-guides";
-import type { Platform } from "@/lib/platform-fields";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { deleteChannelAction, fetchChannels, sendMessageAction } from '@/lib/actions'
+import { getPublicWebhookUrl } from '@/lib/greenlight-client'
+import { formatGuideSteps } from '@/lib/platform-guides'
+import type { Platform } from '@/lib/platform-fields'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 
-export default async function ChannelDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
-  const { id } = await params;
-  const channels = await fetchChannels().catch(() => []);
-  const channel = channels.find((c) => c.channel_id === id);
-  if (!channel) notFound();
+export default async function ChannelDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
+  const channels = await fetchChannels().catch(() => [])
+  const channel = channels.find((c) => c.channel_id === id)
+  if (!channel) notFound()
 
-  const webhookUrl = `${getPublicWebhookUrl()}/webhooks/${channel.platform}/${channel.channel_id}`;
+  const webhookUrl = `${getPublicWebhookUrl()}/webhooks/${channel.platform}/${channel.channel_id}`
   const registerJson = JSON.stringify(
     {
       channel_id: channel.channel_id,
@@ -34,19 +26,21 @@ export default async function ChannelDetailPage({
       target_chat_id: channel.target_chat_id,
       channel_type: channel.channel_type,
       callback_url: channel.callback_url,
-      credentials: { "...": "fill in secrets" },
+      credentials: { '...': 'fill in secrets' },
     },
     null,
     2,
-  );
-  const guideSteps = formatGuideSteps(channel.platform as Platform, webhookUrl);
+  )
+  const guideSteps = formatGuideSteps(channel.platform as Platform, webhookUrl)
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">{channel.channel_id}</h1>
-          <p className="text-sm text-neutral-500">{channel.platform} · {channel.channel_type}</p>
+          <p className="text-sm text-neutral-500">
+            {channel.platform} · {channel.channel_type}
+          </p>
         </div>
         <div className="flex gap-2">
           <Button asChild variant="outline">
@@ -66,14 +60,22 @@ export default async function ChannelDetailPage({
             <CardTitle>Metadata</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <p><span className="text-neutral-500">Platform:</span> {channel.platform}</p>
-            <p><span className="text-neutral-500">Target chat:</span> {channel.target_chat_id}</p>
-            <p><span className="text-neutral-500">Type:</span> {channel.channel_type}</p>
-            <p><span className="text-neutral-500">Callback:</span> {channel.callback_url ?? "—"}</p>
             <p>
-              <span className="text-neutral-500">Status:</span>{" "}
-              <Badge variant={channel.is_active ? "success" : "destructive"}>
-                {channel.is_active ? "Active" : "Inactive"}
+              <span className="text-neutral-500">Platform:</span> {channel.platform}
+            </p>
+            <p>
+              <span className="text-neutral-500">Target chat:</span> {channel.target_chat_id}
+            </p>
+            <p>
+              <span className="text-neutral-500">Type:</span> {channel.channel_type}
+            </p>
+            <p>
+              <span className="text-neutral-500">Callback:</span> {channel.callback_url ?? '—'}
+            </p>
+            <p>
+              <span className="text-neutral-500">Status:</span>{' '}
+              <Badge variant={channel.is_active ? 'success' : 'destructive'}>
+                {channel.is_active ? 'Active' : 'Inactive'}
               </Badge>
             </p>
           </CardContent>
@@ -110,7 +112,7 @@ export default async function ChannelDetailPage({
           </CardContent>
         </Card>
 
-        {channel.channel_type === "MESSAGE" && (
+        {channel.channel_type === 'MESSAGE' && (
           <Card className="lg:col-span-2">
             <CardHeader>
               <CardTitle>Send test message</CardTitle>
@@ -120,7 +122,12 @@ export default async function ChannelDetailPage({
                 <input type="hidden" name="channel_id" value={channel.channel_id} />
                 <div className="space-y-2">
                   <Label htmlFor="text">Message</Label>
-                  <Textarea id="text" name="text" required placeholder="Hello from Greenlight admin" />
+                  <Textarea
+                    id="text"
+                    name="text"
+                    required
+                    placeholder="Hello from Greenlight admin"
+                  />
                 </div>
                 <Button type="submit">Send</Button>
               </form>
@@ -129,5 +136,5 @@ export default async function ChannelDetailPage({
         )}
       </div>
     </div>
-  );
+  )
 }

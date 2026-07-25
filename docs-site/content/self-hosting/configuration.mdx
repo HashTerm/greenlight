@@ -4,39 +4,39 @@ Environment variables for `core` and `ui`. Copy `.env.example` as a starting poi
 
 ## Database
 
-| Variable | Used by | Purpose |
-|----------|---------|---------|
+| Variable       | Used by  | Purpose                      |
+| -------------- | -------- | ---------------------------- |
 | `DATABASE_URL` | core, ui | PostgreSQL connection string |
 
 ## Webhooks
 
-| Variable | Used by | Purpose |
-|----------|---------|---------|
-| `PUBLIC_WEBHOOK_URL` | core, ui | Public HTTPS base (no trailing slash). Platforms use `{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}` |
-| `WEBHOOK_SECRET` | core | Platform webhook verification secret |
-| `DEFAULT_PROMPT_CHANNEL_ID` | core | Optional default when prompts omit `channel_id` |
+| Variable                    | Used by  | Purpose                                                                                                      |
+| --------------------------- | -------- | ------------------------------------------------------------------------------------------------------------ |
+| `PUBLIC_WEBHOOK_URL`        | core, ui | Public HTTPS base (no trailing slash). Platforms use `{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}` |
+| `WEBHOOK_SECRET`            | core     | Platform webhook verification secret                                                                         |
+| `DEFAULT_PROMPT_CHANNEL_ID` | core     | Optional default when prompts omit `channel_id`                                                              |
 
 ## Security (core)
 
-| Variable | Used by | Default / notes |
-|----------|---------|-----------------|
-| `CALLBACK_SIGNING_SECRET` | core | HMAC secret for prompt answer callbacks |
-| `USE_AUTH` | core | Set `true` to require `X-API-Key`. Dev Compose often forces `true` |
-| `API_KEY` | core | Agent API key (required when `USE_AUTH=true`) |
-| `ADMIN_INTERNAL_TOKEN` | core | Admin API token. If unset, `/admin/v1/*` is not mounted |
+| Variable                  | Used by | Default / notes                                                    |
+| ------------------------- | ------- | ------------------------------------------------------------------ |
+| `CALLBACK_SIGNING_SECRET` | core    | HMAC secret for prompt answer callbacks                            |
+| `USE_AUTH`                | core    | Set `true` to require `X-API-Key`. Dev Compose often forces `true` |
+| `API_KEY`                 | core    | Agent API key (required when `USE_AUTH=true`)                      |
+| `ADMIN_INTERNAL_TOKEN`    | core    | Admin API token. If unset, `/admin/v1/*` is not mounted            |
 
 ## Admin UI
 
 The UI talks to core with **`GREENLIGHT_*`** names (not `API_KEY` / `ADMIN_INTERNAL_TOKEN` directly).
 
-| Variable | Purpose |
-|----------|---------|
-| `GREENLIGHT_API_URL` | Core base URL (default `http://localhost:8100`) |
-| `GREENLIGHT_API_KEY` | Sent as `X-API-Key` — must match core `API_KEY` |
+| Variable                 | Purpose                                                          |
+| ------------------------ | ---------------------------------------------------------------- |
+| `GREENLIGHT_API_URL`     | Core base URL (default `http://localhost:8100`)                  |
+| `GREENLIGHT_API_KEY`     | Sent as `X-API-Key` — must match core `API_KEY`                  |
 | `GREENLIGHT_ADMIN_TOKEN` | Sent as `X-Admin-Token` — must match core `ADMIN_INTERNAL_TOKEN` |
-| `AUTH_SECRET` | NextAuth session secret |
-| `DATABASE_URL` | Same Postgres as core (admin users table) |
-| `PUBLIC_WEBHOOK_URL` | Shown on channel detail pages |
+| `AUTH_SECRET`            | NextAuth session secret                                          |
+| `DATABASE_URL`           | Same Postgres as core (admin users table)                        |
+| `PUBLIC_WEBHOOK_URL`     | Shown on channel detail pages                                    |
 
 **Hybrid `npm run dev`:** set `GREENLIGHT_*` in the root `.env` (see `.env.example`). Values should match `API_KEY` and `ADMIN_INTERNAL_TOKEN`.
 
@@ -44,38 +44,38 @@ The UI talks to core with **`GREENLIGHT_*`** names (not `API_KEY` / `ADMIN_INTER
 
 ## Media
 
-| Variable | Used by | Purpose |
-|----------|---------|---------|
-| `MEDIA_ALLOWED_DIR` | core | Allowed directory for `media_path` local files |
-| `MAX_MEDIA_SIZE_MB` | core | Max upload / local media size (default `2`) |
+| Variable            | Used by | Purpose                                        |
+| ------------------- | ------- | ---------------------------------------------- |
+| `MEDIA_ALLOWED_DIR` | core    | Allowed directory for `media_path` local files |
+| `MAX_MEDIA_SIZE_MB` | core    | Max upload / local media size (default `2`)    |
 
 ## Channel callbacks
 
-| Variable | Used by | Default |
-|----------|---------|---------|
-| `CHANNEL_CALLBACK_MAX_RETRIES` | core | `3` |
-| `CHANNEL_CALLBACK_RETRY_DELAY` | core | `5` (seconds) |
-| `CHANNEL_OFFLINE_NOTIFICATION` | core | Message posted when channel callbacks fail |
+| Variable                       | Used by | Default                                    |
+| ------------------------------ | ------- | ------------------------------------------ |
+| `CHANNEL_CALLBACK_MAX_RETRIES` | core    | `3`                                        |
+| `CHANNEL_CALLBACK_RETRY_DELAY` | core    | `5` (seconds)                              |
+| `CHANNEL_OFFLINE_NOTIFICATION` | core    | Message posted when channel callbacks fail |
 
 ## Server / boot
 
-| Variable | Used by | Purpose |
-|----------|---------|---------|
-| `PORT` | core | HTTP port (default `8100`) |
-| `HOST` | core | Bind address (default `0.0.0.0`) |
-| `CLEAN_ON_BOOT` | core | Clean stale prompt state on startup |
-| `ENABLE_DOCS` | core | Serve `GET /openapi.json` when `true` |
+| Variable        | Used by | Purpose                               |
+| --------------- | ------- | ------------------------------------- |
+| `PORT`          | core    | HTTP port (default `8100`)            |
+| `HOST`          | core    | Bind address (default `0.0.0.0`)      |
+| `CLEAN_ON_BOOT` | core    | Clean stale prompt state on startup   |
+| `ENABLE_DOCS`   | core    | Serve `GET /openapi.json` when `true` |
 
 ## Compose Postgres
 
-| Variable | Purpose |
-|----------|---------|
+| Variable                                              | Purpose                                |
+| ----------------------------------------------------- | -------------------------------------- |
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Bundled Postgres credentials (Compose) |
 
 ## Docs site
 
-| Variable | Purpose |
-|----------|---------|
+| Variable               | Purpose                                          |
+| ---------------------- | ------------------------------------------------ |
 | `NEXT_PUBLIC_DOCS_URL` | Canonical docs URL for metadata (`metadataBase`) |
 
 Replace **all** default secrets before production. Prefer a secrets manager or

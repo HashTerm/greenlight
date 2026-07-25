@@ -7,7 +7,7 @@ const themeDocsDir = path.join(projectDir, '../node_modules/nextra-theme-docs/di
 const layoutAlias = path.join(projectDir, 'lib/nextra-layout.js')
 
 const withNextra = nextra({
-  search: true
+  search: true,
 })
 
 export default withNextra({
@@ -15,15 +15,15 @@ export default withNextra({
   turbopack: {
     resolveAlias: {
       'nextra-theme-docs/dist/layout.js': layoutAlias,
-      'nextra-theme-docs-layout-internals': themeDocsDir
-    }
+      'nextra-theme-docs-layout-internals': themeDocsDir,
+    },
   },
   webpack(config) {
     config.resolve.alias = {
       ...config.resolve.alias,
       'nextra-theme-docs/dist/layout.js': layoutAlias,
-      'nextra-theme-docs-layout-internals': themeDocsDir
+      'nextra-theme-docs-layout-internals': themeDocsDir,
     }
     return config
-  }
+  },
 })

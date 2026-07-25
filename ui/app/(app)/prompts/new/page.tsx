@@ -1,15 +1,15 @@
-import Link from "next/link";
-import { createPromptAction, createPromptUploadAction, fetchChannels } from "@/lib/actions";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Textarea } from "@/components/ui/textarea";
+import Link from 'next/link'
+import { createPromptAction, createPromptUploadAction, fetchChannels } from '@/lib/actions'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Textarea } from '@/components/ui/textarea'
 
 export default async function NewPromptPage() {
-  const channels = await fetchChannels().catch(() => []);
-  const promptChannels = channels.filter((c) => c.channel_type === "PROMPT");
+  const channels = await fetchChannels().catch(() => [])
+  const promptChannels = channels.filter((c) => c.channel_type === 'PROMPT')
 
   return (
     <div className="space-y-6">
@@ -47,7 +47,7 @@ export default async function NewPromptPage() {
                   </select>
                   {!promptChannels.length && (
                     <p className="text-xs text-amber-600">
-                      No PROMPT channels.{" "}
+                      No PROMPT channels.{' '}
                       <Link href="/channels/new" className="underline">
                         Register one
                       </Link>
@@ -59,7 +59,9 @@ export default async function NewPromptPage() {
                   <Textarea id="text" name="text" required />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="options">Options (one per line, max 3 for WhatsApp/Messenger)</Label>
+                  <Label htmlFor="options">
+                    Options (one per line, max 3 for WhatsApp/Messenger)
+                  </Label>
                   <Textarea id="options" name="options" placeholder="Yes\nNo\nMaybe" />
                 </div>
                 <div className="flex items-center gap-2">
@@ -123,5 +125,5 @@ export default async function NewPromptPage() {
         </TabsContent>
       </Tabs>
     </div>
-  );
+  )
 }

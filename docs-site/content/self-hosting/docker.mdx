@@ -20,12 +20,12 @@ curl http://localhost:8100/healthz
 `docker compose up -d` (default) starts **Postgres only**. App services use
 Compose profile `full`.
 
-| Service | Host port | Role |
-|---------|-----------|------|
-| `postgres` | 5432 (`POSTGRES_PORT`) | PostgreSQL 16 |
-| npm `dev:core` | 8100 | API + webhooks |
-| npm `dev:ui` | 3000 | Admin UI |
-| npm `dev:docs` | 3001 | Product docs |
+| Service        | Host port              | Role           |
+| -------------- | ---------------------- | -------------- |
+| `postgres`     | 5432 (`POSTGRES_PORT`) | PostgreSQL 16  |
+| npm `dev:core` | 8100                   | API + webhooks |
+| npm `dev:ui`   | 3000                   | Admin UI       |
+| npm `dev:docs` | 3001                   | Product docs   |
 
 Useful commands:
 
@@ -50,12 +50,12 @@ npm run docker:full
 curl http://localhost:8100/healthz
 ```
 
-| Service | Host port | Role |
-|---------|-----------|------|
-| `greenlight` | 8100 | API + webhooks |
-| `greenlight-ui` | 3000 | Admin UI |
-| `greenlight-docs` | 3001 | Product docs |
-| `postgres` | 5432 | PostgreSQL 16 |
+| Service           | Host port | Role           |
+| ----------------- | --------- | -------------- |
+| `greenlight`      | 8100      | API + webhooks |
+| `greenlight-ui`   | 3000      | Admin UI       |
+| `greenlight-docs` | 3001      | Product docs   |
+| `postgres`        | 5432      | PostgreSQL 16  |
 
 ```bash
 npm run docker:full:down
@@ -64,21 +64,21 @@ docker compose --profile full logs -f greenlight greenlight-ui greenlight-docs
 
 ## Migrations
 
-| Component | Mechanism | When |
-|-----------|-----------|------|
-| **core** | `schema.sql` applied on boot | Every start (`prompts`, `channels`, …) |
-| **ui** | Drizzle SQL via Docker entrypoint | Container start (`admin_users`) |
-| **ui (hybrid)** | `npm run db:migrate` | After `infra:up` / as part of `npm run dev` |
+| Component       | Mechanism                         | When                                        |
+| --------------- | --------------------------------- | ------------------------------------------- |
+| **core**        | `schema.sql` applied on boot      | Every start (`prompts`, `channels`, …)      |
+| **ui**          | Drizzle SQL via Docker entrypoint | Container start (`admin_users`)             |
+| **ui (hybrid)** | `npm run db:migrate`              | After `infra:up` / as part of `npm run dev` |
 
 ## Self-host Compose
 
-| File | Role |
-|------|------|
-| `docker-compose.yml` | Default entry — includes `docker-compose.dev.yml` |
-| `docker-compose.dev.yml` | Local development — Postgres by default; apps under `full` profile |
-| `docker-compose.self-host.yml` | Self-host — API + UI + Postgres (GHCR images) |
-| `docker-compose.docs.yml` | Optional overlay — adds product docs |
-| `docker-compose.self-host.stack.yml` | Swarm overlay — deploy policies + overlay network |
+| File                                 | Role                                                               |
+| ------------------------------------ | ------------------------------------------------------------------ |
+| `docker-compose.yml`                 | Default entry — includes `docker-compose.dev.yml`                  |
+| `docker-compose.dev.yml`             | Local development — Postgres by default; apps under `full` profile |
+| `docker-compose.self-host.yml`       | Self-host — API + UI + Postgres (GHCR images)                      |
+| `docker-compose.docs.yml`            | Optional overlay — adds product docs                               |
+| `docker-compose.self-host.stack.yml` | Swarm overlay — deploy policies + overlay network                  |
 
 Env examples:
 
@@ -113,10 +113,10 @@ docker stack deploy \
 
 Route traffic:
 
-| Service | Target | Role |
-|---------|--------|------|
-| API + webhooks | `greenlight:8100` | Gateway |
-| Admin UI | `greenlight-ui:3000` | Admin app |
+| Service         | Target                 | Role         |
+| --------------- | ---------------------- | ------------ |
+| API + webhooks  | `greenlight:8100`      | Gateway      |
+| Admin UI        | `greenlight-ui:3000`   | Admin app    |
 | Docs (optional) | `greenlight-docs:3001` | Product docs |
 
 Continue with [Dokploy](/self-hosting/dokploy) or [Configuration](/self-hosting/configuration).

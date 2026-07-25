@@ -5,271 +5,255 @@
  */
 export function getOpenApiDocument(): Record<string, unknown> {
   return {
-    openapi: "3.0.3",
+    openapi: '3.0.3',
     info: {
-      title: "Greenlight — Multi-Platform Prompt & Channel Gateway",
-      version: "0.1.0",
+      title: 'Greenlight — Multi-Platform Prompt & Channel Gateway',
+      version: '0.1.0',
       description:
-        "Self-hosted HTTP gateway for human-in-the-loop AI agents across Telegram, Slack, Teams, Discord, Google Chat, WhatsApp, and Messenger.",
+        'Self-hosted HTTP gateway for human-in-the-loop AI agents across Telegram, Slack, Teams, Discord, Google Chat, WhatsApp, and Messenger.',
       license: {
-        name: "BUSL-1.1",
-        url: "https://spdx.org/licenses/BUSL-1.1.html",
+        name: 'BUSL-1.1',
+        url: 'https://spdx.org/licenses/BUSL-1.1.html',
       },
     },
     servers: [
       {
-        url: "http://localhost:8100",
-        description: "Local development",
+        url: 'http://localhost:8100',
+        description: 'Local development',
       },
       {
-        url: "https://{host}",
-        description: "Self-hosted production (PUBLIC_WEBHOOK_URL origin)",
+        url: 'https://{host}',
+        description: 'Self-hosted production (PUBLIC_WEBHOOK_URL origin)',
         variables: {
           host: {
-            default: "api.example.com",
-            description: "Your Greenlight host (no scheme)",
+            default: 'api.example.com',
+            description: 'Your Greenlight host (no scheme)',
           },
         },
       },
     ],
     tags: [
-      { name: "Health" },
-      { name: "Prompts" },
-      { name: "Channels" },
-      { name: "Webhooks" },
-      { name: "Admin" },
+      { name: 'Health' },
+      { name: 'Prompts' },
+      { name: 'Channels' },
+      { name: 'Webhooks' },
+      { name: 'Admin' },
     ],
     components: {
       securitySchemes: {
         ApiKeyAuth: {
-          type: "apiKey",
-          in: "header",
-          name: "X-API-Key",
-          description:
-            "Agent API key. Required when USE_AUTH=true. Never use on Admin routes.",
+          type: 'apiKey',
+          in: 'header',
+          name: 'X-API-Key',
+          description: 'Agent API key. Required when USE_AUTH=true. Never use on Admin routes.',
         },
         AdminToken: {
-          type: "apiKey",
-          in: "header",
-          name: "X-Admin-Token",
+          type: 'apiKey',
+          in: 'header',
+          name: 'X-Admin-Token',
           description:
-            "Admin API token (ADMIN_INTERNAL_TOKEN). Required for /admin/v1/*. Routes are only mounted when the token is configured.",
+            'Admin API token (ADMIN_INTERNAL_TOKEN). Required for /admin/v1/*. Routes are only mounted when the token is configured.',
         },
       },
       schemas: {
         Error: {
-          type: "object",
-          required: ["detail"],
+          type: 'object',
+          required: ['detail'],
           properties: {
-            detail: { type: "string" },
+            detail: { type: 'string' },
           },
         },
         Platform: {
-          type: "string",
-          enum: [
-            "telegram",
-            "slack",
-            "teams",
-            "discord",
-            "gchat",
-            "whatsapp",
-            "messenger",
-          ],
+          type: 'string',
+          enum: ['telegram', 'slack', 'teams', 'discord', 'gchat', 'whatsapp', 'messenger'],
         },
         ChannelType: {
-          type: "string",
-          enum: ["MESSAGE", "PROMPT"],
-          default: "MESSAGE",
+          type: 'string',
+          enum: ['MESSAGE', 'PROMPT'],
+          default: 'MESSAGE',
         },
         CreatePromptRequest: {
-          type: "object",
-          required: ["text"],
+          type: 'object',
+          required: ['text'],
           properties: {
             channel_id: {
-              type: "string",
+              type: 'string',
               nullable: true,
-              description:
-                "Target PROMPT channel. Optional if DEFAULT_PROMPT_CHANNEL_ID is set.",
+              description: 'Target PROMPT channel. Optional if DEFAULT_PROMPT_CHANNEL_ID is set.',
             },
-            text: { type: "string", maxLength: 4096 },
+            text: { type: 'string', maxLength: 4096 },
             options: {
-              type: "array",
-              items: { type: "string", maxLength: 64 },
+              type: 'array',
+              items: { type: 'string', maxLength: 64 },
               maxItems: 10,
               nullable: true,
-              description: "Button labels. Max 3 on WhatsApp/Messenger.",
+              description: 'Button labels. Max 3 on WhatsApp/Messenger.',
             },
             allow_text: {
-              type: "boolean",
+              type: 'boolean',
               default: false,
-              description: "Allow free-text replies matching ID:#N patterns.",
+              description: 'Allow free-text replies matching ID:#N patterns.',
             },
             callback_url: {
-              type: "string",
+              type: 'string',
               nullable: true,
-              description: "HTTPS URL for signed answer callbacks.",
+              description: 'HTTPS URL for signed answer callbacks.',
             },
             correlation_id: {
-              type: "string",
+              type: 'string',
               maxLength: 255,
               nullable: true,
             },
             ttl_sec: {
-              type: "integer",
+              type: 'integer',
               minimum: 0,
               maximum: 604800,
               nullable: true,
-              description: "Default 3600.",
+              description: 'Default 3600.',
             },
-            media_url: { type: "string", nullable: true },
+            media_url: { type: 'string', nullable: true },
             media_path: {
-              type: "string",
+              type: 'string',
               nullable: true,
-              description: "Path under MEDIA_ALLOWED_DIR.",
+              description: 'Path under MEDIA_ALLOWED_DIR.',
             },
           },
         },
         CreatePromptResponse: {
-          type: "object",
-          required: ["prompt_id", "channel_id", "message_id"],
+          type: 'object',
+          required: ['prompt_id', 'channel_id', 'message_id'],
           properties: {
             prompt_id: {
-              type: "string",
-              example: "#123",
-              description: "Prompt id including leading #.",
+              type: 'string',
+              example: '#123',
+              description: 'Prompt id including leading #.',
             },
-            channel_id: { type: "string" },
+            channel_id: { type: 'string' },
             message_id: {
-              oneOf: [{ type: "string" }, { type: "integer" }],
-              description: "Platform message identifier.",
+              oneOf: [{ type: 'string' }, { type: 'integer' }],
+              description: 'Platform message identifier.',
             },
           },
         },
         Prompt: {
-          type: "object",
+          type: 'object',
           properties: {
-            id: { type: "string", example: "#123" },
-            prompt_num: { type: "integer" },
-            chat_id: { type: "string" },
-            text: { type: "string" },
-            media_url: { type: "string", nullable: true },
+            id: { type: 'string', example: '#123' },
+            prompt_num: { type: 'integer' },
+            chat_id: { type: 'string' },
+            text: { type: 'string' },
+            media_url: { type: 'string', nullable: true },
             options: {
-              type: "array",
-              items: { type: "string" },
+              type: 'array',
+              items: { type: 'string' },
             },
-            allow_text: { type: "boolean" },
-            callback_url: { type: "string", nullable: true },
-            correlation_id: { type: "string", nullable: true },
+            allow_text: { type: 'boolean' },
+            callback_url: { type: 'string', nullable: true },
+            correlation_id: { type: 'string', nullable: true },
             state: {
-              type: "string",
-              enum: ["pending", "answered", "expired"],
+              type: 'string',
+              enum: ['pending', 'answered', 'expired'],
             },
-            created_at: { type: "string", format: "date-time" },
-            expires_at: { type: "string", format: "date-time", nullable: true },
+            created_at: { type: 'string', format: 'date-time' },
+            expires_at: { type: 'string', format: 'date-time', nullable: true },
             answered_at: {
-              type: "string",
-              format: "date-time",
+              type: 'string',
+              format: 'date-time',
               nullable: true,
             },
-            answered_by_id: { type: "string", nullable: true },
-            answered_by_username: { type: "string", nullable: true },
-            answer: { type: "string", nullable: true },
+            answered_by_id: { type: 'string', nullable: true },
+            answered_by_username: { type: 'string', nullable: true },
+            answer: { type: 'string', nullable: true },
           },
         },
         RegisterChannelRequest: {
-          type: "object",
-          required: [
-            "channel_id",
-            "platform",
-            "target_chat_id",
-            "credentials",
-          ],
+          type: 'object',
+          required: ['channel_id', 'platform', 'target_chat_id', 'credentials'],
           properties: {
-            channel_id: { type: "string", minLength: 1 },
-            platform: { $ref: "#/components/schemas/Platform" },
-            target_chat_id: { type: "string", minLength: 1 },
+            channel_id: { type: 'string', minLength: 1 },
+            platform: { $ref: '#/components/schemas/Platform' },
+            target_chat_id: { type: 'string', minLength: 1 },
             credentials: {
-              type: "object",
-              additionalProperties: { type: "string" },
-              description:
-                "Platform-specific credential map (bot_token, signing_secret, etc.).",
+              type: 'object',
+              additionalProperties: { type: 'string' },
+              description: 'Platform-specific credential map (bot_token, signing_secret, etc.).',
             },
             callback_url: {
-              type: "string",
+              type: 'string',
               nullable: true,
-              description: "Required when channel_type is MESSAGE.",
+              description: 'Required when channel_type is MESSAGE.',
             },
-            channel_type: { $ref: "#/components/schemas/ChannelType" },
+            channel_type: { $ref: '#/components/schemas/ChannelType' },
           },
         },
         RegisterChannelResponse: {
-          type: "object",
-          required: ["status"],
+          type: 'object',
+          required: ['status'],
           properties: {
-            status: { type: "string" },
+            status: { type: 'string' },
           },
         },
         SendMessageRequest: {
-          type: "object",
-          required: ["channel_id", "text"],
+          type: 'object',
+          required: ['channel_id', 'text'],
           properties: {
-            channel_id: { type: "string" },
-            text: { type: "string" },
+            channel_id: { type: 'string' },
+            text: { type: 'string' },
           },
         },
         Channel: {
-          type: "object",
+          type: 'object',
           properties: {
-            channel_id: { type: "string" },
-            platform: { $ref: "#/components/schemas/Platform" },
-            target_chat_id: { type: "string" },
-            channel_type: { $ref: "#/components/schemas/ChannelType" },
-            is_active: { type: "boolean" },
-            callback_url: { type: "string", nullable: true },
+            channel_id: { type: 'string' },
+            platform: { $ref: '#/components/schemas/Platform' },
+            target_chat_id: { type: 'string' },
+            channel_type: { $ref: '#/components/schemas/ChannelType' },
+            is_active: { type: 'boolean' },
+            callback_url: { type: 'string', nullable: true },
           },
         },
         AdminStatus: {
-          type: "object",
+          type: 'object',
           properties: {
-            status: { type: "string", enum: ["ok", "error"] },
-            database: { type: "string" },
-            channels_active: { type: "integer" },
-            prompts_pending: { type: "integer" },
-            prompts_answered_24h: { type: "integer" },
+            status: { type: 'string', enum: ['ok', 'error'] },
+            database: { type: 'string' },
+            channels_active: { type: 'integer' },
+            prompts_pending: { type: 'integer' },
+            prompts_answered_24h: { type: 'integer' },
             platforms: {
-              type: "object",
-              additionalProperties: { type: "integer" },
+              type: 'object',
+              additionalProperties: { type: 'integer' },
             },
           },
         },
         MessageCreatedEvent: {
-          type: "object",
-          description: "Unsigned MESSAGE channel callback payload.",
+          type: 'object',
+          description: 'Unsigned MESSAGE channel callback payload.',
           properties: {
-            type: { type: "string", enum: ["message.created"] },
-            platform: { $ref: "#/components/schemas/Platform" },
-            channel_id: { type: "string" },
-            from: { type: "string" },
-            text: { type: "string" },
+            type: { type: 'string', enum: ['message.created'] },
+            platform: { $ref: '#/components/schemas/Platform' },
+            channel_id: { type: 'string' },
+            from: { type: 'string' },
+            text: { type: 'string' },
           },
         },
       },
     },
     paths: {
-      "/healthz": {
+      '/healthz': {
         get: {
-          tags: ["Health"],
-          summary: "Health check",
+          tags: ['Health'],
+          summary: 'Health check',
           security: [],
           responses: {
-            "200": {
-              description: "Service is up",
+            '200': {
+              description: 'Service is up',
               content: {
-                "application/json": {
+                'application/json': {
                   schema: {
-                    type: "object",
+                    type: 'object',
                     properties: {
-                      status: { type: "string", example: "ok" },
+                      status: { type: 'string', example: 'ok' },
                     },
                   },
                 },
@@ -278,259 +262,259 @@ export function getOpenApiDocument(): Record<string, unknown> {
           },
         },
       },
-      "/v1/prompts": {
+      '/v1/prompts': {
         post: {
-          tags: ["Prompts"],
-          summary: "Create and send a prompt",
+          tags: ['Prompts'],
+          summary: 'Create and send a prompt',
           security: [{ ApiKeyAuth: [] }],
           requestBody: {
             required: true,
             content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/CreatePromptRequest" },
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CreatePromptRequest' },
               },
             },
           },
           responses: {
-            "200": {
-              description: "Prompt created and posted",
+            '200': {
+              description: 'Prompt created and posted',
               content: {
-                "application/json": {
+                'application/json': {
                   schema: {
-                    $ref: "#/components/schemas/CreatePromptResponse",
+                    $ref: '#/components/schemas/CreatePromptResponse',
                   },
                 },
               },
             },
-            "400": {
-              description: "Validation or business error",
+            '400': {
+              description: 'Validation or business error',
               content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/Error" },
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
                 },
               },
             },
-            "401": {
-              description: "Missing or invalid API key",
+            '401': {
+              description: 'Missing or invalid API key',
               content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/Error" },
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
                 },
               },
             },
           },
         },
       },
-      "/v1/prompts/upload": {
+      '/v1/prompts/upload': {
         post: {
-          tags: ["Prompts"],
-          summary: "Create prompt with multipart file upload",
+          tags: ['Prompts'],
+          summary: 'Create prompt with multipart file upload',
           security: [{ ApiKeyAuth: [] }],
           requestBody: {
             required: true,
             content: {
-              "multipart/form-data": {
+              'multipart/form-data': {
                 schema: {
-                  type: "object",
-                  required: ["text"],
+                  type: 'object',
+                  required: ['text'],
                   properties: {
-                    text: { type: "string" },
-                    channel_id: { type: "string" },
+                    text: { type: 'string' },
+                    channel_id: { type: 'string' },
                     options: {
-                      type: "string",
-                      description: "JSON array of option strings",
+                      type: 'string',
+                      description: 'JSON array of option strings',
                     },
-                    allow_text: { type: "string" },
-                    callback_url: { type: "string" },
-                    correlation_id: { type: "string" },
-                    ttl_sec: { type: "string" },
-                    media_url: { type: "string" },
-                    file: { type: "string", format: "binary" },
+                    allow_text: { type: 'string' },
+                    callback_url: { type: 'string' },
+                    correlation_id: { type: 'string' },
+                    ttl_sec: { type: 'string' },
+                    media_url: { type: 'string' },
+                    file: { type: 'string', format: 'binary' },
                   },
                 },
               },
             },
           },
           responses: {
-            "200": {
-              description: "Prompt created",
+            '200': {
+              description: 'Prompt created',
               content: {
-                "application/json": {
+                'application/json': {
                   schema: {
-                    $ref: "#/components/schemas/CreatePromptResponse",
+                    $ref: '#/components/schemas/CreatePromptResponse',
                   },
                 },
               },
             },
-            "400": {
-              description: "Validation error",
+            '400': {
+              description: 'Validation error',
               content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/Error" },
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
                 },
               },
             },
-            "401": {
-              description: "Unauthorized",
+            '401': {
+              description: 'Unauthorized',
               content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/Error" },
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
                 },
               },
             },
           },
         },
       },
-      "/v1/prompts/pending": {
+      '/v1/prompts/pending': {
         get: {
-          tags: ["Prompts"],
-          summary: "List unanswered prompts",
+          tags: ['Prompts'],
+          summary: 'List unanswered prompts',
           security: [{ ApiKeyAuth: [] }],
           responses: {
-            "200": {
-              description: "Pending prompts",
+            '200': {
+              description: 'Pending prompts',
               content: {
-                "application/json": {
+                'application/json': {
                   schema: {
-                    type: "array",
-                    items: { $ref: "#/components/schemas/Prompt" },
+                    type: 'array',
+                    items: { $ref: '#/components/schemas/Prompt' },
                   },
                 },
               },
             },
-            "401": {
-              description: "Unauthorized",
+            '401': {
+              description: 'Unauthorized',
               content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/Error" },
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
                 },
               },
             },
           },
         },
       },
-      "/v1/prompts/{id}": {
+      '/v1/prompts/{id}': {
         get: {
-          tags: ["Prompts"],
-          summary: "Get prompt by id",
-          description: "Encode `#` as `%23` (e.g. `%23123` for `#123`).",
+          tags: ['Prompts'],
+          summary: 'Get prompt by id',
+          description: 'Encode `#` as `%23` (e.g. `%23123` for `#123`).',
           security: [{ ApiKeyAuth: [] }],
           parameters: [
             {
-              name: "id",
-              in: "path",
+              name: 'id',
+              in: 'path',
               required: true,
-              schema: { type: "string", example: "%23123" },
+              schema: { type: 'string', example: '%23123' },
             },
           ],
           responses: {
-            "200": {
-              description: "Prompt found",
+            '200': {
+              description: 'Prompt found',
               content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/Prompt" },
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Prompt' },
                 },
               },
             },
-            "404": {
-              description: "Not found",
+            '404': {
+              description: 'Not found',
               content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/Error" },
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
                 },
               },
             },
           },
         },
       },
-      "/register-channel": {
+      '/register-channel': {
         post: {
-          tags: ["Channels"],
-          summary: "Register or update a channel",
+          tags: ['Channels'],
+          summary: 'Register or update a channel',
           security: [{ ApiKeyAuth: [] }],
           requestBody: {
             required: true,
             content: {
-              "application/json": {
+              'application/json': {
                 schema: {
-                  $ref: "#/components/schemas/RegisterChannelRequest",
+                  $ref: '#/components/schemas/RegisterChannelRequest',
                 },
               },
             },
           },
           responses: {
-            "200": {
-              description: "Channel registered or updated",
+            '200': {
+              description: 'Channel registered or updated',
               content: {
-                "application/json": {
+                'application/json': {
                   schema: {
-                    $ref: "#/components/schemas/RegisterChannelResponse",
+                    $ref: '#/components/schemas/RegisterChannelResponse',
                   },
                 },
               },
             },
-            "400": {
-              description: "Validation error",
+            '400': {
+              description: 'Validation error',
               content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/Error" },
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
                 },
               },
             },
           },
         },
       },
-      "/send": {
+      '/send': {
         post: {
-          tags: ["Channels"],
-          summary: "Send a message via channel",
+          tags: ['Channels'],
+          summary: 'Send a message via channel',
           security: [{ ApiKeyAuth: [] }],
           requestBody: {
             required: true,
             content: {
-              "application/json": {
-                schema: { $ref: "#/components/schemas/SendMessageRequest" },
+              'application/json': {
+                schema: { $ref: '#/components/schemas/SendMessageRequest' },
               },
             },
           },
           responses: {
-            "200": {
-              description: "Sent",
+            '200': {
+              description: 'Sent',
               content: {
-                "application/json": {
+                'application/json': {
                   schema: {
-                    type: "object",
+                    type: 'object',
                     properties: {
-                      status: { type: "string", example: "sent" },
+                      status: { type: 'string', example: 'sent' },
                     },
                   },
                 },
               },
             },
-            "404": {
-              description: "Channel not found",
+            '404': {
+              description: 'Channel not found',
               content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/Error" },
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
                 },
               },
             },
           },
         },
       },
-      "/channels": {
+      '/channels': {
         get: {
-          tags: ["Channels"],
-          summary: "List active channels",
+          tags: ['Channels'],
+          summary: 'List active channels',
           security: [{ ApiKeyAuth: [] }],
           responses: {
-            "200": {
-              description: "Active channels",
+            '200': {
+              description: 'Active channels',
               content: {
-                "application/json": {
+                'application/json': {
                   schema: {
-                    type: "array",
-                    items: { $ref: "#/components/schemas/Channel" },
+                    type: 'array',
+                    items: { $ref: '#/components/schemas/Channel' },
                   },
                 },
               },
@@ -538,134 +522,133 @@ export function getOpenApiDocument(): Record<string, unknown> {
           },
         },
       },
-      "/channels/{id}": {
+      '/channels/{id}': {
         delete: {
-          tags: ["Channels"],
-          summary: "Unregister channel",
+          tags: ['Channels'],
+          summary: 'Unregister channel',
           security: [{ ApiKeyAuth: [] }],
           parameters: [
             {
-              name: "id",
-              in: "path",
+              name: 'id',
+              in: 'path',
               required: true,
-              schema: { type: "string" },
+              schema: { type: 'string' },
             },
           ],
           responses: {
-            "200": {
-              description: "Unregistered",
+            '200': {
+              description: 'Unregistered',
               content: {
-                "application/json": {
+                'application/json': {
                   schema: {
-                    $ref: "#/components/schemas/RegisterChannelResponse",
+                    $ref: '#/components/schemas/RegisterChannelResponse',
                   },
                 },
               },
             },
-            "404": {
-              description: "Not found",
+            '404': {
+              description: 'Not found',
               content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/Error" },
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
                 },
               },
             },
           },
         },
       },
-      "/webhooks/{platform}/{channelId}": {
+      '/webhooks/{platform}/{channelId}': {
         get: {
-          tags: ["Webhooks"],
-          summary: "Platform webhook verification (WhatsApp, Messenger)",
+          tags: ['Webhooks'],
+          summary: 'Platform webhook verification (WhatsApp, Messenger)',
           security: [],
           parameters: [
             {
-              name: "platform",
-              in: "path",
+              name: 'platform',
+              in: 'path',
               required: true,
-              schema: { $ref: "#/components/schemas/Platform" },
+              schema: { $ref: '#/components/schemas/Platform' },
             },
             {
-              name: "channelId",
-              in: "path",
+              name: 'channelId',
+              in: 'path',
               required: true,
-              schema: { type: "string" },
+              schema: { type: 'string' },
             },
           ],
           responses: {
-            "200": { description: "Verification challenge response" },
+            '200': { description: 'Verification challenge response' },
           },
         },
         post: {
-          tags: ["Webhooks"],
-          summary: "Platform webhook handler",
+          tags: ['Webhooks'],
+          summary: 'Platform webhook handler',
           security: [],
           parameters: [
             {
-              name: "platform",
-              in: "path",
+              name: 'platform',
+              in: 'path',
               required: true,
-              schema: { $ref: "#/components/schemas/Platform" },
+              schema: { $ref: '#/components/schemas/Platform' },
             },
             {
-              name: "channelId",
-              in: "path",
+              name: 'channelId',
+              in: 'path',
               required: true,
-              schema: { type: "string" },
+              schema: { type: 'string' },
             },
           ],
           responses: {
-            "200": { description: "Event accepted" },
+            '200': { description: 'Event accepted' },
           },
         },
       },
-      "/admin/v1/status": {
+      '/admin/v1/status': {
         get: {
-          tags: ["Admin"],
-          summary: "Deep health / operator status",
-          description:
-            "Only available when ADMIN_INTERNAL_TOKEN is set (otherwise 404).",
+          tags: ['Admin'],
+          summary: 'Deep health / operator status',
+          description: 'Only available when ADMIN_INTERNAL_TOKEN is set (otherwise 404).',
           security: [{ AdminToken: [] }],
           responses: {
-            "200": {
-              description: "Status payload",
+            '200': {
+              description: 'Status payload',
               content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/AdminStatus" },
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/AdminStatus' },
                 },
               },
             },
-            "401": {
-              description: "Invalid admin token",
+            '401': {
+              description: 'Invalid admin token',
               content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/Error" },
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
                 },
               },
             },
           },
         },
       },
-      "/admin/v1/prompts": {
+      '/admin/v1/prompts': {
         get: {
-          tags: ["Admin"],
-          summary: "List prompts for operators",
+          tags: ['Admin'],
+          summary: 'List prompts for operators',
           security: [{ AdminToken: [] }],
           parameters: [
             {
-              name: "state",
-              in: "query",
+              name: 'state',
+              in: 'query',
               schema: {
-                type: "string",
-                enum: ["pending", "answered", "expired", "all"],
-                default: "all",
+                type: 'string',
+                enum: ['pending', 'answered', 'expired', 'all'],
+                default: 'all',
               },
             },
             {
-              name: "limit",
-              in: "query",
+              name: 'limit',
+              in: 'query',
               schema: {
-                type: "integer",
+                type: 'integer',
                 minimum: 1,
                 maximum: 200,
                 default: 50,
@@ -673,22 +656,22 @@ export function getOpenApiDocument(): Record<string, unknown> {
             },
           ],
           responses: {
-            "200": {
-              description: "Prompt history",
+            '200': {
+              description: 'Prompt history',
               content: {
-                "application/json": {
+                'application/json': {
                   schema: {
-                    type: "array",
-                    items: { $ref: "#/components/schemas/Prompt" },
+                    type: 'array',
+                    items: { $ref: '#/components/schemas/Prompt' },
                   },
                 },
               },
             },
-            "401": {
-              description: "Invalid admin token",
+            '401': {
+              description: 'Invalid admin token',
               content: {
-                "application/json": {
-                  schema: { $ref: "#/components/schemas/Error" },
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
                 },
               },
             },
@@ -696,5 +679,5 @@ export function getOpenApiDocument(): Record<string, unknown> {
         },
       },
     },
-  };
+  }
 }

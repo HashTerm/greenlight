@@ -19,10 +19,10 @@ flowchart LR
 
 ## Channel types
 
-| Type | Direction | `callback_url` | Typical use |
-|------|-----------|----------------|-------------|
-| **PROMPT** | Outbound questions to humans | Optional on the prompt | Deploy gates, approvals, escalations |
-| **MESSAGE** | Inbound chat → agent | **Required** on the channel | Ongoing agent conversations |
+| Type        | Direction                    | `callback_url`              | Typical use                          |
+| ----------- | ---------------------------- | --------------------------- | ------------------------------------ |
+| **PROMPT**  | Outbound questions to humans | Optional on the prompt      | Deploy gates, approvals, escalations |
+| **MESSAGE** | Inbound chat → agent         | **Required** on the channel | Ongoing agent conversations          |
 
 ### PROMPT — approval gate
 
@@ -71,11 +71,11 @@ channel — one Greenlight instance can talk to many bots and workspaces.
 
 Greenlight has three independent auth surfaces:
 
-| Layer | Header / mechanism | Who uses it |
-|-------|--------------------|-------------|
-| Agent API | `X-API-Key` (when `USE_AUTH=true`) | Your agents and scripts |
-| Admin API | `X-Admin-Token` | Admin UI BFF / operators |
-| Admin UI | NextAuth session (`AUTH_SECRET`) | Humans in the browser |
+| Layer     | Header / mechanism                 | Who uses it              |
+| --------- | ---------------------------------- | ------------------------ |
+| Agent API | `X-API-Key` (when `USE_AUTH=true`) | Your agents and scripts  |
+| Admin API | `X-Admin-Token`                    | Admin UI BFF / operators |
+| Admin UI  | NextAuth session (`AUTH_SECRET`)   | Humans in the browser    |
 
 Never give `ADMIN_INTERNAL_TOKEN` to agents. Mount the Admin API only when that
 token is set; otherwise `/admin/v1/*` returns 404.

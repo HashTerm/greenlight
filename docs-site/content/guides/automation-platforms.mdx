@@ -36,16 +36,16 @@ messages. Authenticate with `X-API-Key` when `USE_AUTH=true`.
 
 ## Recommended platforms
 
-| Platform | Hosting | Strengths with Greenlight |
-|----------|---------|---------------------------|
-| [n8n](https://n8n.io/) | Self-hosted or cloud | Pairs well with self-hosted Greenlight; HTTP Request + Webhook nodes; Code node for HMAC on prompt callbacks |
-| [Activepieces](https://www.activepieces.com/) | Self-hosted or cloud | Open-source workflow builder; HTTP and webhook pieces for the same request/response pattern |
-| [Make](https://www.make.com/) | Cloud | Visual scenarios; HTTP module + custom webhook module for multi-step approval flows |
-| [Zapier](https://zapier.com/) | Cloud | Fastest path to a prototype; **Webhooks by Zapier** (catch) + **Webhooks** (POST) actions |
-| [Pipedream](https://pipedream.com/) | Cloud | Node.js steps for `X-Signature` verification; good when workflows need light code |
-| [Node-RED](https://nodered.org/) | Self-hosted | Simple flow wiring; `http request` and `http in` nodes; Function node for signing checks |
-| [Power Automate](https://www.microsoft.com/power-platform/products/power-automate) | Cloud (M365) | Natural fit when humans answer in [Microsoft Teams](/platforms/teams); HTTP + “When an HTTP request is received” |
-| [Windmill](https://www.windmill.dev/) | Self-hosted or cloud | Script-first workflows (TypeScript/Python); HTTP triggers and typed scripts for API glue |
+| Platform                                                                           | Hosting              | Strengths with Greenlight                                                                                        |
+| ---------------------------------------------------------------------------------- | -------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| [n8n](https://n8n.io/)                                                             | Self-hosted or cloud | Pairs well with self-hosted Greenlight; HTTP Request + Webhook nodes; Code node for HMAC on prompt callbacks     |
+| [Activepieces](https://www.activepieces.com/)                                      | Self-hosted or cloud | Open-source workflow builder; HTTP and webhook pieces for the same request/response pattern                      |
+| [Make](https://www.make.com/)                                                      | Cloud                | Visual scenarios; HTTP module + custom webhook module for multi-step approval flows                              |
+| [Zapier](https://zapier.com/)                                                      | Cloud                | Fastest path to a prototype; **Webhooks by Zapier** (catch) + **Webhooks** (POST) actions                        |
+| [Pipedream](https://pipedream.com/)                                                | Cloud                | Node.js steps for `X-Signature` verification; good when workflows need light code                                |
+| [Node-RED](https://nodered.org/)                                                   | Self-hosted          | Simple flow wiring; `http request` and `http in` nodes; Function node for signing checks                         |
+| [Power Automate](https://www.microsoft.com/power-platform/products/power-automate) | Cloud (M365)         | Natural fit when humans answer in [Microsoft Teams](/platforms/teams); HTTP + “When an HTTP request is received” |
+| [Windmill](https://www.windmill.dev/)                                              | Self-hosted or cloud | Script-first workflows (TypeScript/Python); HTTP triggers and typed scripts for API glue                         |
 
 Greenlight does not endorse or maintain connectors for these tools. The Agent API
 is stable HTTP — pick the platform your team already runs.
@@ -84,13 +84,13 @@ See [Concepts](/getting-started/concepts) for PROMPT vs MESSAGE diagrams.
 
 ## Wiring checklist
 
-| Step | PROMPT channel | MESSAGE channel |
-|------|----------------|-----------------|
-| Register channel | `channel_type: "PROMPT"` | `channel_type: "MESSAGE"` + `callback_url` |
-| Start interaction | `POST /v1/prompts` (+ optional per-prompt `callback_url`) | Human sends chat message |
-| Receive event | Signed `POST` to `callback_url` | Unsigned `message.created` to channel `callback_url` |
-| Verify | HMAC-SHA256 `X-Signature` header | Optional; not signed by Greenlight |
-| Respond in chat | Usually not needed (human already answered) | `POST /send` |
+| Step              | PROMPT channel                                            | MESSAGE channel                                      |
+| ----------------- | --------------------------------------------------------- | ---------------------------------------------------- |
+| Register channel  | `channel_type: "PROMPT"`                                  | `channel_type: "MESSAGE"` + `callback_url`           |
+| Start interaction | `POST /v1/prompts` (+ optional per-prompt `callback_url`) | Human sends chat message                             |
+| Receive event     | Signed `POST` to `callback_url`                           | Unsigned `message.created` to channel `callback_url` |
+| Verify            | HMAC-SHA256 `X-Signature` header                          | Optional; not signed by Greenlight                   |
+| Respond in chat   | Usually not needed (human already answered)               | `POST /send`                                         |
 
 Base URL: `http://localhost:8100` locally, or your `PUBLIC_WEBHOOK_URL` origin in
 production. Full endpoint list: [Agent API](/api-reference/agent-api).

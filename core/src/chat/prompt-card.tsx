@@ -1,16 +1,13 @@
 /** @jsxImportSource chat */
-import { Actions, Button, Card, CardText } from "chat";
+import { Actions, Button, Card, CardText } from 'chat'
 
 export interface PromptCardOption {
-  optionId: string;
-  label: string;
-  actionKey: string;
+  optionId: string
+  label: string
+  actionKey: string
 }
 
-export function buildPromptCard(
-  text: string,
-  options: PromptCardOption[],
-) {
+export function buildPromptCard(text: string, options: PromptCardOption[]) {
   return (
     <Card title="Prompt">
       <CardText>{text}</CardText>
@@ -24,5 +21,5 @@ export function buildPromptCard(
         </Actions>
       ) : null}
     </Card>
-  );
+  )
 }

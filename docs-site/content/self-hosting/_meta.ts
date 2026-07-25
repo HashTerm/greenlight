@@ -4,7 +4,7 @@ const meta: MetaRecord = {
   docker: 'Docker',
   dokploy: 'Dokploy',
   configuration: 'Configuration',
-  'api-only': 'API-only mode'
+  'api-only': 'API-only mode',
 }
 
 export default meta

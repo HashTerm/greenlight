@@ -1,41 +1,35 @@
-"use client";
+'use client'
 
-import { useMemo, useState } from "react";
-import { registerChannelAction } from "@/lib/actions";
-import { formatGuideSteps } from "@/lib/platform-guides";
-import {
-  PLATFORMS,
-  PLATFORM_FIELDS,
-  type Platform,
-} from "@/lib/platform-fields";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
+import { useMemo, useState } from 'react'
+import { registerChannelAction } from '@/lib/actions'
+import { formatGuideSteps } from '@/lib/platform-guides'
+import { PLATFORMS, PLATFORM_FIELDS, type Platform } from '@/lib/platform-fields'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 
 interface ChannelFormProps {
   initial?: {
-    channel_id: string;
-    platform: string;
-    target_chat_id: string;
-    channel_type: string;
-    callback_url: string;
-  };
-  lockChannelId?: boolean;
+    channel_id: string
+    platform: string
+    target_chat_id: string
+    channel_type: string
+    callback_url: string
+  }
+  lockChannelId?: boolean
 }
 
 export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
-  const [platform, setPlatform] = useState<Platform>(
-    (initial?.platform as Platform) ?? "telegram",
-  );
+  const [platform, setPlatform] = useState<Platform>((initial?.platform as Platform) ?? 'telegram')
 
-  const fields = PLATFORM_FIELDS[platform];
-  const webhookBase = process.env.NEXT_PUBLIC_WEBHOOK_URL ?? "http://localhost:8100";
+  const fields = PLATFORM_FIELDS[platform]
+  const webhookBase = process.env.NEXT_PUBLIC_WEBHOOK_URL ?? 'http://localhost:8100'
   const guideSteps = useMemo(() => {
-    const channelId = initial?.channel_id ?? "{channel_id}";
-    return formatGuideSteps(platform, `${webhookBase}/webhooks/${platform}/${channelId}`);
-  }, [platform, initial?.channel_id, webhookBase]);
+    const channelId = initial?.channel_id ?? '{channel_id}'
+    return formatGuideSteps(platform, `${webhookBase}/webhooks/${platform}/${channelId}`)
+  }, [platform, initial?.channel_id, webhookBase])
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">
@@ -87,7 +81,7 @@ export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
                   id="channel_type"
                   name="channel_type"
                   className="flex h-9 w-full rounded-md border border-neutral-300 bg-white px-3 text-sm"
-                  defaultValue={initial?.channel_type ?? "MESSAGE"}
+                  defaultValue={initial?.channel_type ?? 'MESSAGE'}
                 >
                   <option value="MESSAGE">MESSAGE</option>
                   <option value="PROMPT">PROMPT</option>
@@ -111,7 +105,7 @@ export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
               {fields.map((field) => (
                 <div key={field.key} className="space-y-2">
                   <Label htmlFor={`cred_${field.key}`}>{field.label}</Label>
-                  {field.type === "textarea" ? (
+                  {field.type === 'textarea' ? (
                     <Textarea
                       id={`cred_${field.key}`}
                       name={`cred_${field.key}`}
@@ -136,7 +130,7 @@ export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
               )}
             </div>
 
-            <Button type="submit">{initial ? "Update channel" : "Register channel"}</Button>
+            <Button type="submit">{initial ? 'Update channel' : 'Register channel'}</Button>
           </form>
         </CardContent>
       </Card>
@@ -154,5 +148,5 @@ export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

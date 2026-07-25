@@ -1,0 +1,51 @@
+{
+  // This file is JSONC: fallow reads these comments; generic JSON tools may not.
+  "$schema": "./node_modules/fallow/schema.json",
+  "entry": [
+    "core/src/index.ts",
+    "ui/app/**/page.tsx",
+    "ui/app/**/layout.tsx",
+    "ui/app/**/route.ts",
+    "ui/middleware.ts",
+    "docs-site/app/**/page.tsx",
+    "docs-site/app/**/layout.tsx",
+    "docs-site/mdx-components.tsx",
+    "scripts/**/*.{js,mjs}"
+  ],
+  "ignorePatterns": [
+    "**/.next/**",
+    "**/dist/**",
+    "**/*.d.ts",
+    "**/node_modules/**",
+    "docs-site/public/openapi.json"
+  ],
+  "ignoreDependencies": [
+    "nextra-theme-docs-layout-internals"
+  ],
+  "workspaces": {
+    "patterns": ["core", "ui", "docs-site"]
+  },
+  "duplicates": {
+    "minOccurrences": 3
+  },
+  // Adoption baseline: warn on backlog; keep real bugs (unresolved/unlisted) as errors.
+  "rules": {
+    "unresolved-imports": "error",
+    "unlisted-dependencies": "error",
+    "unused-files": "warn",
+    "unused-exports": "warn",
+    "unused-types": "warn",
+    "unused-dependencies": "warn",
+    "unused-enum-members": "warn",
+    "unused-class-members": "warn",
+    "duplicate-exports": "warn",
+    "circular-dependencies": "warn"
+  },
+  "health": {
+    // Raised during adoption so existing complexity does not block npm run check.
+    "maxCyclomatic": 40,
+    "maxCognitive": 40,
+    "maxCrap": 500,
+    "maxUnitSize": 200
+  }
+}

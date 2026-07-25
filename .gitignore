@@ -6,4 +6,5 @@ dist/
 .next/
 ui/.next/
 core/dist/
+.fallow/
 

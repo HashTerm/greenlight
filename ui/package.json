@@ -10,7 +10,7 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "cross-env NODE_OPTIONS=--throw-deprecation eslint .",
     "db:migrate": "node scripts/migrate.mjs"
   },
   "dependencies": {
@@ -43,6 +43,7 @@
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "cross-env": "^7.0.3",
     "drizzle-kit": "^0.31.10",
     "eslint": "^9",
     "eslint-config-next": "15.5.20",

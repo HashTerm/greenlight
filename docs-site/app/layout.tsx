@@ -12,10 +12,10 @@ export const metadata = {
   metadataBase: new URL(siteUrl),
   title: {
     default: 'Greenlight Docs',
-    template: '%s | Greenlight Docs'
+    template: '%s | Greenlight Docs',
   },
   description:
-    'Self-host guides, agent integration, platform setup, and API reference for Greenlight.'
+    'Self-host guides, agent integration, platform setup, and API reference for Greenlight.',
 }
 
 const logo = (
@@ -40,11 +40,7 @@ const logo = (
   </span>
 )
 
-export default async function RootLayout({
-  children
-}: {
-  children: ReactNode
-}) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
   const pageMap = await getPageMap()
 
   return (
@@ -52,17 +48,10 @@ export default async function RootLayout({
       <Head />
       <body suppressHydrationWarning>
         <Layout
-          navbar={
-            <Navbar
-              logo={logo}
-              projectLink="https://github.com/greenlight/greenlight"
-            />
-          }
+          navbar={<Navbar logo={logo} projectLink="https://github.com/greenlight/greenlight" />}
           pageMap={pageMap}
           docsRepositoryBase="https://github.com/greenlight/greenlight/tree/main/docs-site"
-          footer={
-            <Footer>BUSL-1.1 2026 © Greenlight.</Footer>
-          }
+          footer={<Footer>BUSL-1.1 2026 © Greenlight.</Footer>}
         >
           {children}
         </Layout>

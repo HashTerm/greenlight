@@ -1,12 +1,12 @@
-import { changePassword } from "@/lib/actions";
-import { healthCheck } from "@/lib/greenlight-client";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { changePassword } from '@/lib/actions'
+import { healthCheck } from '@/lib/greenlight-client'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 
 export default async function SettingsPage() {
-  const health = await healthCheck().catch(() => ({ status: "error" }));
+  const health = await healthCheck().catch(() => ({ status: 'error' }))
 
   return (
     <div className="space-y-6">
@@ -21,16 +21,16 @@ export default async function SettingsPage() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <p>
-            <span className="text-neutral-500">API URL:</span>{" "}
-            {process.env.GREENLIGHT_API_URL ?? "http://localhost:8100"}
+            <span className="text-neutral-500">API URL:</span>{' '}
+            {process.env.GREENLIGHT_API_URL ?? 'http://localhost:8100'}
           </p>
           <p>
-            <span className="text-neutral-500">Public webhook base:</span>{" "}
-            {process.env.PUBLIC_WEBHOOK_URL ?? "not set"}
+            <span className="text-neutral-500">Public webhook base:</span>{' '}
+            {process.env.PUBLIC_WEBHOOK_URL ?? 'not set'}
           </p>
           <p>
-            <span className="text-neutral-500">Health check:</span>{" "}
-            {health.status === "ok" ? "Connected" : "Unreachable"}
+            <span className="text-neutral-500">Health check:</span>{' '}
+            {health.status === 'ok' ? 'Connected' : 'Unreachable'}
           </p>
         </CardContent>
       </Card>
@@ -54,5 +54,5 @@ export default async function SettingsPage() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

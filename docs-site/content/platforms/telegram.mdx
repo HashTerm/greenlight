@@ -49,9 +49,9 @@ curl -X POST http://localhost:8100/register-channel \
 
 ### Credentials
 
-| Field | Required |
-|-------|----------|
-| `bot_token` | Yes |
+| Field       | Required |
+| ----------- | -------- |
+| `bot_token` | Yes      |
 
 ## 5. Webhook URL
 
@@ -63,8 +63,8 @@ Local `.env` with `PUBLIC_WEBHOOK_URL=http://localhost:8100` is fine for polling
 
 ## Troubleshooting
 
-| Problem | Fix |
-|---------|-----|
-| `AuthenticationError` / `AUTH_FAILED` | Invalid `bot_token` — recreate with BotFather |
-| Bot silent in group | Add bot to group; confirm `target_chat_id` |
-| No updates | Ensure the bot can see messages (privacy mode / admin) |
+| Problem                               | Fix                                                    |
+| ------------------------------------- | ------------------------------------------------------ |
+| `AuthenticationError` / `AUTH_FAILED` | Invalid `bot_token` — recreate with BotFather          |
+| Bot silent in group                   | Add bot to group; confirm `target_chat_id`             |
+| No updates                            | Ensure the bot can see messages (privacy mode / admin) |

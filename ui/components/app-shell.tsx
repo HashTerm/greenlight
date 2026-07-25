@@ -1,13 +1,13 @@
-import Link from "next/link";
-import { logoutAction } from "@/lib/actions";
-import { Button } from "@/components/ui/button";
+import Link from 'next/link'
+import { logoutAction } from '@/lib/actions'
+import { Button } from '@/components/ui/button'
 
 const links = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/channels", label: "Channels" },
-  { href: "/prompts", label: "Prompts" },
-  { href: "/settings", label: "Settings" },
-];
+  { href: '/dashboard', label: 'Dashboard' },
+  { href: '/channels', label: 'Channels' },
+  { href: '/prompts', label: 'Prompts' },
+  { href: '/settings', label: 'Settings' },
+]
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -20,7 +20,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </Link>
             <nav className="flex gap-4 text-sm">
               {links.map((l) => (
-                <Link key={l.href} href={l.href} className="text-neutral-600 hover:text-neutral-900">
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  className="text-neutral-600 hover:text-neutral-900"
+                >
                   {l.label}
                 </Link>
               ))}
@@ -35,5 +39,5 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </header>
       <main className="w-full px-6 py-6 lg:px-8">{children}</main>
     </div>
-  );
+  )
 }

@@ -5,7 +5,7 @@ const meta: MetaRecord = {
   'agent-api': 'Agent API',
   'admin-api': 'Admin API',
   webhooks: 'Webhooks',
-  openapi: 'OpenAPI'
+  openapi: 'OpenAPI',
 }
 
 export default meta

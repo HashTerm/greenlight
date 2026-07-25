@@ -38,12 +38,12 @@ npm run dev            # core :8100, ui :3000, docs :3001
 curl http://localhost:8100/healthz
 ```
 
-| Service | URL |
-|---------|-----|
-| API + webhooks | http://localhost:8100 |
-| Admin UI | http://localhost:3000 |
-| Docs | http://localhost:3001 |
-| Postgres | localhost:5432 (`POSTGRES_PORT` if remapped) |
+| Service        | URL                                          |
+| -------------- | -------------------------------------------- |
+| API + webhooks | http://localhost:8100                        |
+| Admin UI       | http://localhost:3000                        |
+| Docs           | http://localhost:3001                        |
+| Postgres       | localhost:5432 (`POSTGRES_PORT` if remapped) |
 
 **Full Docker** (no Node hot reload — smoke / demos):
 
@@ -82,15 +82,15 @@ Full guides: [Quickstart](docs-site/content/getting-started/quickstart.mdx), [Pl
 
 ## Supported platforms
 
-| Platform | Delivery | Credentials |
-|----------|----------|-------------|
-| `telegram` | Polling (default) or webhook | `bot_token` |
-| `slack` | Webhook | `bot_token`, `signing_secret` |
-| `teams` | Webhook | `app_id`, `app_password` (+ optional `app_tenant_id`) |
-| `discord` | Webhook + Gateway | `bot_token`, `public_key`, `application_id` |
-| `gchat` | Webhook | `service_account_json`, `google_chat_project_number` |
-| `whatsapp` | Webhook (GET+POST) | `access_token`, `app_secret`, `phone_number_id`, `verify_token` |
-| `messenger` | Webhook (GET+POST) | `page_access_token`, `app_secret`, `verify_token` |
+| Platform    | Delivery                     | Credentials                                                     |
+| ----------- | ---------------------------- | --------------------------------------------------------------- |
+| `telegram`  | Polling (default) or webhook | `bot_token`                                                     |
+| `slack`     | Webhook                      | `bot_token`, `signing_secret`                                   |
+| `teams`     | Webhook                      | `app_id`, `app_password` (+ optional `app_tenant_id`)           |
+| `discord`   | Webhook + Gateway            | `bot_token`, `public_key`, `application_id`                     |
+| `gchat`     | Webhook                      | `service_account_json`, `google_chat_project_number`            |
+| `whatsapp`  | Webhook (GET+POST)           | `access_token`, `app_secret`, `phone_number_id`, `verify_token` |
+| `messenger` | Webhook (GET+POST)           | `page_access_token`, `app_secret`, `verify_token`               |
 
 **Prompt limits:** WhatsApp and Messenger support at most **3** button options per prompt.
 
@@ -113,15 +113,15 @@ docs-site/  — Product documentation (Nextra, port 3001)
 
 ## Useful npm scripts
 
-| Script | Purpose |
-|--------|---------|
-| `npm run setup` | First-time: `.env`, install, Postgres, migrate |
-| `npm run dev` | Hybrid: infra + core + ui + docs |
-| `npm run infra:up` / `infra:down` | Start/stop Postgres only |
-| `npm run infra:reset` | Wipe Postgres volume |
-| `npm run db:migrate` | Apply UI `admin_users` migration |
-| `npm run docker:full` | Full containerized stack |
-| `npm run docker:full:down` | Stop full stack |
+| Script                            | Purpose                                        |
+| --------------------------------- | ---------------------------------------------- |
+| `npm run setup`                   | First-time: `.env`, install, Postgres, migrate |
+| `npm run dev`                     | Hybrid: infra + core + ui + docs               |
+| `npm run infra:up` / `infra:down` | Start/stop Postgres only                       |
+| `npm run infra:reset`             | Wipe Postgres volume                           |
+| `npm run db:migrate`              | Apply UI `admin_users` migration               |
+| `npm run docker:full`             | Full containerized stack                       |
+| `npm run docker:full:down`        | Stop full stack                                |
 
 ## Self-host / Dokploy
 
@@ -139,11 +139,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.
 Greenlight is **source-available** under the [Business Source License 1.1](LICENSE)
 (BUSL-1.1) — **not** an OSI-approved open source license.
 
-| | Community (`core/`, `ui/`, `docs-site/`) | Enterprise |
-|--|---------------------------|------------|
-| Location | This repository | Commercial license from the Licensor (not in this repo) |
-| License | BUSL-1.1 | Proprietary |
-| Self-host | Yes | Paid license only (when available) |
-| Sell as competing hosted subscription | **No** | **No** |
+|                                       | Community (`core/`, `ui/`, `docs-site/`) | Enterprise                                              |
+| ------------------------------------- | ---------------------------------------- | ------------------------------------------------------- |
+| Location                              | This repository                          | Commercial license from the Licensor (not in this repo) |
+| License                               | BUSL-1.1                                 | Proprietary                                             |
+| Self-host                             | Yes                                      | Paid license only (when available)                      |
+| Sell as competing hosted subscription | **No**                                   | **No**                                                  |
 
 Details: [docs/LICENSING.md](docs/LICENSING.md) and [docs-site Legal](docs-site/content/legal/licensing.mdx).

@@ -5,6 +5,6 @@ const themeComponents = getThemeComponents()
 export function useMDXComponents(components: Record<string, unknown>) {
   return {
     ...themeComponents,
-    ...components
+    ...components,
   }
 }

@@ -24,14 +24,14 @@ Then visit `/setup` again.
 
 ## Pages
 
-| Path | Purpose |
-|------|---------|
-| `/setup` | First-run admin creation |
-| `/login` | Sign in |
-| `/dashboard` | Health and prompt stats |
-| `/channels` | Register / list / delete channels |
-| `/prompts` | Create prompts and view history |
-| `/settings` | Environment-facing settings display |
+| Path         | Purpose                             |
+| ------------ | ----------------------------------- |
+| `/setup`     | First-run admin creation            |
+| `/login`     | Sign in                             |
+| `/dashboard` | Health and prompt stats             |
+| `/channels`  | Register / list / delete channels   |
+| `/prompts`   | Create prompts and view history     |
+| `/settings`  | Environment-facing settings display |
 
 ## Register a channel in the UI
 
@@ -56,13 +56,13 @@ Webhook pattern:
 
 ## Required env vars for the UI
 
-| Variable | Purpose |
-|----------|---------|
-| `DATABASE_URL` | Same Postgres as core (admin users table) |
-| `GREENLIGHT_API_URL` | Core base URL (default `http://localhost:8100`) |
-| `GREENLIGHT_API_KEY` | Calls Agent API (`X-API-Key`) — match core `API_KEY` |
+| Variable                 | Purpose                                                               |
+| ------------------------ | --------------------------------------------------------------------- |
+| `DATABASE_URL`           | Same Postgres as core (admin users table)                             |
+| `GREENLIGHT_API_URL`     | Core base URL (default `http://localhost:8100`)                       |
+| `GREENLIGHT_API_KEY`     | Calls Agent API (`X-API-Key`) — match core `API_KEY`                  |
 | `GREENLIGHT_ADMIN_TOKEN` | Calls Admin API (`X-Admin-Token`) — match core `ADMIN_INTERNAL_TOKEN` |
-| `AUTH_SECRET` | NextAuth sessions |
+| `AUTH_SECRET`            | NextAuth sessions                                                     |
 
 For hybrid `npm run dev`, set `GREENLIGHT_*` in the root `.env`. Docker Compose
 maps them from `API_KEY` / `ADMIN_INTERNAL_TOKEN` automatically.

@@ -8,7 +8,7 @@ const meta: MetaRecord = {
   callbacks: 'Callbacks',
   architecture: 'Architecture',
   security: 'Security',
-  troubleshooting: 'Troubleshooting'
+  troubleshooting: 'Troubleshooting',
 }
 
 export default meta

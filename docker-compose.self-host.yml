@@ -6,7 +6,7 @@ services:
     image: ${GREENLIGHT_IMAGE:-ghcr.io/markokosticdev/greenlight:latest}
     restart: unless-stopped
     expose:
-      - "8100"
+      - '8100'
     networks:
       - greenlight
     depends_on:
@@ -29,7 +29,7 @@ services:
       CHANNEL_CALLBACK_RETRY_DELAY: ${CHANNEL_CALLBACK_RETRY_DELAY:-5}
       CHANNEL_OFFLINE_NOTIFICATION: ${CHANNEL_OFFLINE_NOTIFICATION:-Assistant offline, could not deliver message.}
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8100/healthz"]
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:8100/healthz']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -39,7 +39,7 @@ services:
     image: ${GREENLIGHT_UI_IMAGE:-ghcr.io/markokosticdev/greenlight-ui:latest}
     restart: unless-stopped
     expose:
-      - "3000"
+      - '3000'
     networks:
       - greenlight
     depends_on:
@@ -47,7 +47,7 @@ services:
       - postgres
     environment:
       NODE_ENV: production
-      PORT: "3000"
+      PORT: '3000'
       GREENLIGHT_API_URL: http://greenlight:8100
       GREENLIGHT_API_KEY: ${API_KEY}
       GREENLIGHT_ADMIN_TOKEN: ${ADMIN_INTERNAL_TOKEN}
@@ -69,7 +69,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 10s
       timeout: 5s
       retries: 5

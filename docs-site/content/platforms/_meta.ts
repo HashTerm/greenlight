@@ -8,7 +8,7 @@ const meta: MetaRecord = {
   discord: 'Discord',
   gchat: 'Google Chat',
   whatsapp: 'WhatsApp',
-  messenger: 'Messenger'
+  messenger: 'Messenger',
 }
 
 export default meta

@@ -12,12 +12,12 @@ services:
     image: ${GREENLIGHT_DOCS_IMAGE:-ghcr.io/markokosticdev/greenlight-docs:latest}
     restart: unless-stopped
     expose:
-      - "3001"
+      - '3001'
     networks:
       - greenlight
     environment:
-      PORT: "3001"
-      HOSTNAME: "0.0.0.0"
+      PORT: '3001'
+      HOSTNAME: '0.0.0.0'
       NEXT_PUBLIC_DOCS_URL: ${NEXT_PUBLIC_DOCS_URL}
     deploy:
       replicas: 1

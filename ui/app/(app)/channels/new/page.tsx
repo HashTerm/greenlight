@@ -1,4 +1,4 @@
-import { ChannelForm } from "@/components/channel-form";
+import { ChannelForm } from '@/components/channel-form'
 
 export default function NewChannelPage() {
   return (
@@ -9,5 +9,5 @@ export default function NewChannelPage() {
       </div>
       <ChannelForm />
     </div>
-  );
+  )
 }

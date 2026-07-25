@@ -1,8 +1,8 @@
-import Link from "next/link";
-import { fetchChannels } from "@/lib/actions";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from 'next/link'
+import { fetchChannels } from '@/lib/actions'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -10,10 +10,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table'
 
 export default async function ChannelsPage() {
-  const channels = await fetchChannels().catch(() => []);
+  const channels = await fetchChannels().catch(() => [])
 
   return (
     <div className="space-y-6">
@@ -57,8 +57,8 @@ export default async function ChannelsPage() {
                   <TableCell className="font-mono text-xs">{c.target_chat_id}</TableCell>
                   <TableCell>{c.channel_type}</TableCell>
                   <TableCell>
-                    <Badge variant={c.is_active ? "success" : "destructive"}>
-                      {c.is_active ? "Active" : "Inactive"}
+                    <Badge variant={c.is_active ? 'success' : 'destructive'}>
+                      {c.is_active ? 'Active' : 'Inactive'}
                     </Badge>
                   </TableCell>
                 </TableRow>
@@ -68,5 +68,5 @@ export default async function ChannelsPage() {
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

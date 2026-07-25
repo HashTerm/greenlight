@@ -1,9 +1,9 @@
-import Link from "next/link";
-import { fetchChannels, fetchPrompts, fetchStatus } from "@/lib/actions";
-import { PlatformChart, PromptStatsChart } from "@/components/charts";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import Link from 'next/link'
+import { fetchChannels, fetchPrompts, fetchStatus } from '@/lib/actions'
+import { PlatformChart, PromptStatsChart } from '@/components/charts'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import {
   Table,
   TableBody,
@@ -11,19 +11,19 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table'
 
 export default async function DashboardPage() {
   const [status, prompts, channels] = await Promise.all([
     fetchStatus().catch(() => null),
-    fetchPrompts("all").catch(() => []),
+    fetchPrompts('all').catch(() => []),
     fetchChannels().catch(() => []),
-  ]);
+  ])
 
-  const recentPrompts = prompts.slice(0, 10);
+  const recentPrompts = prompts.slice(0, 10)
   const recentChannels = [...channels]
     .sort((a, b) => b.registered_at.localeCompare(a.registered_at))
-    .slice(0, 5);
+    .slice(0, 5)
 
   return (
     <div className="space-y-6">
@@ -47,26 +47,26 @@ export default async function DashboardPage() {
           <CardHeader className="pb-2">
             <CardDescription>Database</CardDescription>
             <CardTitle className="text-xl">
-              {status?.database === "ok" ? "Healthy" : "Error"}
+              {status?.database === 'ok' ? 'Healthy' : 'Error'}
             </CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Active channels</CardDescription>
-            <CardTitle className="text-xl">{status?.channels_active ?? "—"}</CardTitle>
+            <CardTitle className="text-xl">{status?.channels_active ?? '—'}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Pending prompts</CardDescription>
-            <CardTitle className="text-xl">{status?.prompts_pending ?? "—"}</CardTitle>
+            <CardTitle className="text-xl">{status?.prompts_pending ?? '—'}</CardTitle>
           </CardHeader>
         </Card>
         <Card>
           <CardHeader className="pb-2">
             <CardDescription>Answered (24h)</CardDescription>
-            <CardTitle className="text-xl">{status?.prompts_answered_24h ?? "—"}</CardTitle>
+            <CardTitle className="text-xl">{status?.prompts_answered_24h ?? '—'}</CardTitle>
           </CardHeader>
         </Card>
       </div>
@@ -115,11 +115,11 @@ export default async function DashboardPage() {
                     <TableCell>
                       <Badge
                         variant={
-                          p.state === "ANSWERED"
-                            ? "success"
-                            : p.state === "PENDING"
-                              ? "warning"
-                              : "default"
+                          p.state === 'ANSWERED'
+                            ? 'success'
+                            : p.state === 'PENDING'
+                              ? 'warning'
+                              : 'default'
                         }
                       >
                         {p.state}
@@ -167,5 +167,5 @@ export default async function DashboardPage() {
         </Card>
       </div>
     </div>
-  );
+  )
 }

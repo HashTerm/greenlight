@@ -8,11 +8,11 @@ the [LICENSE](../LICENSE) before you rely on it commercially.
 
 ## Editions
 
-| Edition | Location | License | What you get |
-|---------|----------|---------|--------------|
-| Community | `core/`, `ui/`, `docs-site/` (this repo) | [BUSL-1.1](../LICENSE) | Full self-host product for community features |
-| Enterprise | Not distributed in this repository — contact the Licensor | Proprietary | Future paid add-ons (SSO, audit, advanced RBAC, etc.) |
-| Cloud | Not distributed in this repository — contact the Licensor | Proprietary | Official hosted subscription (vendor only) |
+| Edition    | Location                                                  | License                | What you get                                          |
+| ---------- | --------------------------------------------------------- | ---------------------- | ----------------------------------------------------- |
+| Community  | `core/`, `ui/`, `docs-site/` (this repo)                  | [BUSL-1.1](../LICENSE) | Full self-host product for community features         |
+| Enterprise | Not distributed in this repository — contact the Licensor | Proprietary            | Future paid add-ons (SSO, audit, advanced RBAC, etc.) |
+| Cloud      | Not distributed in this repository — contact the Licensor | Proprietary            | Official hosted subscription (vendor only)            |
 
 ## What you may do (community / BUSL-1.1)
 
@@ -30,10 +30,10 @@ the [LICENSE](../LICENSE) before you rely on it commercially.
 
 ## Who may sell subscriptions
 
-| Party | Sell Greenlight as a hosted subscription |
-|-------|------------------------------------------|
-| Licensor (Marko Kostic / official Greenlight cloud) | Yes |
-| Anyone else (with or without an enterprise self-host license) | **No** under BUSL / enterprise terms |
+| Party                                                         | Sell Greenlight as a hosted subscription |
+| ------------------------------------------------------------- | ---------------------------------------- |
+| Licensor (Marko Kostic / official Greenlight cloud)           | Yes                                      |
+| Anyone else (with or without an enterprise self-host license) | **No** under BUSL / enterprise terms     |
 
 Paying for an **enterprise self-host license** (when available) lets a company
 run Greenlight with enterprise features **for themselves**. It does **not**

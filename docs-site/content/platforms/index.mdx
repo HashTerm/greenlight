@@ -5,15 +5,15 @@ are registered **per channel** via `POST /register-channel`.
 
 ## Comparison
 
-| Platform | Delivery | Required credentials | Prompt option limit |
-|----------|----------|----------------------|---------------------|
-| [Telegram](/platforms/telegram) | Polling (default) or webhook | `bot_token` | 10 |
-| [Slack](/platforms/slack) | Webhook | `bot_token`, `signing_secret` | 10 |
-| [Teams](/platforms/teams) | Webhook | `app_id`, `app_password` | 10 |
-| [Discord](/platforms/discord) | Webhook + Gateway | `bot_token`, `public_key`, `application_id` | 10 |
-| [Google Chat](/platforms/gchat) | Webhook | `service_account_json`, `google_chat_project_number` | 10 |
-| [WhatsApp](/platforms/whatsapp) | Webhook (GET+POST) | `access_token`, `app_secret`, `phone_number_id`, `verify_token` | **3** |
-| [Messenger](/platforms/messenger) | Webhook (GET+POST) | `page_access_token`, `app_secret`, `verify_token` | **3** |
+| Platform                          | Delivery                     | Required credentials                                            | Prompt option limit |
+| --------------------------------- | ---------------------------- | --------------------------------------------------------------- | ------------------- |
+| [Telegram](/platforms/telegram)   | Polling (default) or webhook | `bot_token`                                                     | 10                  |
+| [Slack](/platforms/slack)         | Webhook                      | `bot_token`, `signing_secret`                                   | 10                  |
+| [Teams](/platforms/teams)         | Webhook                      | `app_id`, `app_password`                                        | 10                  |
+| [Discord](/platforms/discord)     | Webhook + Gateway            | `bot_token`, `public_key`, `application_id`                     | 10                  |
+| [Google Chat](/platforms/gchat)   | Webhook                      | `service_account_json`, `google_chat_project_number`            | 10                  |
+| [WhatsApp](/platforms/whatsapp)   | Webhook (GET+POST)           | `access_token`, `app_secret`, `phone_number_id`, `verify_token` | **3**               |
+| [Messenger](/platforms/messenger) | Webhook (GET+POST)           | `page_access_token`, `app_secret`, `verify_token`               | **3**               |
 
 ## Webhook URL pattern
 
@@ -30,7 +30,7 @@ Set `PUBLIC_WEBHOOK_URL` to your public HTTPS base with **no trailing slash**.
   "channel_id": "ops-slack",
   "platform": "slack",
   "target_chat_id": "C01234567",
-  "credentials": { },
+  "credentials": {},
   "callback_url": "https://agent.example/on_message",
   "channel_type": "MESSAGE"
 }

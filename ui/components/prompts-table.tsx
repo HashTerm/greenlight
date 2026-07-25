@@ -1,5 +1,5 @@
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
+import Link from 'next/link'
+import { Badge } from '@/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -7,8 +7,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import type { Prompt } from "@/lib/greenlight-client";
+} from '@/components/ui/table'
+import type { Prompt } from '@/lib/greenlight-client'
 
 export function PromptsTable({ prompts }: { prompts: Prompt[] }) {
   return (
@@ -34,11 +34,7 @@ export function PromptsTable({ prompts }: { prompts: Prompt[] }) {
             <TableCell>
               <Badge
                 variant={
-                  p.state === "ANSWERED"
-                    ? "success"
-                    : p.state === "PENDING"
-                      ? "warning"
-                      : "default"
+                  p.state === 'ANSWERED' ? 'success' : p.state === 'PENDING' ? 'warning' : 'default'
                 }
               >
                 {p.state}
@@ -52,5 +48,5 @@ export function PromptsTable({ prompts }: { prompts: Prompt[] }) {
         ))}
       </TableBody>
     </Table>
-  );
+  )
 }
