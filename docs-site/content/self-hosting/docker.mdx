@@ -9,10 +9,8 @@ Postgres runs in Docker; the API, admin UI, and docs run on the host with
 hot reload.
 
 ```bash
-cp .env.example .env
-# Set API_KEY, ADMIN_INTERNAL_TOKEN, AUTH_SECRET, CALLBACK_SIGNING_SECRET, WEBHOOK_SECRET
-
-npm run setup          # install + start Postgres + migrate
+npm run setup          # creates .env with generated secrets if missing,
+                       # then install + Postgres + migrate
 npm run dev            # core :8100, ui :3000, docs :3001
 curl http://localhost:8100/healthz
 ```
@@ -88,8 +86,8 @@ Env examples:
 Product only (Dokploy / single node):
 
 ```bash
-cp .env.self-host.example .env.self-host
-# Edit secrets, then:
+npm run env:ensure -- --profile self-host
+# Or: cp .env.self-host.example .env.self-host  (then edit secrets)
 docker compose -f docker-compose.self-host.yml --env-file .env.self-host up -d
 ```
 

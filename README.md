@@ -29,14 +29,14 @@
 **Hybrid (recommended):** Postgres in Docker, apps with hot reload via npm.
 
 ```bash
-cp .env.example .env
-# Edit .env — set CALLBACK_SIGNING_SECRET, WEBHOOK_SECRET, API_KEY,
-# ADMIN_INTERNAL_TOKEN, AUTH_SECRET (or use npm run setup)
-
-npm run setup          # install + start Postgres + migrate
+npm run setup          # creates .env with generated secrets if missing,
+                       # then install + Postgres + migrate
 npm run dev            # core :8100, ui :3000, docs :3001
 curl http://localhost:8100/healthz
 ```
+
+Or create the env file alone: `npm run env:ensure` (dev) /
+`npm run env:ensure -- --profile self-host`.
 
 | Service        | URL                                          |
 | -------------- | -------------------------------------------- |

@@ -5,17 +5,18 @@ Get Greenlight running locally in a few minutes.
 ## 1. Clone and configure
 
 ```bash
-cp .env.example .env
-# Set at least:
-#   CALLBACK_SIGNING_SECRET
-#   WEBHOOK_SECRET
-#   API_KEY
-#   ADMIN_INTERNAL_TOKEN
-#   AUTH_SECRET
+npm run setup
 ```
 
-Or run `npm run setup`, which copies `.env.example` if needed, installs
-dependencies, starts Postgres, and applies migrations.
+That creates `.env` from `.env.example` with generated secrets (when missing),
+installs dependencies, starts Postgres, and applies migrations.
+
+Env only:
+
+```bash
+npm run env:ensure                         # .env (dev)
+npm run env:ensure -- --profile self-host  # .env.self-host
+```
 
 For local Telegram testing, `PUBLIC_WEBHOOK_URL=http://localhost:8100` is enough
 (Telegram uses long polling when no public HTTPS URL is required).
@@ -25,7 +26,7 @@ For local Telegram testing, `PUBLIC_WEBHOOK_URL=http://localhost:8100` is enough
 Postgres in Docker; API, admin UI, and docs on the host with hot reload:
 
 ```bash
-npm run setup          # first time
+npm run setup          # first time (if not already)
 npm run dev
 curl http://localhost:8100/healthz
 ```

@@ -1,9 +1,8 @@
 #!/usr/bin/env node
 /**
- * First-time local setup: copy .env, install deps, start Postgres, migrate.
+ * First-time local setup: ensure .env with secrets, install deps, start Postgres, migrate.
  */
 import { spawnSync } from 'node:child_process'
-import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -21,19 +20,8 @@ function run(command, args, opts = {}) {
   }
 }
 
-const envExample = path.join(root, '.env.example')
-const envFile = path.join(root, '.env')
-
-if (!fs.existsSync(envFile)) {
-  if (!fs.existsSync(envExample)) {
-    console.error('Missing .env.example — cannot create .env')
-    process.exit(1)
-  }
-  fs.copyFileSync(envExample, envFile)
-  console.log('Created .env from .env.example — edit secrets before production use')
-} else {
-  console.log('.env already exists — leaving it unchanged')
-}
+console.log('Ensuring .env…')
+run('node', ['scripts/ensure-env.mjs'])
 
 console.log('Installing npm dependencies…')
 run('npm', ['install'])
@@ -53,5 +41,5 @@ Setup complete.
   npm run dev          # hybrid: Postgres + core + ui + docs (hot reload)
   npm run docker:full  # optional: full containerized stack
 
-Edit .env if you still have placeholder secrets.
+  npm run env:ensure -- --profile self-host   # optional: .env.self-host with secrets
 `)

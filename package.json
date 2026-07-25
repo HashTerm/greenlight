@@ -12,6 +12,7 @@
   ],
   "scripts": {
     "setup": "node scripts/setup.mjs",
+    "env:ensure": "node scripts/ensure-env.mjs",
     "infra:up": "docker compose up -d postgres",
     "infra:down": "docker compose stop postgres",
     "infra:reset": "docker compose down -v",
