@@ -1,0 +1,30 @@
+name: Docker cleanup
+
+# Weekly — remove untagged manifests left behind by new image pushes
+on:
+  schedule:
+    - cron: "0 4 * * 0"
+  workflow_dispatch:
+
+jobs:
+  cleanup-untagged:
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - greenlight
+          - greenlight-ui
+          - greenlight-docs
+
+    steps:
+      - uses: actions/delete-package-versions@v5
+        continue-on-error: true
+        with:
+          owner: ${{ github.repository_owner }}
+          package-name: ${{ matrix.package }}
+          package-type: container
+          delete-only-untagged-versions: true

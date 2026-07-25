@@ -1,0 +1,83 @@
+# Self-host — Dokploy / `docker compose -f docker-compose.self-host.yml up`.
+# Optional docs: -f docker-compose.docs.yml
+# Swarm: -c docker-compose.self-host.stack.yml (add -c docker-compose.docs.yml if hosting docs)
+services:
+  greenlight:
+    image: ${GREENLIGHT_IMAGE:-ghcr.io/markokosticdev/greenlight:latest}
+    restart: unless-stopped
+    expose:
+      - "8100"
+    networks:
+      - greenlight
+    depends_on:
+      - postgres
+    environment:
+      NODE_ENV: production
+      PORT: ${PORT:-8100}
+      HOST: 0.0.0.0
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PUBLIC_WEBHOOK_URL: ${PUBLIC_WEBHOOK_URL}
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET}
+      DEFAULT_PROMPT_CHANNEL_ID: ${DEFAULT_PROMPT_CHANNEL_ID:-}
+      CALLBACK_SIGNING_SECRET: ${CALLBACK_SIGNING_SECRET}
+      USE_AUTH: ${USE_AUTH:-true}
+      API_KEY: ${API_KEY}
+      ADMIN_INTERNAL_TOKEN: ${ADMIN_INTERNAL_TOKEN}
+      CLEAN_ON_BOOT: ${CLEAN_ON_BOOT:-true}
+      ENABLE_DOCS: ${ENABLE_DOCS:-false}
+      CHANNEL_CALLBACK_MAX_RETRIES: ${CHANNEL_CALLBACK_MAX_RETRIES:-3}
+      CHANNEL_CALLBACK_RETRY_DELAY: ${CHANNEL_CALLBACK_RETRY_DELAY:-5}
+      CHANNEL_OFFLINE_NOTIFICATION: ${CHANNEL_OFFLINE_NOTIFICATION:-Assistant offline, could not deliver message.}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8100/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  greenlight-ui:
+    image: ${GREENLIGHT_UI_IMAGE:-ghcr.io/markokosticdev/greenlight-ui:latest}
+    restart: unless-stopped
+    expose:
+      - "3000"
+    networks:
+      - greenlight
+    depends_on:
+      - greenlight
+      - postgres
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      GREENLIGHT_API_URL: http://greenlight:8100
+      GREENLIGHT_API_KEY: ${API_KEY}
+      GREENLIGHT_ADMIN_TOKEN: ${ADMIN_INTERNAL_TOKEN}
+      PUBLIC_WEBHOOK_URL: ${PUBLIC_WEBHOOK_URL}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_URL: ${AUTH_URL:-}
+      AUTH_TRUST_HOST: ${AUTH_TRUST_HOST:-true}
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    networks:
+      - greenlight
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  greenlight:
+    name: greenlight
+
+volumes:
+  postgres_data:
+    name: greenlight_postgres_data

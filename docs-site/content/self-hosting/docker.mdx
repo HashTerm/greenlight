@@ -1,7 +1,7 @@
 # Docker
 
-Greenlight ships with two Compose files: development (host ports) and production
-(Dokploy-oriented, expose-only).
+Greenlight ships with Compose files for development, self-hosting,
+optional docs, and Swarm.
 
 ## Development
 
@@ -9,7 +9,8 @@ Greenlight ships with two Compose files: development (host ports) and production
 cp .env.example .env
 # Set API_KEY, ADMIN_INTERNAL_TOKEN, AUTH_SECRET, CALLBACK_SIGNING_SECRET, WEBHOOK_SECRET
 
-docker compose -f docker-compose.dev.yml up -d --build
+docker compose up -d --build
+# same as: docker compose -f docker-compose.dev.yml up -d --build
 ```
 
 Services:
@@ -52,13 +53,53 @@ npm run dev:docs    # Docs on :3001
 | **ui** | Drizzle SQL via Docker entrypoint | Container start (`admin_users`) |
 | **ui (manual)** | `cd ui && npm run db:migrate` | Local hybrid setups |
 
-## Production Compose
+## Self-host Compose
 
-Use `docker-compose.yml` for Dokploy or similar. Prefer
-[`.env.production.example`](https://github.com/greenlight/greenlight/blob/main/.env.production.example)
-and route:
+| File | Role |
+|------|------|
+| `docker-compose.yml` | Default entry — includes `docker-compose.dev.yml` |
+| `docker-compose.dev.yml` | Local development — build all services + host ports |
+| `docker-compose.self-host.yml` | Self-host — API + UI + Postgres (GHCR images) |
+| `docker-compose.docs.yml` | Optional overlay — adds product docs |
+| `docker-compose.self-host.stack.yml` | Swarm overlay — deploy policies + overlay network |
 
-- API + webhooks → `greenlight:8100`
-- Admin UI → `greenlight-ui:3000`
+Env examples:
+
+- [`.env.self-host.example`](https://github.com/markokosticdev/greenlight/blob/main/.env.self-host.example) — product
+- [`.env.docs.example`](https://github.com/markokosticdev/greenlight/blob/main/.env.docs.example) — docs overlay
+
+Product only (Dokploy / single node):
+
+```bash
+cp .env.self-host.example .env.self-host
+# Edit secrets, then:
+docker compose -f docker-compose.self-host.yml --env-file .env.self-host up -d
+```
+
+Product + docs:
+
+```bash
+cp .env.docs.example .env.docs
+docker compose -f docker-compose.self-host.yml -f docker-compose.docs.yml \
+  --env-file .env.self-host --env-file .env.docs up -d
+```
+
+Swarm (product + docs):
+
+```bash
+docker stack deploy \
+  -c docker-compose.self-host.yml \
+  -c docker-compose.docs.yml \
+  -c docker-compose.self-host.stack.yml \
+  greenlight
+```
+
+Route traffic:
+
+| Service | Target | Role |
+|---------|--------|------|
+| API + webhooks | `greenlight:8100` | Gateway |
+| Admin UI | `greenlight-ui:3000` | Admin app |
+| Docs (optional) | `greenlight-docs:3001` | Product docs |
 
 Continue with [Dokploy](/self-hosting/dokploy) or [Configuration](/self-hosting/configuration).

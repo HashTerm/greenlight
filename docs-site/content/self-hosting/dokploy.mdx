@@ -5,18 +5,20 @@ Deploy Greenlight as a Compose app in [Dokploy](https://dokploy.com/).
 ## Steps
 
 1. Create a **Compose** application pointing at this repository.
-2. Paste variables from `.env.production.example`.
-3. Set strong secrets:
+2. Set the compose file to `docker-compose.self-host.yml`.
+3. Paste variables from `.env.self-host.example`.
+4. Set strong secrets:
    - `API_KEY`
    - `ADMIN_INTERNAL_TOKEN`
    - `AUTH_SECRET`
    - `CALLBACK_SIGNING_SECRET`
    - `WEBHOOK_SECRET`
-4. Set `PUBLIC_WEBHOOK_URL` to your public HTTPS API host (**no trailing slash**).
-5. Route traffic:
+5. Set `PUBLIC_WEBHOOK_URL` to your public HTTPS API host (**no trailing slash**).
+6. Route traffic:
    - API + platform webhooks → `greenlight:8100`
    - Admin UI → `greenlight-ui:3000`
-6. Deploy, then register channels via API or the Admin UI.
+   - Product docs (optional, with `docker-compose.docs.yml` + `.env.docs.example`) → `greenlight-docs:3001`
+7. Deploy, then register channels via API or the Admin UI.
 
 ## Webhook URLs
 

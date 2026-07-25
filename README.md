@@ -1,14 +1,28 @@
 <p align="center">
-  <img src="ui/public/logo/greenlight-icon-transparent.svg" width="128" alt="Greenlight" />
+  <img src="ui/public/logo/greenlight-icon-transparent.svg" width="256" alt="Greenlight" />
 </p>
 
-# Greenlight
+<h1 align="center">Greenlight</h1>
 
-Self-hosted HTTP gateway that gives AI agents a human-in-the-loop line to **Telegram**, **Slack**, **Microsoft Teams**, **Discord**, **Google Chat**, **WhatsApp**, and **Messenger** — interactive prompts, per-agent channels, and signed callbacks.
+<p align="center">
+  <a href="https://github.com/markokosticdev/greenlight/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/markokosticdev/greenlight/ci.yml?branch=main" alt="CI status" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-BUSL--1.1-blue" alt="License: BUSL-1.1" /></a>
+  <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D22-green?logo=node.js&logoColor=white" alt="Node >= 22" /></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5-blue?logo=typescript&logoColor=white" alt="TypeScript 5" /></a>
+  <a href="https://hono.dev/"><img src="https://img.shields.io/badge/Hono-4-orange" alt="Hono 4" /></a>
+</p>
 
-Built with [Chat SDK](https://chat-sdk.dev/). Platform credentials are registered per channel via API (not global env vars).
+<p align="center">
+  Self-hosted HTTP gateway that gives AI agents a human-in-the-loop line to <strong>Telegram</strong>, <strong>Slack</strong>, <strong>Microsoft Teams</strong>, <strong>Discord</strong>, <strong>Google Chat</strong>, <strong>WhatsApp</strong>, and <strong>Messenger</strong> — interactive prompts, per-agent channels, and signed callbacks.
+</p>
 
-**Documentation:** run `npm run dev:docs` (http://localhost:3001) or see [`docs-site/`](docs-site/).
+<p align="center">
+  Built with <a href="https://chat-sdk.dev/">Chat SDK</a>. Platform credentials are registered per channel via API (not global env vars).
+</p>
+
+<p align="center">
+  <strong>Documentation:</strong> run <code>npm run dev:docs</code> (<a href="http://localhost:3001">http://localhost:3001</a>) or see <a href="docs-site/"><code>docs-site/</code></a>.
+</p>
 
 ## Quick start (local dev)
 
@@ -81,8 +95,9 @@ docs-site/  — Product documentation (Nextra, port 3001)
 
 ```bash
 cp .env.example .env
-docker compose -f docker-compose.dev.yml up -d --build   # dev
-# Production: docker-compose.yml + .env.production.example — see docs-site Self-Hosting
+docker compose up -d --build   # dev (docker-compose.yml → docker-compose.dev.yml)
+# Self-host: docker-compose.self-host.yml (+ optional -f docker-compose.docs.yml)
+# Swarm: add -c docker-compose.self-host.stack.yml — see docs-site Self-Hosting
 ```
 
 Local without the app containers:

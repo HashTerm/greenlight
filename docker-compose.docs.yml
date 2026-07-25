@@ -1,0 +1,33 @@
+# Optional docs overlay — merge with docker-compose.self-host.yml:
+#   docker compose -f docker-compose.self-host.yml -f docker-compose.docs.yml \
+#     --env-file .env.self-host --env-file .env.docs up -d
+#
+# Swarm:
+#   docker stack deploy -c docker-compose.self-host.yml -c docker-compose.docs.yml -c docker-compose.self-host.stack.yml greenlight
+#
+# Ingress: route public docs URL → greenlight-docs:3001
+
+services:
+  greenlight-docs:
+    image: ${GREENLIGHT_DOCS_IMAGE:-ghcr.io/markokosticdev/greenlight-docs:latest}
+    restart: unless-stopped
+    expose:
+      - "3001"
+    networks:
+      - greenlight
+    environment:
+      PORT: "3001"
+      HOSTNAME: "0.0.0.0"
+      NEXT_PUBLIC_DOCS_URL: ${NEXT_PUBLIC_DOCS_URL}
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 20
+        window: 120s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        failure_action: rollback
+        order: start-first
