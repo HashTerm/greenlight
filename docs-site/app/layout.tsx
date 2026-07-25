@@ -16,6 +16,9 @@ export const metadata = {
   },
   description:
     'Self-host guides, agent integration, platform setup, and API reference for Greenlight.',
+  icons: {
+    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+  },
 }
 
 const logo = (
