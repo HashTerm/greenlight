@@ -1,4 +1,4 @@
-# Self-host — Dokploy / `docker compose -f docker-compose.self-host.yml up`.
+# Self-host — Dokploy / Coolify / `docker compose -f docker-compose.self-host.yml up`.
 # Optional docs: -f docker-compose.docs.yml
 # Swarm: -c docker-compose.self-host.stack.yml (add -c docker-compose.docs.yml if hosting docs)
 services:

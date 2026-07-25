@@ -8,11 +8,10 @@ Read [Licensing](/legal/licensing) for self-host permissions and restrictions.
 
 ## Development setup
 
+See [Local development](/development/local) for hybrid and full Docker details.
+
 ```bash
-cp .env.example .env
-# Edit secrets — for hybrid UI, set GREENLIGHT_API_KEY and GREENLIGHT_ADMIN_TOKEN
-# to match API_KEY and ADMIN_INTERNAL_TOKEN (see .env.example)
-npm run setup       # install + Postgres + migrate
+npm run setup       # creates .env with secrets if missing; install + Postgres + migrate
 npm run dev         # core :8100, ui :3000, docs :3001
 ```
 

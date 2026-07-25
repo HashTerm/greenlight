@@ -1,94 +1,32 @@
-# Docker
+# Docker / Compose
 
-Greenlight ships with Compose files for development, self-hosting, and Swarm.
+Deploy Greenlight with Compose or Swarm using published GHCR images.
 
-## Development (hybrid — recommended)
+## Compose files
 
-Postgres runs in Docker; the API, admin UI, and docs run on the host with
-hot reload.
+| File                                 | Role                                          |
+| ------------------------------------ | --------------------------------------------- |
+| `docker-compose.self-host.yml`       | API + UI + Postgres (GHCR images)             |
+| `docker-compose.self-host.stack.yml` | Swarm overlay — deploy policies + network     |
 
-```bash
-npm run setup          # creates .env with generated secrets if missing,
-                       # then install + Postgres + migrate
-npm run dev            # core :8100, ui :3000, docs :3001
-curl http://localhost:8100/healthz
-```
+## Environment
 
-`docker compose up -d` (default) starts **Postgres only**. App services use
-Compose profile `full`.
-
-| Service        | Host port              | Role           |
-| -------------- | ---------------------- | -------------- |
-| `postgres`     | 5432 (`POSTGRES_PORT`) | PostgreSQL 16  |
-| npm `dev:core` | 8100                   | API + webhooks |
-| npm `dev:ui`   | 3000                   | Admin UI       |
-| npm `dev:docs` | 3001                   | Product docs   |
-
-Useful commands:
-
-```bash
-npm run infra:up          # start Postgres
-npm run infra:down        # stop Postgres
-npm run infra:reset       # wipe Postgres volume
-npm run db:migrate        # UI admin_users migration
-npm run docker:logs       # logs when using full profile
-```
-
-If `5432` is already in use, set `POSTGRES_PORT=5433` in `.env` and use the
-same port in `DATABASE_URL`.
-
-## Full Docker stack
-
-All services containerized (no host hot reload):
-
-```bash
-npm run docker:full
-# same as: docker compose --profile full up -d --build
-curl http://localhost:8100/healthz
-```
-
-| Service           | Host port | Role           |
-| ----------------- | --------- | -------------- |
-| `greenlight`      | 8100      | API + webhooks |
-| `greenlight-ui`   | 3000      | Admin UI       |
-| `greenlight-docs` | 3001      | Product docs   |
-| `postgres`        | 5432      | PostgreSQL 16  |
-
-```bash
-npm run docker:full:down
-docker compose --profile full logs -f greenlight greenlight-ui greenlight-docs
-```
-
-## Migrations
-
-| Component       | Mechanism                         | When                                        |
-| --------------- | --------------------------------- | ------------------------------------------- |
-| **core**        | `schema.sql` applied on boot      | Every start (`prompts`, `channels`, …)      |
-| **ui**          | Drizzle SQL via Docker entrypoint | Container start (`admin_users`)             |
-| **ui (hybrid)** | `npm run db:migrate`              | After `infra:up` / as part of `npm run dev` |
-
-## Self-host Compose
-
-| File                                 | Role                                                               |
-| ------------------------------------ | ------------------------------------------------------------------ |
-| `docker-compose.yml`                 | Default entry — includes `docker-compose.dev.yml`                  |
-| `docker-compose.dev.yml`             | Local development — Postgres by default; apps under `full` profile |
-| `docker-compose.self-host.yml`       | Self-host — API + UI + Postgres (GHCR images)                      |
-| `docker-compose.self-host.stack.yml` | Swarm overlay — deploy policies + overlay network                  |
-
-Env example:
-
-- [`.env.self-host.example`](https://github.com/markokosticdev/greenlight/blob/main/.env.self-host.example)
-
-Dokploy / single node:
+Generate secrets (when `.env.self-host` is missing):
 
 ```bash
 npm run env:ensure -- --profile self-host
-# Or: cp .env.self-host.example .env.self-host  (then edit secrets)
+```
+
+Or copy [`.env.self-host.example`](https://github.com/markokosticdev/greenlight/blob/main/.env.self-host.example)
+and set secrets yourself.
+
+## Single node
+
+```bash
 docker compose -f docker-compose.self-host.yml --env-file .env.self-host up -d
 ```
 
-Swarm:
+## Swarm
 
 ```bash
 docker stack deploy \
@@ -97,11 +35,19 @@ docker stack deploy \
   greenlight
 ```
 
-Route traffic:
+## Migrations
+
+On container start:
+
+- **core** applies `schema.sql` (`prompts`, `channels`, …)
+- **ui** applies Drizzle SQL via its Docker entrypoint (`admin_users`)
+
+## Route traffic
 
 | Service        | Target               | Role      |
 | -------------- | -------------------- | --------- |
 | API + webhooks | `greenlight:8100`    | Gateway   |
 | Admin UI       | `greenlight-ui:3000` | Admin app |
 
-Continue with [Dokploy](/self-hosting/dokploy) or [Configuration](/self-hosting/configuration).
+Continue with [Dokploy](/self-hosting/dokploy), [Coolify](/self-hosting/coolify),
+or [Configuration](/self-hosting/configuration).

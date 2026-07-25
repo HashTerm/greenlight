@@ -1,0 +1,45 @@
+# Coolify
+
+Deploy Greenlight as a Docker Compose app in [Coolify](https://coolify.io/).
+
+## Steps
+
+1. Create a **Docker Compose** resource in Coolify pointing at this repository.
+2. Set the compose file to `docker-compose.self-host.yml`.
+3. Generate secrets locally with `npm run env:ensure -- --profile self-host`, then
+   paste variables into Coolify’s **Environment Variables** tab (or start from
+   `.env.self-host.example` and set secrets yourself). Coolify detects `${VAR}`
+   references from the compose file and shows them in the UI.
+4. Confirm strong secrets are set:
+   - `POSTGRES_PASSWORD`
+   - `ADMIN_INTERNAL_TOKEN`
+   - `AUTH_SECRET`
+   - `CALLBACK_SIGNING_SECRET`
+   - `WEBHOOK_SECRET`
+   - `API_KEY` (required when `USE_AUTH=true`)
+5. Set `PUBLIC_WEBHOOK_URL` to your public HTTPS API host (**no trailing slash**).
+6. Assign domains in Coolify (services use `expose`, not host ports):
+   - `greenlight` → API + platform webhooks (container port `8100`)
+   - `greenlight-ui` → Admin UI (container port `3000`)
+7. If NextAuth redirects fail after assigning the UI domain, set `AUTH_URL` to
+   the Admin UI public HTTPS URL.
+8. Deploy, then register channels via API or the Admin UI.
+
+## Webhook URLs
+
+Each channel uses:
+
+```
+{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}
+```
+
+Configure that URL in Slack Event Subscriptions, Azure Bot messaging endpoint,
+Discord Interactions, Meta Callback URL, Google Chat App URL, etc.
+
+## After deploy
+
+- Open the Admin UI `/setup` once to create the super admin
+- Register at least one `PROMPT` channel
+- Send a test prompt from the UI or `POST /v1/prompts`
+
+See [Platforms](/platforms) for per-platform webhook details.

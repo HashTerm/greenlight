@@ -10,8 +10,9 @@ Greenlight is source-available under BUSL-1.1 (not OSI open source until the Cha
 - [Quickstart](/getting-started/quickstart): Hybrid local setup (Postgres in Docker, apps via npm)
 - [Concepts](/getting-started/concepts): PROMPT vs MESSAGE, auth layers, Chat SDK
 - [Admin UI](/getting-started/admin-ui): Setup, channels, prompts, settings
-- [Docker](/self-hosting/docker): Dev and production Compose
+- [Docker](/self-hosting/docker): Self-host Compose and Swarm
 - [Dokploy](/self-hosting/dokploy): Deploy with Dokploy
+- [Coolify](/self-hosting/coolify): Deploy with Coolify
 - [Configuration](/self-hosting/configuration): Environment variable reference
 - [API-only](/self-hosting/api-only): Run without the Admin UI
 - [Agent integration](/guides/agent-integration): X-API-Key, create prompts, poll status

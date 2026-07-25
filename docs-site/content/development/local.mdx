@@ -1,0 +1,78 @@
+# Local development
+
+Run Greenlight on your machine for hacking on `core/`, `ui/`, and `docs-site/`.
+
+For a first working prompt, start with [Quickstart](/getting-started/quickstart).
+To deploy for production, see [Self-Hosting Docker](/self-hosting/docker).
+
+## Hybrid (recommended)
+
+Postgres runs in Docker; the API, admin UI, and docs run on the host with
+hot reload.
+
+```bash
+npm run setup          # creates .env with generated secrets if missing,
+                       # then install + Postgres + migrate
+npm run dev            # core :8100, ui :3000, docs :3001
+curl http://localhost:8100/healthz
+```
+
+`docker compose up -d` (default) starts **Postgres only**. App services use
+Compose profile `full`.
+
+| Service        | Host port              | Role           |
+| -------------- | ---------------------- | -------------- |
+| `postgres`     | 5432 (`POSTGRES_PORT`) | PostgreSQL 16  |
+| npm `dev:core` | 8100                   | API + webhooks |
+| npm `dev:ui`   | 3000                   | Admin UI       |
+| npm `dev:docs` | 3001                   | Product docs   |
+
+Useful commands:
+
+```bash
+npm run infra:up          # start Postgres
+npm run infra:down        # stop Postgres
+npm run infra:reset       # wipe Postgres volume
+npm run db:migrate        # UI admin_users migration
+npm run docker:logs       # logs when using full profile
+```
+
+If `5432` is already in use, set `POSTGRES_PORT=5433` in `.env` and use the
+same port in `DATABASE_URL`.
+
+## Full Docker stack
+
+All services containerized (no host hot reload):
+
+```bash
+npm run docker:full
+# same as: docker compose --profile full up -d --build
+curl http://localhost:8100/healthz
+```
+
+| Service           | Host port | Role           |
+| ----------------- | --------- | -------------- |
+| `greenlight`      | 8100      | API + webhooks |
+| `greenlight-ui`   | 3000      | Admin UI       |
+| `greenlight-docs` | 3001      | Product docs   |
+| `postgres`        | 5432      | PostgreSQL 16  |
+
+```bash
+npm run docker:full:down
+docker compose --profile full logs -f greenlight greenlight-ui greenlight-docs
+```
+
+## Compose files (local)
+
+| File                     | Role                                                               |
+| ------------------------ | ------------------------------------------------------------------ |
+| `docker-compose.yml`     | Default entry — includes `docker-compose.dev.yml`                  |
+| `docker-compose.dev.yml` | Local development — Postgres by default; apps under `full` profile |
+
+## Migrations
+
+| Component       | Mechanism                         | When                                        |
+| --------------- | --------------------------------- | ------------------------------------------- |
+| **core**        | `schema.sql` applied on boot      | Every start (`prompts`, `channels`, …)      |
+| **ui**          | Drizzle SQL via Docker entrypoint | Container start (`admin_users`)             |
+| **ui (hybrid)** | `npm run db:migrate`              | After `infra:up` / as part of `npm run dev` |

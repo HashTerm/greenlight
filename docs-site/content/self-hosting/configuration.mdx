@@ -72,11 +72,5 @@ The UI talks to core with **`GREENLIGHT_*`** names (not `API_KEY` / `ADMIN_INTER
 | ----------------------------------------------------- | -------------------------------------- |
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | Bundled Postgres credentials (Compose) |
 
-## Docs site
-
-| Variable               | Purpose                                          |
-| ---------------------- | ------------------------------------------------ |
-| `NEXT_PUBLIC_DOCS_URL` | Canonical docs URL for metadata (`metadataBase`) |
-
 Replace **all** default secrets before production. Prefer a secrets manager or
-Dokploy environment UI over committing `.env`.
+Dokploy / Coolify environment UI over committing `.env`.

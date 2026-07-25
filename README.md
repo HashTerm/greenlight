@@ -123,7 +123,7 @@ docs-site/  — Product documentation (Nextra, port 3001)
 | `npm run docker:full`             | Full containerized stack                       |
 | `npm run docker:full:down`        | Stop full stack                                |
 
-## Self-host / Dokploy
+## Self-host / Dokploy / Coolify
 
 ```bash
 # Self-host: docker-compose.self-host.yml

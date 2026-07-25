@@ -7,6 +7,7 @@ const meta: MetaRecord = {
   guides: 'Guides',
   platforms: 'Platforms',
   'api-reference': 'API Reference',
+  development: 'Development',
   legal: 'Legal',
 }
 
