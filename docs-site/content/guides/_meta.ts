@@ -2,6 +2,7 @@ import type { MetaRecord } from 'nextra'
 
 const meta: MetaRecord = {
   'agent-integration': 'Agent integration',
+  'automation-platforms': 'Automation platforms',
   channels: 'Channels',
   prompts: 'Prompts',
   callbacks: 'Callbacks',

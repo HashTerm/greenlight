@@ -5,16 +5,16 @@ Greenlight sits between your AI agent and chat platforms.
 ```mermaid
 %%{init: {'theme': 'neutral'}}%%
 flowchart LR
-  agent[AI_Agent]
+  agent[AI Agent]
   core[Greenlight]
   db[(PostgreSQL)]
-  chat[Telegram_Slack_Teams_…]
+  chat[Telegram, Slack, Teams, …]
 
-  agent -->|HTTP_API| core
-  core -->|Chat_SDK| chat
+  agent -->|HTTP API| core
+  core -->|Chat SDK| chat
   core --> db
-  chat -->|answers_and_messages| core
-  core -->|signed_callbacks| agent
+  chat -->|answers and messages| core
+  core -->|signed callbacks| agent
 ```
 
 ## Channel types
@@ -23,6 +23,46 @@ flowchart LR
 |------|-----------|----------------|-------------|
 | **PROMPT** | Outbound questions to humans | Optional on the prompt | Deploy gates, approvals, escalations |
 | **MESSAGE** | Inbound chat → agent | **Required** on the channel | Ongoing agent conversations |
+
+### PROMPT — approval gate
+
+Your agent asks a human to decide; Greenlight delivers a prompt card and
+returns the answer via a signed callback.
+
+```mermaid
+%%{init: {'theme': 'neutral'}}%%
+sequenceDiagram
+  participant Agent
+  participant Greenlight
+  participant Human
+  Agent->>Greenlight: POST /register-channel (PROMPT)
+  Agent->>Greenlight: POST /v1/prompts "Deploy v2.4 to prod?"
+  Greenlight->>Human: Prompt card (Approve / Reject)
+  Human-->>Greenlight: Taps Approve
+  Greenlight->>Agent: POST callback (signed, correlation_id)
+```
+
+### MESSAGE — agent conversation
+
+Humans message the bot in chat; Greenlight forwards each message to your agent,
+which can reply with `POST /send`.
+
+```mermaid
+%%{init: {'theme': 'neutral'}}%%
+sequenceDiagram
+  participant Human
+  participant Chat as Slack / Telegram
+  participant Greenlight
+  participant Agent
+  Agent->>Greenlight: POST /register-channel (MESSAGE)
+  Human->>Chat: "What's the deploy status?"
+  Chat-->>Greenlight: Inbound message
+  Greenlight->>Agent: POST message.created
+  Agent->>Greenlight: POST /send
+  Greenlight->>Chat: "v2.4 is live in prod"
+```
+
+The “agent” in these flows can be custom code or an [automation platform](/guides/automation-platforms) (n8n, Zapier, Make, etc.).
 
 Register channels with `POST /register-channel`. Credentials are stored per
 channel — one Greenlight instance can talk to many bots and workspaces.

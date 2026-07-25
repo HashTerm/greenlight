@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="ui/public/logo/greenlight-icon-transparent.svg" width="128" alt="Greenlight" />
+</p>
+
 # Greenlight
 
 Self-hosted HTTP gateway that gives AI agents a human-in-the-loop line to **Telegram**, **Slack**, **Microsoft Teams**, **Discord**, **Google Chat**, **WhatsApp**, and **Messenger** — interactive prompts, per-agent channels, and signed callbacks.

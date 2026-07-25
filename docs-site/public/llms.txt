@@ -15,6 +15,7 @@ Greenlight is source-available under BUSL-1.1 (not OSI open source until the Cha
 - [Configuration](/self-hosting/configuration): Environment variable reference
 - [API-only](/self-hosting/api-only): Run without the Admin UI
 - [Agent integration](/guides/agent-integration): X-API-Key, create prompts, poll status
+- [Automation platforms](/guides/automation-platforms): n8n, Zapier, Make, Pipedream, and similar
 - [Channels](/guides/channels): Register-channel schema and channel types
 - [Prompts](/guides/prompts): Options, TTL, text replies, media
 - [Callbacks](/guides/callbacks): Signed prompt answers and message events
