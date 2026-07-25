@@ -5,7 +5,7 @@ import { loadConfig } from '../core/config.js'
 import { credentialFingerprint, parseThreadChannelId, type Platform } from '../core/platform.js'
 import * as promptModels from '../services/prompts/models.js'
 import * as channelModels from '../services/channels/models.js'
-import { getBotByKey } from './bot-manager.js'
+import { getBotByKey } from './bot-registry.js'
 import { instanceKey } from '../core/platform.js'
 
 const ID_REPLY_RE = /^ID\s*[:#-]?\s*(#?\w+)\s+(.+)$/i

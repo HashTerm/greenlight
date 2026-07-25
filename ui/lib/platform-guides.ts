@@ -1,11 +1,11 @@
 import type { Platform } from '@/lib/platform-fields'
 
-export interface PlatformGuide {
+interface PlatformGuide {
   title: string
   steps: string[]
 }
 
-export const PLATFORM_GUIDES: Record<Platform, PlatformGuide> = {
+const PLATFORM_GUIDES: Record<Platform, PlatformGuide> = {
   telegram: {
     title: 'Telegram',
     steps: [

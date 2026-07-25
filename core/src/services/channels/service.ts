@@ -1,7 +1,6 @@
 import { withClient } from '../../db/client.js'
 import {
   ensureBotForChannel,
-  getBotForChannel,
   postToChat,
   stopBotForChannelWithRow,
 } from '../../chat/bot-manager.js'
@@ -84,8 +83,4 @@ export async function restoreChannelsOnStartup(): Promise<void> {
   for (const channel of channels) {
     await ensureBotForChannel(channel)
   }
-}
-
-export function getChannelBot(channelId: string) {
-  return getBotForChannel(channelId)
 }

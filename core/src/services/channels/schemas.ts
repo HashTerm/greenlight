@@ -100,5 +100,3 @@ export const registerChannelSchema = z
       }
     }
   })
-
-export type RegisterChannelInput = z.infer<typeof registerChannelSchema>

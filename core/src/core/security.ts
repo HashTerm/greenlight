@@ -95,9 +95,3 @@ export class ValueError extends Error {
     this.name = 'ValueError'
   }
 }
-
-export function redactToken(token: string): string {
-  const idx = token.indexOf(':')
-  if (idx === -1) return '***'
-  return `${token.slice(0, idx)}:***`
-}

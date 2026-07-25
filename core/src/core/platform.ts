@@ -11,48 +11,6 @@ export const PLATFORMS = [
 ] as const
 export type Platform = (typeof PLATFORMS)[number]
 
-export type PlatformCredentials =
-  | { platform: 'telegram'; bot_token: string }
-  | {
-      platform: 'slack'
-      bot_token: string
-      signing_secret: string
-      app_token?: string
-    }
-  | {
-      platform: 'teams'
-      app_id: string
-      app_password: string
-      app_tenant_id?: string
-    }
-  | {
-      platform: 'discord'
-      bot_token: string
-      public_key: string
-      application_id: string
-    }
-  | {
-      platform: 'gchat'
-      service_account_json: string
-      google_chat_project_number: string
-      pubsub_topic?: string
-      pubsub_audience?: string
-      impersonate_user?: string
-    }
-  | {
-      platform: 'whatsapp'
-      access_token: string
-      app_secret: string
-      phone_number_id: string
-      verify_token: string
-    }
-  | {
-      platform: 'messenger'
-      page_access_token: string
-      app_secret: string
-      verify_token: string
-    }
-
 export function credentialFingerprint(
   platform: Platform,
   credentials: Record<string, string>,
@@ -78,7 +36,7 @@ export function resolvePlatformChannelId(channel: {
   }
 }
 
-export function parsePlatformChannelId(
+function parsePlatformChannelId(
   channelId: string,
 ): { platform: Platform; targetChatId: string } | null {
   const idx = channelId.indexOf(':')

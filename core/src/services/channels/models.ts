@@ -17,10 +17,6 @@ export function channelInstanceKey(channel: ChannelRow): string {
   return instanceKey(channel.platform, channel.credentials)
 }
 
-export function channelCredentialFingerprint(channel: ChannelRow): string {
-  return credentialFingerprint(channel.platform, channel.credentials)
-}
-
 export async function registerChannel(
   client: pg.PoolClient,
   data: {

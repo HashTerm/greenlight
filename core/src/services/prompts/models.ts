@@ -3,7 +3,7 @@ import type pg from 'pg'
 
 export const PENDING = 'PENDING'
 export const ANSWERED = 'ANSWERED'
-export const EXPIRED = 'EXPIRED'
+const EXPIRED = 'EXPIRED'
 
 export function canAcceptTextReply(prompt: PromptRow | null): boolean {
   if (!prompt) return false
