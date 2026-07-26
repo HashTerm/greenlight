@@ -1,8 +1,111 @@
 # Quickstart
 
-Get Greenlight running locally in a few minutes.
+Greenlight has two quick paths: deploy with Docker for production or self-hosting,
+or run hybrid locally for development. Pick the section that matches your goal.
 
-## 1. Clone and configure
+## Self-hosting quickstart
+
+Deploy the API, Admin UI, and Postgres with published GHCR images.
+
+### 1. Clone and configure
+
+```bash
+git clone https://github.com/markokosticdev/greenlight.git
+cd greenlight
+npm run env:ensure -- --profile self-host
+```
+
+That creates `.env.self-host` from `.env.self-host.example` with generated
+secrets (when missing). Or copy `.env.self-host.example` and set secrets yourself.
+
+Confirm at least these are set:
+
+- `PUBLIC_WEBHOOK_URL` — public HTTPS API host (**no trailing slash**)
+- `POSTGRES_PASSWORD`
+- `WEBHOOK_SECRET`
+- `CALLBACK_SIGNING_SECRET`
+- `ADMIN_INTERNAL_TOKEN`
+- `AUTH_SECRET`
+- `API_KEY` (required when `USE_AUTH=true`)
+
+### 2. Start the stack
+
+```bash
+docker compose -f docker-compose.self-host.yml --env-file .env.self-host up -d
+curl http://localhost:8100/healthz   # or your routed API URL
+```
+
+### 3. Route traffic
+
+Point your reverse proxy or platform domains at:
+
+| Service        | Target               | Role      |
+| -------------- | -------------------- | --------- |
+| API + webhooks | `greenlight:8100`    | Gateway   |
+| Admin UI       | `greenlight-ui:3000` | Admin app |
+
+For PaaS deploy steps, see [Dokploy](/self-hosting/dokploy) or
+[Coolify](/self-hosting/coolify).
+
+### 4. Create an admin account
+
+1. Open `{ADMIN_UI_URL}/setup`
+2. Enter email and password (min 8 characters)
+3. Sign in at `/login`
+
+### 5. Register a Telegram prompt channel
+
+Create a bot with [@BotFather](https://t.me/BotFather), add it to a group, and
+copy the chat ID (negative for groups). Then (replace `$API_BASE` with your
+public API URL):
+
+```bash
+export API_KEY="$(grep '^API_KEY=' .env.self-host | cut -d= -f2)"
+export API_BASE="https://greenlight.example.com"
+
+curl -X POST "$API_BASE/register-channel" \
+  -H "X-API-Key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channel_id": "my-telegram-prompts",
+    "platform": "telegram",
+    "target_chat_id": "-1001234567890",
+    "credentials": { "bot_token": "123456789:YOUR_TOKEN" },
+    "channel_type": "PROMPT"
+  }'
+```
+
+Or use **Admin UI → Channels → Add channel**.
+
+For webhook-based platforms (Slack, Teams, Discord, and others), configure:
+
+```
+{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}
+```
+
+### 6. Send a test prompt
+
+```bash
+curl -X POST "$API_BASE/v1/prompts" \
+  -H "X-API-Key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "channel_id": "my-telegram-prompts",
+    "text": "Ready to deploy v2.4.1?",
+    "options": ["Deploy", "Cancel"],
+    "callback_url": "https://your-agent.example.com/on_answer"
+  }'
+```
+
+You should see the prompt in Telegram. Tap a button to complete the loop.
+
+Full Compose and Swarm reference: [Self-Hosting Docker](/self-hosting/docker).
+
+## Development quickstart
+
+Run Greenlight on your machine for hacking on `core/`, `ui/`, and `docs-site/`.
+
+### 1. Clone and configure
 
 ```bash
 npm run setup
@@ -15,13 +118,12 @@ Env only:
 
 ```bash
 npm run env:ensure                         # .env (dev)
-npm run env:ensure -- --profile self-host  # .env.self-host
 ```
 
 For local Telegram testing, `PUBLIC_WEBHOOK_URL=http://localhost:8100` is enough
 (Telegram uses long polling when no public HTTPS URL is required).
 
-## 2. Start (hybrid — recommended)
+### 2. Start (hybrid — recommended)
 
 Postgres in Docker; API, admin UI, and docs on the host with hot reload:
 
@@ -44,13 +146,13 @@ curl http://localhost:8100/healthz
 npm run docker:full
 ```
 
-## 3. Create an admin account
+### 3. Create an admin account
 
 1. Open http://localhost:3000/setup
 2. Enter email and password (min 8 characters)
 3. Sign in at `/login`
 
-## 4. Register a Telegram prompt channel
+### 4. Register a Telegram prompt channel
 
 Create a bot with [@BotFather](https://t.me/BotFather), add it to a group, and
 copy the chat ID (negative for groups). Then:
@@ -72,7 +174,7 @@ curl -X POST http://localhost:8100/register-channel \
 
 Or use **Admin UI → Channels → Add channel**.
 
-## 5. Send a test prompt
+### 5. Send a test prompt
 
 ```bash
 curl -X POST http://localhost:8100/v1/prompts \
@@ -88,6 +190,8 @@ curl -X POST http://localhost:8100/v1/prompts \
 
 You should see the prompt in Telegram. Tap a button to complete the loop.
 
+Deeper hybrid and full Docker workflows: [Local development](/development/local).
+
 ## Next steps
 
 - [Concepts](/getting-started/concepts) — channel types and auth layers
@@ -95,5 +199,5 @@ You should see the prompt in Telegram. Tap a button to complete the loop.
 - [Platforms](/platforms) — Slack, Teams, Discord, and more
 - [Agent integration](/guides/agent-integration) — verify signed callbacks
 - [Automation platforms](/guides/automation-platforms) — n8n, Zapier, Make, and similar
-- [Self-Hosting](/self-hosting/docker) — Compose / Swarm / Dokploy / Coolify
-- [Local development](/development/local) — hybrid and full Docker workflows
+- [Self-Hosting Docker](/self-hosting/docker) — full Compose / Swarm reference
+- [Local development](/development/local) — hybrid and full Docker details
