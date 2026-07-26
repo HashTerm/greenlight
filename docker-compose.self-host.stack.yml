@@ -4,6 +4,9 @@
 # With docs:
 #   docker stack deploy -c docker-compose.self-host.yml -c docker-compose.docs.yml -c docker-compose.self-host.stack.yml greenlight
 #
+# App services use start-first + healthchecks for rolling (near zero-downtime) updates.
+# Postgres stays stop-first (single volume / single writer).
+#
 # Label a node for Postgres data (recommended):
 #   docker node update --label-add greenlight.db=true <node-id>
 
@@ -14,6 +17,7 @@ networks:
 
 services:
   greenlight:
+    stop_grace_period: 30s
     deploy:
       replicas: 1
       restart_policy:
@@ -24,10 +28,13 @@ services:
       update_config:
         parallelism: 1
         delay: 10s
+        monitor: 60s
         failure_action: rollback
+        max_failure_ratio: 0
         order: start-first
 
   greenlight-ui:
+    stop_grace_period: 30s
     deploy:
       replicas: 1
       restart_policy:
@@ -38,7 +45,9 @@ services:
       update_config:
         parallelism: 1
         delay: 10s
+        monitor: 60s
         failure_action: rollback
+        max_failure_ratio: 0
         order: start-first
 
   postgres:

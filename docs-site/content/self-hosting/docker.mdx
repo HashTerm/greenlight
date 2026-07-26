@@ -35,6 +35,10 @@ docker stack deploy \
   greenlight
 ```
 
+API and Admin UI use `start-first` rolling updates with healthchecks so the new
+task is healthy before the old one stops. Postgres uses `stop-first` (single
+volume) and briefly restarts on image updates.
+
 ## Migrations
 
 On container start:
