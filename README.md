@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="ui/public/logo/greenlight-icon-transparent.svg" width="256" alt="Greenlight" />
+  <img src="ui/public/logo/greenlight-icon-trans-dark.svg" width="256" alt="Greenlight" />
 </p>
 
 <h1 align="center">Greenlight</h1>

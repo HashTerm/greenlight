@@ -1,0 +1,49 @@
+/* Brand green (--nextra-primary-hue/-saturation/-lightness) is set via the
+   `color` prop on Nextra's <Head> component in app/layout.tsx, not here — Nextra's
+   <Head> renders its own inline <style> with the primary color values, which is
+   injected later in the DOM than this stylesheet and would otherwise win the
+   cascade and silently override any CSS-only attempt to set those variables here. */
+:root {
+  --x-font-sans: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
+  --x-font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* nextra-focus rings use primary-200/300; override to neutral gray so search,
+     theme switch, and other chrome controls don't show a green focus ring. */
+  --x-color-primary-200: #e5e5e5;
+  --x-color-primary-300: #d4d4d4;
+}
+
+:where(.dark, [data-theme='dark']) {
+  --x-color-primary-200: #525252;
+  --x-color-primary-300: #404040;
+  /* dark nextra-focus rings use primary-800/700 instead of 200/300 */
+  --x-color-primary-700: #404040;
+  --x-color-primary-800: #525252;
+}
+
+/* Plus Jakarta Sans has a noticeably larger x-height than the system font Nextra
+   defaults to, so body copy reads bigger at the same nominal 16px even though the
+   size is unchanged. Nextra's <article> doesn't apply a `text-base` utility class —
+   its paragraphs just inherit the browser default 1rem — so nudge it down directly
+   here, scoped to `article` only. Headings are unaffected since they set their own
+   fixed --x-text-2xl/3xl/4xl font-size rather than inheriting from their parent. */
+article {
+  font-size: 0.9375rem; /* 15px, was the browser default 1rem/16px */
+}
+
+/* Sidebar active item: nextra-theme-docs hardcodes `li.active > a` to
+   bg-primary-100/text-primary-800 (light) and bg-primary-400/text-primary-600 (dark) —
+   i.e. a green-tinted highlight. Override to a neutral gray highlight instead, scoped to
+   `aside` only so the shared primary-* scale used elsewhere (inline links, focus rings,
+   buttons) keeps its brand-green value. The background matches the navbar search box's
+   own neutral treatment (`bg-black/5` light, `bg-gray-50/10` dark) for visual consistency. */
+aside {
+  --x-color-primary-100: rgb(0 0 0 / 5%); /* matches .nextra-search input's light bg */
+  --x-color-primary-800: #333333;
+}
+
+:where(.dark, [data-theme='dark']) aside {
+  /* dark:bg-primary-400/10 already applies a 10% opacity modifier on top of this,
+     so setting the base color to near-white reproduces bg-gray-50/10 exactly. */
+  --x-color-primary-400: #fafafa;
+  --x-color-primary-600: #f2f2f2;
+}

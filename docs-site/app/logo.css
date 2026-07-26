@@ -1,12 +1,16 @@
-/* Light theme: dark mark. Dark theme: light mark. */
-.docs-logo-mark--light {
+/* Light theme: dark mark/icon. Dark theme: light mark/icon.
+   Nextra's ThemeProvider sets `class="dark"` on <html> (not data-theme). */
+.docs-logo-mark--light,
+.docs-logo-icon--light {
   display: none;
 }
 
-:is(html.dark, html[data-theme='dark']) .docs-logo-mark--dark {
+:where(html.dark, html[data-theme='dark']) .docs-logo-mark--dark,
+:where(html.dark, html[data-theme='dark']) .docs-logo-icon--dark {
   display: none;
 }
 
-:is(html.dark, html[data-theme='dark']) .docs-logo-mark--light {
+:where(html.dark, html[data-theme='dark']) .docs-logo-mark--light,
+:where(html.dark, html[data-theme='dark']) .docs-logo-icon--light {
   display: inline-block;
 }

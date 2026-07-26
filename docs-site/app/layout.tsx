@@ -3,8 +3,16 @@ import Image from 'next/image'
 import { Footer, Layout, Navbar } from 'nextra-theme-docs'
 import { Head } from 'nextra/components'
 import { getPageMap } from 'nextra/page-map'
+import { Plus_Jakarta_Sans } from 'next/font/google'
+import { GeistMono } from 'geist/font/mono'
 import 'nextra-theme-docs/style.css'
+import './theme.css'
 import './logo.css'
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-plus-jakarta-sans',
+})
 
 const siteUrl = process.env.NEXT_PUBLIC_DOCS_URL || 'http://localhost:3001'
 
@@ -47,8 +55,13 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
   const pageMap = await getPageMap()
 
   return (
-    <html lang="en" dir="ltr" suppressHydrationWarning>
-      <Head />
+    <html
+      lang="en"
+      dir="ltr"
+      suppressHydrationWarning
+      className={`${plusJakartaSans.variable} ${GeistMono.variable}`}
+    >
+      <Head color={{ hue: 148.5, saturation: 89.4, lightness: 40.6 }} />
       <body suppressHydrationWarning>
         <Layout
           navbar={<Navbar logo={logo} projectLink="https://github.com/greenlight/greenlight" />}
