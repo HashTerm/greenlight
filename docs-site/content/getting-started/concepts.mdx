@@ -67,6 +67,20 @@ The “agent” in these flows can be custom code or an [automation platform](/g
 Register channels with `POST /register-channel`. Credentials are stored per
 channel — one Greenlight instance can talk to many bots and workspaces.
 
+### Multiple workflows on one channel
+
+Greenlight does not register workflows or agents as first-class entities. Any
+HTTP client with a valid `X-API-Key` can use a `channel_id`.
+
+| Channel type | Multiple workflows posting outbound? | Multiple inbound subscribers? |
+| ------------ | ------------------------------------ | ----------------------------- |
+| **PROMPT**   | **Yes** — share one `channel_id`; each prompt has its own `callback_url` | N/A — inbound is prompt answers only |
+| **MESSAGE**  | Outbound via `POST /send` from any client | **No** — one channel `callback_url` receives all chat |
+
+Use a shared PROMPT channel when many CI jobs or automations need the same ops
+chat for approvals. Use MESSAGE when humans converse with a single agent
+webhook. More detail: [Features & benefits](/getting-started/features).
+
 ## Auth layers
 
 Greenlight has three independent auth surfaces:

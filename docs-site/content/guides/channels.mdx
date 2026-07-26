@@ -32,6 +32,19 @@ Channels bind a platform, credentials, and target chat to a stable `channel_id`.
 Re-registering an active channel updates config and returns
 `already registered (config updated)`.
 
+## Routing rules
+
+- **PROMPT** — many agents or workflows can `POST /v1/prompts` to the same
+  `channel_id`. Answers go to each prompt’s `callback_url`, not a shared
+  channel callback.
+- **MESSAGE** — inbound chat goes to the single `callback_url` set on the
+  channel. There is no fan-out to multiple webhooks.
+- Prefer **one active `channel_id` per platform + target chat + credentials**.
+  If two active rows share that binding, inbound resolution is nondeterministic.
+
+See [Features & benefits](/getting-started/features) for diagrams and when to
+choose each mode.
+
 ## List and delete
 
 ```bash

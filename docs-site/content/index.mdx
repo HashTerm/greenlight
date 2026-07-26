@@ -22,6 +22,7 @@ environment variables.
 | I want to…                                           | Start here                                           |
 | ---------------------------------------------------- | ---------------------------------------------------- |
 | Deploy or develop locally in minutes                 | [Quickstart](/getting-started/quickstart)            |
+| See features, benefits, and how channels connect     | [Features & benefits](/getting-started/features)     |
 | Understand PROMPT vs MESSAGE, auth, and architecture | [Concepts](/getting-started/concepts)                |
 | Deploy with Docker, Dokploy, or Coolify              | [Self-Hosting](/self-hosting/docker)                 |
 | Connect Slack, Telegram, and other platforms         | [Platforms](/platforms)                              |
@@ -38,6 +39,11 @@ environment variables.
 2. Your agent creates a **prompt** or listens for inbound **messages**.
 3. Humans interact in the chat app they already use.
 4. Greenlight posts answers or messages to your `callback_url`.
+
+Multiple workflows can post prompts to the same **PROMPT** channel — each
+prompt’s answer returns to that prompt’s `callback_url`. **MESSAGE** channels
+forward all inbound chat to a single channel `callback_url`. See
+[Features & benefits](/getting-started/features).
 
 ## Editions
 

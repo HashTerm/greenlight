@@ -59,6 +59,10 @@ is stable HTTP — pick the platform your team already runs.
 3. **Wait for human** — Greenlight delivers the card to Slack/Telegram/etc.
 4. **Resume workflow** — On signed callback, branch on `answer.value` (`Approve` / `Reject`) and continue the pipeline or open a ticket.
 
+Many workflows can share one PROMPT channel (for example a single `#ops-approvals`
+chat); each prompt still resumes at its own `callback_url`. See
+[Features & benefits](/getting-started/features).
+
 ```mermaid
 %%{init: {'theme': 'neutral'}}%%
 sequenceDiagram

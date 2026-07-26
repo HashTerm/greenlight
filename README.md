@@ -13,7 +13,7 @@
 </p>
 
 <p align="center">
-  Self-hosted HTTP gateway that gives AI agents a human-in-the-loop line to <strong>Telegram</strong>, <strong>Slack</strong>, <strong>Microsoft Teams</strong>, <strong>Discord</strong>, <strong>Google Chat</strong>, <strong>WhatsApp</strong>, and <strong>Messenger</strong> — interactive prompts, per-agent channels, and signed callbacks.
+  Self-hosted HTTP gateway that gives AI agents a human-in-the-loop line to <strong>Telegram</strong>, <strong>Slack</strong>, <strong>Microsoft Teams</strong>, <strong>Discord</strong>, <strong>Google Chat</strong>, <strong>WhatsApp</strong>, and <strong>Messenger</strong> — interactive prompts, per-channel credentials, and signed callbacks.
 </p>
 
 <p align="center">
@@ -23,6 +23,18 @@
 <p align="center">
   <strong>Documentation:</strong> run <code>npm run dev:docs</code> (<a href="http://localhost:3001">http://localhost:3001</a>) or see <a href="docs-site/"><code>docs-site/</code></a>.
 </p>
+
+## Features & benefits
+
+- **Human-in-the-loop** — interactive prompts with buttons and optional free text; signed callbacks deliver answers to your agent or workflow
+- **Talk to your agent in chat** — MESSAGE channels forward inbound chat to your webhook; reply with `POST /send`
+- **Many workflows, one approval channel** — multiple automations can post prompts to the same PROMPT `channel_id`; each prompt’s answer goes to its own `callback_url`
+- **Seven platforms** — Telegram, Slack, Teams, Discord, Google Chat, WhatsApp, Messenger
+- **Per-channel credentials** — register bots and tokens per channel via API (not global env vars)
+- **Works with your stack** — plain HTTP Agent API; n8n, Zapier, Make, custom agents — no Greenlight plugin required
+- **Self-hosted** — Postgres + Docker; credentials and traffic stay on your infra
+
+**PROMPT** channels are for outbound approvals (many workflows → one chat). **MESSAGE** channels are for ongoing conversation (one inbound `callback_url` per channel). Details: [Features & benefits](docs-site/content/getting-started/features.mdx).
 
 ## Quick start (local dev)
 
