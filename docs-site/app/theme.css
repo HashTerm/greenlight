@@ -286,7 +286,9 @@ html.docs-sidebar-collapsed .nextra-sidebar {
   border: 1px solid #e5e5e5;
   background: #fff;
   color: #333333;
-  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 10%), 0 2px 4px -2px rgb(0 0 0 / 10%);
+  box-shadow:
+    0 4px 6px -1px rgb(0 0 0 / 10%),
+    0 2px 4px -2px rgb(0 0 0 / 10%);
 }
 
 :where(.dark, [data-theme='dark']) .site-footer-theme-content {

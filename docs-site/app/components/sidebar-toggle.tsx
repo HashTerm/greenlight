@@ -41,7 +41,9 @@ export function SidebarToggle() {
       <PanelLeft
         aria-hidden="true"
         className={
-          collapsed ? 'docs-sidebar-toggle-icon docs-sidebar-toggle-icon--collapsed' : 'docs-sidebar-toggle-icon'
+          collapsed
+            ? 'docs-sidebar-toggle-icon docs-sidebar-toggle-icon--collapsed'
+            : 'docs-sidebar-toggle-icon'
         }
       />
     </button>

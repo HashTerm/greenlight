@@ -98,17 +98,17 @@ sequenceDiagram
 
 ## MESSAGE vs PROMPT — choose the right mode
 
-| Goal                                         | Use        |
-| -------------------------------------------- | ---------- |
-| Deploy gates, approvals, escalations         | **PROMPT** |
+| Goal                                         | Use         |
+| -------------------------------------------- | ----------- |
+| Deploy gates, approvals, escalations         | **PROMPT**  |
 | Ongoing conversation with an agent or bot    | **MESSAGE** |
-| Many workflows posting questions to one chat | **PROMPT** |
+| Many workflows posting questions to one chat | **PROMPT**  |
 | Humans freely messaging an agent in chat     | **MESSAGE** |
 
-| Type        | Agent → human              | Human → agent                                      | Callback                                  |
-| ----------- | -------------------------- | -------------------------------------------------- | ----------------------------------------- |
-| **PROMPT**  | `POST /v1/prompts`         | Prompt answers only (buttons or `ID:#123` text)    | Per-prompt `callback_url` (signed)        |
-| **MESSAGE** | `POST /send`               | Any chat text                                      | Single channel `callback_url` (unsigned)  |
+| Type        | Agent → human      | Human → agent                                   | Callback                                 |
+| ----------- | ------------------ | ----------------------------------------------- | ---------------------------------------- |
+| **PROMPT**  | `POST /v1/prompts` | Prompt answers only (buttons or `ID:#123` text) | Per-prompt `callback_url` (signed)       |
+| **MESSAGE** | `POST /send`       | Any chat text                                   | Single channel `callback_url` (unsigned) |
 
 ## Limitations
 
@@ -127,10 +127,10 @@ sequenceDiagram
 
 ## Next steps
 
-| I want to…                            | Start here                                               |
-| ------------------------------------- | -------------------------------------------------------- |
-| Run Greenlight locally                | [Quickstart](/getting-started/quickstart)                |
-| Understand auth and architecture      | [Concepts](/getting-started/concepts)                    |
-| Call the API from an agent            | [Agent integration](/guides/agent-integration)           |
-| Wire n8n, Zapier, Make, or similar    | [Automation platforms](/guides/automation-platforms)     |
-| Register and manage channels          | [Channels](/guides/channels)                             |
+| I want to…                         | Start here                                           |
+| ---------------------------------- | ---------------------------------------------------- |
+| Run Greenlight locally             | [Quickstart](/getting-started/quickstart)            |
+| Understand auth and architecture   | [Concepts](/getting-started/concepts)                |
+| Call the API from an agent         | [Agent integration](/guides/agent-integration)       |
+| Wire n8n, Zapier, Make, or similar | [Automation platforms](/guides/automation-platforms) |
+| Register and manage channels       | [Channels](/guides/channels)                         |
