@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import Image from 'next/image'
-import { Footer, Layout, Navbar } from 'nextra-theme-docs'
+import Link from 'next/link'
+import { Layout, Navbar } from 'nextra-theme-docs'
 import { Head } from 'nextra/components'
 import { getPageMap } from 'nextra/page-map'
 import { Plus_Jakarta_Sans } from 'next/font/google'
@@ -8,6 +9,9 @@ import { GeistMono } from 'geist/font/mono'
 import 'nextra-theme-docs/style.css'
 import './theme.css'
 import './logo.css'
+import { SiteFooter } from './components/site-footer'
+import { SidebarToggle } from './components/sidebar-toggle'
+import { getWebsiteURL } from './utilities/getWebsiteURL'
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
@@ -19,7 +23,7 @@ const siteUrl = process.env.NEXT_PUBLIC_DOCS_URL || 'http://localhost:3001'
 export const metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: 'Greenlight Docs',
+    default: 'Greenlight Docs — Human approval for AI agents, over chat',
     template: '%s | Greenlight Docs',
   },
   description:
@@ -29,25 +33,35 @@ export const metadata = {
   },
 }
 
+// Rendered with `logoLink={false}` below and our own inner <Link> (instead of letting
+// Nextra wrap the whole `logo` node in an <a>), so the sidebar toggle button can sit next
+// to the wordmark as a sibling rather than being nested inside an anchor.
 const logo = (
   <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-    <Image
-      className="docs-logo-mark--dark"
-      src="/logo/greenlight-mark-dark.svg"
-      alt="Greenlight"
-      width={28}
-      height={28}
-      priority
-    />
-    <Image
-      className="docs-logo-mark--light"
-      src="/logo/greenlight-mark-light.svg"
-      alt="Greenlight"
-      width={28}
-      height={28}
-      priority
-    />
-    <b>Greenlight</b>
+    <Link
+      aria-label="Home page"
+      className="x:flex x:items-center x:gap-2 x:focus-visible:nextra-focus"
+      href="/"
+    >
+      <Image
+        className="docs-logo-mark--dark"
+        src="/logo/greenlight-mark-dark.svg"
+        alt="Greenlight"
+        width={28}
+        height={28}
+        priority
+      />
+      <Image
+        className="docs-logo-mark--light"
+        src="/logo/greenlight-mark-light.svg"
+        alt="Greenlight"
+        width={28}
+        height={28}
+        priority
+      />
+      <b>Greenlight</b>
+    </Link>
+    <SidebarToggle />
   </span>
 )
 
@@ -64,10 +78,27 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       <Head color={{ hue: 148.5, saturation: 89.4, lightness: 40.6 }} />
       <body suppressHydrationWarning>
         <Layout
-          navbar={<Navbar logo={logo} projectLink="https://github.com/greenlight/greenlight" />}
+          navbar={
+            <Navbar
+              logo={logo}
+              logoLink={false}
+              projectLink="https://github.com/greenlight/greenlight"
+            >
+              <Link className="docs-nav-website-link" href={getWebsiteURL()}>
+                Website
+              </Link>
+            </Navbar>
+          }
           pageMap={pageMap}
           docsRepositoryBase="https://github.com/greenlight/greenlight/tree/main/docs-site"
-          footer={<Footer>BUSL-1.1 2026 © Greenlight.</Footer>}
+          footer={<SiteFooter />}
+          // The sidebar's own collapse-toggle + footer bar is replaced by our
+          // `<SidebarToggle>` next to the navbar logo (see `logo` above and
+          // `docs-sidebar-collapsed` styles in theme.css). `darkMode: false` additionally
+          // suppresses Nextra's built-in theme switch, which would otherwise keep this
+          // footer bar around on its own (we already have <ThemeSelector> in <SiteFooter>).
+          darkMode={false}
+          sidebar={{ toggleButton: false }}
         >
           {children}
         </Layout>

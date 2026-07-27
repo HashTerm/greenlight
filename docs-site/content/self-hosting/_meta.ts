@@ -1,7 +1,7 @@
 import type { MetaRecord } from 'nextra'
 
 const meta: MetaRecord = {
-  docker: 'Docker / Compose',
+  docker: 'Docker',
   dokploy: 'Dokploy',
   coolify: 'Coolify',
   configuration: 'Configuration',

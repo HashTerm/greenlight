@@ -47,3 +47,328 @@ aside {
   --x-color-primary-400: #fafafa;
   --x-color-primary-600: #f2f2f2;
 }
+
+/* Nextra's own sidebar footer bar (theme switch + collapse toggle) is fully disabled via
+   `darkMode={false}` and `sidebar={{ toggleButton: false }}` in layout.tsx — replaced by
+   <ThemeSelector> in the shared footer and <SidebarToggle> next to the navbar logo. */
+
+/* Custom sidebar collapse toggle (app/components/sidebar-toggle.tsx), rendered next to
+   the navbar logo. The sidebar's own expand/collapse state is an internal, unexported
+   hook we can't drive from outside, so collapsing here just hides `.nextra-sidebar`
+   entirely via a class toggled on `<html>`, rather than reproducing Nextra's icon-rail
+   collapsed mode. */
+.docs-sidebar-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: var(--x-radius-md, 0.375rem);
+  background: rgb(0 0 0 / 5%);
+  color: #333333;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+/* The sidebar itself is hidden below the `md` breakpoint (Nextra shows a mobile menu
+   instead), so this toggle has nothing to control there. Plain CSS is used instead of the
+   `x:max-md:hidden` utility because this stylesheet loads after Nextra's own Tailwind
+   output and wins ties on equal specificity, overriding that utility's `display: none`. */
+@media (max-width: 767.98px) {
+  .docs-sidebar-toggle {
+    display: none;
+  }
+}
+
+.docs-sidebar-toggle:hover {
+  background: rgb(0 0 0 / 10%);
+}
+
+:where(.dark, [data-theme='dark']) .docs-sidebar-toggle {
+  background: rgb(255 255 255 / 5%);
+  color: #fafafa;
+}
+
+:where(.dark, [data-theme='dark']) .docs-sidebar-toggle:hover {
+  background: rgb(255 255 255 / 10%);
+}
+
+.docs-sidebar-toggle-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  transition: transform 0.2s ease;
+}
+
+.docs-sidebar-toggle-icon--collapsed {
+  transform: scaleX(-1);
+}
+
+html.docs-sidebar-collapsed .nextra-sidebar {
+  width: 0 !important;
+  min-width: 0 !important;
+  border: none !important;
+  overflow: hidden !important;
+  opacity: 0;
+}
+
+/* Custom footer (app/components/site-footer.tsx), styled to mirror the marketing
+   website's footer layout (column grid + bottom bar with logo/theme selector) — same
+   design, docs-specific content. Background uses the website's `--card` token in both
+   themes (white in light, ~#1A1A1A in dark), matching CTA `bg-card` containers. */
+.site-footer {
+  background: #fff;
+  color: #333333;
+  margin-top: auto;
+}
+
+:where(.dark, [data-theme='dark']) .site-footer {
+  background: #1a1a1a;
+  color: #fafafa;
+}
+
+.site-footer-container {
+  margin-inline: auto;
+  max-width: var(--nextra-content-width, 90rem);
+  padding: 3rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+}
+
+.site-footer-columns {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+}
+
+@media (min-width: 64rem) {
+  .site-footer-columns {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.site-footer-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.site-footer-column-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: inherit;
+  margin: 0;
+}
+
+.site-footer-column-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.site-footer-link {
+  font-size: 0.875rem;
+  color: #666666;
+  text-decoration: none;
+}
+
+.site-footer-link:hover {
+  color: #333333;
+}
+
+:where(.dark, [data-theme='dark']) .site-footer-link {
+  color: rgb(255 255 255 / 70%);
+}
+
+:where(.dark, [data-theme='dark']) .site-footer-link:hover {
+  color: #fff;
+}
+
+.site-footer-bar {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid #e5e5e5;
+  padding-top: 1.5rem;
+}
+
+:where(.dark, [data-theme='dark']) .site-footer-bar {
+  border-top-color: rgb(255 255 255 / 10%);
+}
+
+@media (min-width: 48rem) {
+  .site-footer-bar {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
+.site-footer-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: inherit;
+  text-decoration: none;
+  font-size: 1rem;
+}
+
+.site-footer-copyright {
+  font-size: 0.8125rem;
+  color: #666666;
+  margin: 0;
+}
+
+:where(.dark, [data-theme='dark']) .site-footer-copyright {
+  color: rgb(255 255 255 / 60%);
+}
+
+@media (min-width: 48rem) {
+  .site-footer-copyright {
+    margin-inline: auto;
+  }
+}
+
+.site-footer-theme-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  height: 2.25rem;
+  min-width: 5.5rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e5e5e5;
+  border-radius: var(--x-radius-md, 0.375rem);
+  background: transparent;
+  color: inherit;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  cursor: pointer;
+}
+
+.site-footer-theme-trigger:focus-visible {
+  outline: 2px solid var(--x-color-primary-600, #0bc463);
+  outline-offset: 1px;
+}
+
+:where(.dark, [data-theme='dark']) .site-footer-theme-trigger {
+  border-color: rgb(255 255 255 / 20%);
+}
+
+.site-footer-theme-trigger-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.site-footer-theme-icon {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+}
+
+.site-footer-theme-chevron {
+  width: 1rem;
+  height: 1rem;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+
+.site-footer-theme-content {
+  z-index: 50;
+  overflow: hidden;
+  border-radius: var(--x-radius-md, 0.375rem);
+  border: 1px solid #e5e5e5;
+  background: #fff;
+  color: #333333;
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 10%), 0 2px 4px -2px rgb(0 0 0 / 10%);
+}
+
+:where(.dark, [data-theme='dark']) .site-footer-theme-content {
+  border-color: rgb(255 255 255 / 20%);
+  background: #1a1a1a;
+  color: #fafafa;
+}
+
+.site-footer-theme-viewport {
+  padding: 0.25rem;
+}
+
+.site-footer-theme-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: calc(var(--x-radius-md, 0.375rem) - 2px);
+  padding: 0.375rem 2rem 0.375rem 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  cursor: default;
+  user-select: none;
+  outline: none;
+}
+
+.site-footer-theme-item[data-highlighted] {
+  background: #f2f2f2;
+}
+
+:where(.dark, [data-theme='dark']) .site-footer-theme-item[data-highlighted] {
+  background: rgb(255 255 255 / 10%);
+}
+
+/* Navbar "Website" link (app/layout.tsx, rendered via <Navbar>'s `children` prop next to
+   the search box) — mirrors the website's own ghost `<Button>` nav link styling (height,
+   padding, neutral text/hover) so the two sites' top navs read as one design system. */
+.docs-nav-website-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  border-radius: var(--x-radius-md, 0.375rem);
+  font-size: 0.875rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: #666666;
+  text-decoration: none;
+  transition: background-color 0.15s ease;
+}
+
+/* <Navbar>'s `children` prop renders after the search box and GitHub icon, but this link
+   should sit right before the search input instead. The navbar's flex children — [logo,
+   top-level nav items, search, GitHub icon, this link, mobile menu button] — all share the
+   default flex `order` (0), so nudging just the search box, GitHub icon, and menu button
+   forward by one keeps this link's relative order vs. the logo/nav-items (still 0) while
+   moving it ahead of search/GitHub/menu visually. */
+header.nextra-navbar > nav > :nth-child(3),
+header.nextra-navbar > nav > a[href*='github.com'],
+header.nextra-navbar > nav > .nextra-hamburger {
+  order: 1;
+}
+
+.docs-nav-website-link:hover {
+  background: rgb(0 0 0 / 5%);
+}
+
+:where(.dark, [data-theme='dark']) .docs-nav-website-link {
+  color: rgb(255 255 255 / 70%);
+}
+
+:where(.dark, [data-theme='dark']) .docs-nav-website-link:hover {
+  background: rgb(255 255 255 / 10%);
+}
+
+.site-footer-theme-item-check {
+  position: absolute;
+  right: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 0.875rem;
+  height: 0.875rem;
+}

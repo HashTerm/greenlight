@@ -1,8 +1,24 @@
+/* Homepage hero icon (content/index.mdx): center inside the <p align="center"> wrapper.
+   Nextra prose sets `img { display: block }`, which ignores text-align on the parent;
+   flex + align-items is reliable regardless of the image's display mode. */
+main > p[align='center'] {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Shrink-wraps to the image width by default, so the icon looks left-aligned
+     inside <main> even when centered within this <p> — span the full content width. */
+  width: 100%;
+}
+
 /* Light theme: dark mark/icon. Dark theme: light mark/icon.
    Nextra's ThemeProvider sets `class="dark"` on <html> (not data-theme). */
 .docs-logo-mark--light,
 .docs-logo-icon--light {
   display: none;
+}
+
+.docs-logo-icon--dark {
+  display: block;
 }
 
 :where(html.dark, html[data-theme='dark']) .docs-logo-mark--dark,
@@ -12,5 +28,5 @@
 
 :where(html.dark, html[data-theme='dark']) .docs-logo-mark--light,
 :where(html.dark, html[data-theme='dark']) .docs-logo-icon--light {
-  display: inline-block;
+  display: block;
 }
