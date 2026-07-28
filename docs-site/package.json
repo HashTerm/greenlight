@@ -8,10 +8,10 @@
     "node": ">=22"
   },
   "scripts": {
-    "dev": "next dev --port 3001",
+    "dev": "next dev --port 3003",
     "prebuild": "node scripts/sync-openapi.mjs",
     "build": "next build",
-    "start": "next start --port 3001",
+    "start": "next start --port 3003",
     "sync:openapi": "node scripts/sync-openapi.mjs"
   },
   "dependencies": {

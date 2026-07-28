@@ -14,7 +14,7 @@ hot reload.
 ```bash
 npm run setup          # creates .env with generated secrets if missing,
                        # then install + Postgres + migrate
-npm run dev            # core :8100, ui :3000, docs :3001
+npm run dev            # core :8100, ui :3001, docs :3003
 curl http://localhost:8100/healthz
 ```
 
@@ -23,10 +23,10 @@ Compose profile `full`.
 
 | Service        | Host port              | Role           |
 | -------------- | ---------------------- | -------------- |
-| `postgres`     | 5432 (`POSTGRES_PORT`) | PostgreSQL 16  |
+| `postgres`     | 5431 (`POSTGRES_PORT`) | PostgreSQL 16  |
 | npm `dev:core` | 8100                   | API + webhooks |
-| npm `dev:ui`   | 3000                   | Admin UI       |
-| npm `dev:docs` | 3001                   | Product docs   |
+| npm `dev:ui`   | 3001                   | Admin UI       |
+| npm `dev:docs` | 3003                   | Product docs   |
 
 Useful commands:
 
@@ -38,7 +38,7 @@ npm run db:migrate        # UI admin_users migration
 npm run docker:logs       # logs when using full profile
 ```
 
-If `5432` is already in use, set `POSTGRES_PORT=5433` in `.env` and use the
+If `5431` is already in use, set `POSTGRES_PORT` in `.env` and use the
 same port in `DATABASE_URL`.
 
 ## Full Docker stack
@@ -54,8 +54,8 @@ curl http://localhost:8100/healthz
 | Service           | Host port | Role           |
 | ----------------- | --------- | -------------- |
 | `greenlight`      | 8100      | API + webhooks |
-| `greenlight-ui`   | 3000      | Admin UI       |
-| `greenlight-docs` | 3001      | Product docs   |
+| `greenlight-ui`   | 3001      | Admin UI       |
+| `greenlight-docs` | 3003      | Product docs   |
 | `postgres`        | 5432      | PostgreSQL 16  |
 
 ```bash

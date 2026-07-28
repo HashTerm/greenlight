@@ -31,7 +31,7 @@ COPY --from=builder /app/ui/scripts ./scripts
 COPY --from=builder /app/ui/docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x docker-entrypoint.sh
 
-EXPOSE 3000
+EXPOSE 3001
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["node", "ui/server.js"]

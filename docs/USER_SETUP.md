@@ -1,7 +1,7 @@
 # User setup
 
 Canonical product documentation lives in [`docs-site/`](../docs-site/)
-(`npm run dev:docs` → http://localhost:3001).
+(`npm run dev:docs` → http://localhost:3003).
 
 | Topic                 | Docs site                                                            |
 | --------------------- | -------------------------------------------------------------------- |

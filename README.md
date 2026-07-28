@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-  <strong>Documentation:</strong> run <code>npm run dev:docs</code> (<a href="http://localhost:3001">http://localhost:3001</a>) or see <a href="docs-site/"><code>docs-site/</code></a>.
+  <strong>Documentation:</strong> run <code>npm run dev:docs</code> (<a href="http://localhost:3003">http://localhost:3003</a>) or see <a href="docs-site/"><code>docs-site/</code></a>.
 </p>
 
 ## Features & benefits
@@ -43,7 +43,7 @@
 ```bash
 npm run setup          # creates .env with generated secrets if missing,
                        # then install + Postgres + migrate
-npm run dev            # core :8100, ui :3000, docs :3001
+npm run dev            # core :8100, ui :3001, docs :3003
 curl http://localhost:8100/healthz
 ```
 
@@ -53,9 +53,9 @@ Or create the env file alone: `npm run env:ensure` (dev) /
 | Service        | URL                                          |
 | -------------- | -------------------------------------------- |
 | API + webhooks | http://localhost:8100                        |
-| Admin UI       | http://localhost:3000                        |
-| Docs           | http://localhost:3001                        |
-| Postgres       | localhost:5432 (`POSTGRES_PORT` if remapped) |
+| Admin UI       | http://localhost:3001                        |
+| Docs           | http://localhost:3003                        |
+| Postgres       | localhost:5431 (`POSTGRES_PORT` if remapped) |
 
 **Full Docker** (no Node hot reload — smoke / demos):
 
@@ -109,7 +109,7 @@ Full guides: [Quickstart](docs-site/content/getting-started/quickstart.mdx), [Pl
 ## Admin UI
 
 1. Run `npm run dev` (or `npm run docker:full`)
-2. Open `http://localhost:3000/setup` to create the super admin
+2. Open `http://localhost:3001/setup` to create the super admin
 3. Sign in at `/login` — manage channels, prompts, and dashboard stats
 
 Telegram walkthrough: [Quickstart](docs-site/content/getting-started/quickstart.mdx) and
@@ -119,8 +119,8 @@ Telegram walkthrough: [Quickstart](docs-site/content/getting-started/quickstart.
 
 ```
 core/       — Hono API gateway (port 8100)
-ui/         — Next.js admin app (port 3000)
-docs-site/  — Product documentation (Nextra, port 3001)
+ui/         — Next.js admin app (port 3001)
+docs-site/  — Product documentation (Nextra, port 3003)
 ```
 
 ## Useful npm scripts

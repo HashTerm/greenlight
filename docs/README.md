@@ -8,4 +8,4 @@ Repository-side documentation that is **not** the public product site.
 | [USER_SETUP.md](USER_SETUP.md) | Pointer to canonical docs in `docs-site/`                |
 
 **Product docs** (getting started, platforms, API, self-hosting) live in
-[`docs-site/`](../docs-site/). Run `npm run dev:docs` → http://localhost:3001.
+[`docs-site/`](../docs-site/). Run `npm run dev:docs` → http://localhost:3003.

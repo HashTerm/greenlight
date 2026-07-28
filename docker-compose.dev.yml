@@ -1,6 +1,9 @@
 # Local development Compose.
 #
-# Default (hybrid): Postgres only — run apps with npm (npm run dev)
+# Host ports (local hybrid dev):
+#   Admin UI  → 3001  (hashterm :3000, website :3002, docs :3003)
+#   Docs      → 3003
+#   Postgres  → 5431  (hashterm :5430, website :5432)
 #   docker compose up -d
 #
 # Full containerized stack (smoke / no Node on host):
@@ -41,17 +44,17 @@ services:
     container_name: greenlight-ui-dev
     restart: unless-stopped
     ports:
-      - '3000:3000'
+      - '3001:3001'
     env_file: .env
     environment:
-      PORT: '3000'
+      PORT: '3001'
       GREENLIGHT_API_URL: http://greenlight:8100
       GREENLIGHT_API_KEY: ${API_KEY}
       GREENLIGHT_ADMIN_TOKEN: ${ADMIN_INTERNAL_TOKEN}
       PUBLIC_WEBHOOK_URL: ${PUBLIC_WEBHOOK_URL}
       DATABASE_URL: postgresql://greenlight:greenlight@postgres:5432/greenlight
       AUTH_SECRET: ${AUTH_SECRET}
-      AUTH_URL: http://localhost:3000
+      AUTH_URL: http://localhost:3001
       AUTH_TRUST_HOST: 'true'
     depends_on:
       greenlight:
@@ -65,18 +68,18 @@ services:
     container_name: greenlight-docs-dev
     restart: unless-stopped
     ports:
-      - '3001:3001'
+      - '3003:3003'
     environment:
-      PORT: '3001'
+      PORT: '3003'
       HOSTNAME: '0.0.0.0'
-      NEXT_PUBLIC_DOCS_URL: ${NEXT_PUBLIC_DOCS_URL:-http://localhost:3001}
+      NEXT_PUBLIC_DOCS_URL: ${NEXT_PUBLIC_DOCS_URL:-http://localhost:3003}
 
   postgres:
     image: postgres:16-alpine
     container_name: greenlight-postgres-dev
     restart: unless-stopped
     ports:
-      - '${POSTGRES_PORT:-5432}:5432'
+      - '${POSTGRES_PORT:-5431}:5432'
     environment:
       POSTGRES_USER: greenlight
       POSTGRES_PASSWORD: greenlight

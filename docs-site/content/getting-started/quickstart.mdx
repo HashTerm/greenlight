@@ -136,8 +136,8 @@ curl http://localhost:8100/healthz
 | Service          | URL                                          |
 | ---------------- | -------------------------------------------- |
 | API + webhooks   | http://localhost:8100                        |
-| Admin UI         | http://localhost:3000                        |
-| Docs (this site) | http://localhost:3001                        |
+| Admin UI         | http://localhost:3001                        |
+| Docs (this site) | http://localhost:3003                        |
 | Postgres         | localhost:5432 (`POSTGRES_PORT` if remapped) |
 
 **Full Docker** (optional):
@@ -148,7 +148,7 @@ npm run docker:full
 
 ### 3. Create an admin account
 
-1. Open http://localhost:3000/setup
+1. Open http://localhost:3001/setup
 2. Enter email and password (min 8 characters)
 3. Sign in at `/login`
 

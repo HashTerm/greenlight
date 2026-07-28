@@ -13,7 +13,7 @@ npm install
 npm run dev:docs
 ```
 
-Docs run on **http://localhost:3001** (admin UI stays on `:3000`).
+Docs run on **http://localhost:3003** (admin UI on `:3001`).
 
 ## Content
 

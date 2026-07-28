@@ -18,7 +18,7 @@ cp .env.example .env
 # Set CALLBACK_SIGNING_SECRET, WEBHOOK_SECRET, API_KEY, ADMIN_INTERNAL_TOKEN, AUTH_SECRET
 
 npm run setup       # install + Postgres + migrate
-npm run dev         # core :8100, ui :3000, docs :3001
+npm run dev         # core :8100, ui :3001, docs :3003
 ```
 
 Or step by step:
@@ -28,8 +28,8 @@ npm install
 npm run infra:up
 npm run db:migrate
 npm run dev:core    # API on :8100
-npm run dev:ui      # Admin UI on :3000
-npm run dev:docs    # Docs on :3001
+npm run dev:ui      # Admin UI on :3001
+npm run dev:docs    # Docs on :3003
 ```
 
 **Full Docker** (optional smoke / no hot reload):
@@ -38,8 +38,7 @@ npm run dev:docs    # Docs on :3001
 npm run docker:full
 ```
 
-If host port `5432` is taken (e.g. Postgres.app), set `POSTGRES_PORT=5433` in
-`.env` and match the port in `DATABASE_URL`.
+If host port `5431` is taken, set `POSTGRES_PORT` in `.env` and match the port in `DATABASE_URL`.
 
 ## Tests
 

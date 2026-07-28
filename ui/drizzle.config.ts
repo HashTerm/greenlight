@@ -5,6 +5,6 @@ export default defineConfig({
   out: './drizzle/migrations',
   dialect: 'postgresql',
   dbCredentials: {
-    url: process.env.DATABASE_URL ?? 'postgresql://greenlight:greenlight@localhost:5432/greenlight',
+    url: process.env.DATABASE_URL ?? 'postgresql://greenlight:greenlight@localhost:5431/greenlight',
   },
 })

@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Wait until Postgres accepts TCP connections on the host port.
+ * Wait until Postgres accepts connections using DATABASE_URL credentials.
  * Reads POSTGRES_PORT or parses DATABASE_URL from process.env / .env via --env-file.
  */
-import net from 'node:net'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import postgres from 'postgres'
 
 const root = path.join(path.dirname(fileURLToPath(import.meta.url)), '..')
 
@@ -46,39 +46,59 @@ function resolvePort() {
       /* ignore */
     }
   }
-  return 5432
+  return 5431
 }
 
-const host = '127.0.0.1'
+const url = process.env.DATABASE_URL
+if (!url) {
+  console.error('DATABASE_URL is required')
+  process.exit(1)
+}
+
 const port = resolvePort()
 const timeoutMs = Number(process.env.POSTGRES_WAIT_TIMEOUT_MS ?? 60_000)
 const intervalMs = 500
 const deadline = Date.now() + timeoutMs
+let lastAuthError = ''
 
-function tryConnect() {
-  return new Promise((resolve) => {
-    const socket = net.connect({ host, port }, () => {
-      socket.end()
-      resolve(true)
-    })
-    socket.on('error', () => {
-      socket.destroy()
-      resolve(false)
-    })
-  })
+function formatAuthHint() {
+  if (!lastAuthError.includes('role') && !lastAuthError.includes('password')) {
+    return ''
+  }
+  return `
+If port ${port} is already used by another Postgres on your machine, set a different POSTGRES_PORT in .env
+and update DATABASE_URL to match, then run: npm run infra:reset && npm run infra:up`
+}
+
+async function tryConnect() {
+  const client = postgres(url, { max: 1, connect_timeout: 2 })
+  try {
+    await client`select 1 as ok`
+    await client.end({ timeout: 1 })
+    return true
+  } catch (error) {
+    lastAuthError = error instanceof Error ? error.message : String(error)
+    try {
+      await client.end({ timeout: 1 })
+    } catch {
+      /* ignore */
+    }
+    return false
+  }
 }
 
 async function main() {
-  process.stdout.write(`Waiting for Postgres at ${host}:${port} (timeout ${timeoutMs}ms)…\n`)
+  process.stdout.write(`Waiting for Postgres at 127.0.0.1:${port} (timeout ${timeoutMs}ms)…\n`)
   while (Date.now() < deadline) {
     if (await tryConnect()) {
-      process.stdout.write(`Postgres is ready on ${host}:${port}\n`)
+      process.stdout.write(`Postgres is ready on 127.0.0.1:${port}\n`)
       return
     }
     await new Promise((r) => setTimeout(r, intervalMs))
   }
   console.error(
-    `Timed out waiting for Postgres at ${host}:${port}. Is Docker running? Try: npm run infra:up`,
+    `Timed out waiting for Postgres at 127.0.0.1:${port}.${lastAuthError ? ` Last error: ${lastAuthError}` : ''}
+Is Docker running? Try: npm run infra:up${formatAuthHint()}`,
   )
   process.exit(1)
 }

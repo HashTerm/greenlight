@@ -18,7 +18,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
   variable: '--font-plus-jakarta-sans',
 })
 
-const siteUrl = process.env.NEXT_PUBLIC_DOCS_URL || 'http://localhost:3001'
+const siteUrl = process.env.NEXT_PUBLIC_DOCS_URL || 'http://localhost:3003'
 
 export const metadata = {
   metadataBase: new URL(siteUrl),
@@ -44,19 +44,19 @@ const logo = (
       href="/"
     >
       <Image
-        className="docs-logo-mark--dark"
+        className="docs-logo-mark--dark docs-navbar-logo-mark"
         src="/logo/greenlight-mark-dark.svg"
         alt="Greenlight"
-        width={28}
-        height={28}
+        width={40}
+        height={40}
         priority
       />
       <Image
-        className="docs-logo-mark--light"
+        className="docs-logo-mark--light docs-navbar-logo-mark"
         src="/logo/greenlight-mark-light.svg"
         alt="Greenlight"
-        width={28}
-        height={28}
+        width={40}
+        height={40}
         priority
       />
       <b>Greenlight</b>

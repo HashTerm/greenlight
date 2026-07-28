@@ -30,3 +30,9 @@ main > p[align='center'] {
 :where(html.dark, html[data-theme='dark']) .docs-logo-icon--light {
   display: block;
 }
+
+/* Navbar logo mark — larger than footer (28px) without changing navbar height (64px). */
+header.nextra-navbar .docs-navbar-logo-mark {
+  height: 2.5rem;
+  width: auto;
+}

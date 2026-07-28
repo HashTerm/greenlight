@@ -5,18 +5,18 @@
 # Swarm:
 #   docker stack deploy -c docker-compose.self-host.yml -c docker-compose.docs.yml -c docker-compose.self-host.stack.yml greenlight
 #
-# Ingress: route public docs URL → greenlight-docs:3001
+# Ingress: route public docs URL → greenlight-docs:3003
 
 services:
   greenlight-docs:
     image: ${GREENLIGHT_DOCS_IMAGE:-ghcr.io/markokosticdev/greenlight-docs:latest}
     restart: unless-stopped
     expose:
-      - '3001'
+      - '3003'
     networks:
       - greenlight
     environment:
-      PORT: '3001'
+      PORT: '3003'
       HOSTNAME: '0.0.0.0'
       NEXT_PUBLIC_DOCS_URL: ${NEXT_PUBLIC_DOCS_URL}
     healthcheck:
@@ -25,7 +25,7 @@ services:
           'CMD',
           'node',
           '-e',
-          "fetch('http://127.0.0.1:3001/').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+          "fetch('http://127.0.0.1:3003/').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
         ]
       interval: 30s
       timeout: 10s
