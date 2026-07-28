@@ -1,14 +1,14 @@
 # Self-host — Dokploy / Coolify / `docker compose -f docker-compose.self-host.yml up`.
 # Optional docs: -f docker-compose.docs.yml
 # Swarm: -c docker-compose.self-host.stack.yml (add -c docker-compose.docs.yml if hosting docs)
+#
+# No custom networks — services use the Compose default network (Dokploy-friendly).
 services:
   greenlight:
     image: ${GREENLIGHT_IMAGE:-ghcr.io/markokosticdev/greenlight:latest}
     restart: unless-stopped
     expose:
       - '8100'
-    networks:
-      - greenlight
     depends_on:
       - postgres
     environment:
@@ -40,8 +40,6 @@ services:
     restart: unless-stopped
     expose:
       - '3000'
-    networks:
-      - greenlight
     depends_on:
       - greenlight
       - postgres
@@ -72,8 +70,6 @@ services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
-    networks:
-      - greenlight
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -85,10 +81,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-networks:
-  greenlight:
-    name: greenlight
 
 volumes:
   postgres_data:

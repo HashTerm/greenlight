@@ -17,6 +17,8 @@ networks:
 
 services:
   greenlight:
+    networks:
+      - greenlight
     stop_grace_period: 30s
     deploy:
       replicas: 1
@@ -34,6 +36,8 @@ services:
         order: start-first
 
   greenlight-ui:
+    networks:
+      - greenlight
     stop_grace_period: 30s
     deploy:
       replicas: 1
@@ -51,6 +55,8 @@ services:
         order: start-first
 
   postgres:
+    networks:
+      - greenlight
     deploy:
       replicas: 1
       restart_policy:

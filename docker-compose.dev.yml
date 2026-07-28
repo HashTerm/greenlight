@@ -1,5 +1,8 @@
 # Local development Compose.
 #
+# Project name is fixed so this stack never collides with other local apps
+# (greenlight-website-dev, hashterm-website-dev, …) on the same Docker daemon.
+#
 # Host ports (local hybrid dev):
 #   Admin UI  → 3001  (hashterm :3000, website :3002, docs :3003)
 #   Docs      → 3003
@@ -9,11 +12,13 @@
 # Full containerized stack (smoke / no Node on host):
 #   docker compose --profile full up -d --build
 
+name: greenlight-dev
+
 services:
   greenlight:
     profiles: [full]
     build: ./core
-    container_name: greenlight-dev
+    container_name: greenlight-dev-core
     restart: unless-stopped
     ports:
       - '8100:8100'
@@ -41,7 +46,7 @@ services:
     build:
       context: .
       dockerfile: ui/Dockerfile
-    container_name: greenlight-ui-dev
+    container_name: greenlight-dev-ui
     restart: unless-stopped
     ports:
       - '3001:3001'
@@ -65,7 +70,7 @@ services:
     build:
       context: .
       dockerfile: docs-site/Dockerfile
-    container_name: greenlight-docs-dev
+    container_name: greenlight-dev-docs
     restart: unless-stopped
     ports:
       - '3003:3003'
@@ -76,7 +81,7 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: greenlight-postgres-dev
+    container_name: greenlight-dev-postgres
     restart: unless-stopped
     ports:
       - '${POSTGRES_PORT:-5431}:5432'
@@ -94,3 +99,4 @@ services:
 
 volumes:
   postgres_data_dev:
+    name: greenlight_postgres_data_dev

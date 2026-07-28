@@ -16,7 +16,7 @@ dashboard stats. It talks to the core API server-side:
 If `/setup` redirects to `/login` and you never created an account, reset:
 
 ```bash
-docker exec greenlight-postgres-dev psql -U greenlight -d greenlight \
+docker exec greenlight-dev-postgres psql -U greenlight -d greenlight \
   -c "DELETE FROM admin_users;"
 ```
 

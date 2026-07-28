@@ -8,6 +8,27 @@ Deploy Greenlight with Compose or Swarm using published GHCR images.
 | ------------------------------------ | ----------------------------------------- |
 | `docker-compose.self-host.yml`       | API + UI + Postgres (GHCR images)         |
 | `docker-compose.self-host.stack.yml` | Swarm overlay — deploy policies + network |
+| `docker-compose.docs.yml`            | Docs overlay on self-host (GHCR image)    |
+| `docker-compose.docs.build.yml`      | Standalone docs — build on server         |
+
+## Docs site
+
+**Alongside gateway** (pull GHCR docs image):
+
+```bash
+docker compose -f docker-compose.self-host.yml -f docker-compose.docs.yml \
+  --env-file .env.self-host --env-file .env.docs up -d
+```
+
+Ingress → `greenlight-docs:3003`.
+
+**Docs only** (build on server — Dokploy compose file `docker-compose.docs.build.yml`):
+
+```bash
+docker compose -f docker-compose.docs.build.yml --env-file .env.docs up -d --build
+```
+
+Set `NEXT_PUBLIC_DOCS_URL` in `.env.docs` (see `.env.docs.example`).
 
 ## Environment
 
