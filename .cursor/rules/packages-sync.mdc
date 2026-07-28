@@ -1,0 +1,25 @@
+---
+description: Keep greenlight/packages in sync with greenlight-platform/packages
+globs: greenlight/packages/**
+alwaysApply: false
+---
+
+# Shared packages sync
+
+`greenlight/packages/` is the **canonical** copy. `greenlight-platform/packages/` is a mirror for the private platform monorepo.
+
+## After editing files here
+
+Mirror changes to the platform repo before finishing:
+
+```bash
+npm run packages:sync
+```
+
+Run from the **greenlight-platform** monorepo root (pulls from `../greenlight/packages/`).
+
+## Rules
+
+- Add new shared packages under `greenlight/packages/` first, then sync.
+- Do not let the two trees diverge — same files, same structure.
+- If you edited `greenlight-platform/packages/` instead, run `npm run packages:push` from **greenlight-platform** root, then commit both repos if needed.

@@ -1,0 +1,20 @@
+{
+  "name": "@greenlight/theme",
+  "version": "0.1.0",
+  "description": "Shared theme system for Greenlight apps (InitTheme + ThemeProvider)",
+  "license": "BUSL-1.1",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/markokosticdev/greenlight.git",
+    "directory": "packages/theme"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "peerDependencies": {
+    "next": ">=15",
+    "react": ">=19",
+    "react-dom": ">=19"
+  }
+}

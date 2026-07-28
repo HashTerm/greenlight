@@ -3,9 +3,11 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json ./
+COPY packages/theme/package.json ./packages/theme/
 COPY ui/package.json ./ui/
 RUN npm install -w ui
 
+COPY packages/theme ./packages/theme
 COPY ui ./ui
 WORKDIR /app/ui
 ENV NEXT_TELEMETRY_DISABLED=1

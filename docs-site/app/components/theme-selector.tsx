@@ -1,8 +1,8 @@
 'use client'
 
+import { useTheme, type ResolvedTheme } from '@greenlight/theme'
 import * as Select from '@radix-ui/react-select'
 import { Check, ChevronDown, Moon, Sun, SunMoon } from 'lucide-react'
-import { useTheme } from 'next-themes'
 import { useEffect, useState } from 'react'
 
 const themeOptions = [
@@ -14,22 +14,31 @@ const themeOptions = [
 /**
  * Footer theme switcher matching the website's Radix `ThemeSelector`:
  * bordered trigger, custom dropdown (not native `<select>`), icons per option.
- * Wired to `next-themes` (used by nextra-theme-docs).
  */
 export function ThemeSelector() {
-  const { setTheme, theme } = useTheme()
+  const { preference, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
     setMounted(true)
   }, [])
 
-  const value = mounted ? (theme ?? 'system') : 'system'
+  const value = mounted ? (preference ?? 'system') : 'system'
   const selected = themeOptions.find((option) => option.value === value) ?? themeOptions[0]
   const SelectedIcon = selected.Icon
 
   return (
-    <Select.Root onValueChange={setTheme} value={value}>
+    <Select.Root
+      onValueChange={(nextValue) => {
+        if (nextValue === 'system') {
+          setTheme('system')
+          return
+        }
+
+        setTheme(nextValue as ResolvedTheme)
+      }}
+      value={value}
+    >
       <Select.Trigger aria-label="Select a theme" className="site-footer-theme-trigger">
         <span className="site-footer-theme-trigger-value">
           <SelectedIcon aria-hidden="true" className="site-footer-theme-icon" />

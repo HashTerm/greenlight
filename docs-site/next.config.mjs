@@ -13,6 +13,7 @@ const withNextra = nextra({
 
 export default withNextra({
   output: 'standalone',
+  transpilePackages: ['@greenlight/theme'],
   turbopack: {
     resolveAlias: {
       'nextra-theme-docs/dist/layout.js': layoutAlias,

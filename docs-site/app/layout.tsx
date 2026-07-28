@@ -1,3 +1,4 @@
+import { InitTheme } from '@greenlight/theme'
 import type { ReactNode } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -75,7 +76,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
       suppressHydrationWarning
       className={`${plusJakartaSans.variable} ${GeistMono.variable}`}
     >
-      <Head color={{ hue: 148.5, saturation: 89.4, lightness: 40.6 }} />
+      <Head color={{ hue: 148.5, saturation: 89.4, lightness: 40.6 }}>
+        <InitTheme config={{ enableClassAttribute: true }} />
+      </Head>
       <body suppressHydrationWarning>
         <Layout
           navbar={

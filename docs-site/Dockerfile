@@ -3,12 +3,14 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 COPY package.json package-lock.json ./
+COPY packages/theme/package.json ./packages/theme/
 COPY docs-site/package.json ./docs-site/
 COPY core/package.json ./core/
 RUN npm install -w docs-site
 
 # OpenAPI sync reads core/src/api/openapi.ts during prebuild.
 COPY core/src/api/openapi.ts ./core/src/api/openapi.ts
+COPY packages/theme ./packages/theme
 COPY docs-site ./docs-site
 
 WORKDIR /app/docs-site

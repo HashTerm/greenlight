@@ -1,5 +1,5 @@
 import { jsx, jsxs } from 'react/jsx-runtime'
-import { ThemeProvider } from 'next-themes'
+import { ThemeProvider } from '@greenlight/theme'
 import { SkipNavLink } from 'nextra/components'
 import { z } from 'zod'
 import { MobileNav } from 'nextra-theme-docs-layout-internals/components/sidebar.js'
@@ -9,21 +9,23 @@ import {
   ThemeConfigProvider,
 } from 'nextra-theme-docs-layout-internals/stores/index.js'
 
+const docsThemeConfig = {
+  enableClassAttribute: true,
+}
+
 const Layout = (props) => {
   const { data, error } = LayoutPropsSchema.safeParse(props)
   if (error) {
     throw z.prettifyError(error)
   }
-  const { footer, navbar, pageMap, nextThemes, banner, children, ...rest } = data
+  const { footer, navbar, pageMap, banner, children, ...rest } = data
 
   return jsx(ThemeConfigProvider, {
     value: rest,
-    // Nextra's own compiled CSS hardcodes `.dark`-class selectors for its internal
-    // component styling, so `class` must stay enabled alongside `data-theme` (used for
-    // cross-app consistency with ui/website) — next-themes supports setting both at once.
+    // Nextra's compiled CSS hardcodes `.dark`-class selectors, so we toggle `class="dark"`
+    // alongside `data-theme` for cross-app consistency with ui/website.
     children: jsxs(ThemeProvider, {
-      attribute: ['class', 'data-theme'],
-      ...nextThemes,
+      config: docsThemeConfig,
       children: [
         jsx(SkipNavLink, {}),
         banner,
