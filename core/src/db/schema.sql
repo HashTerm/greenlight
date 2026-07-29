@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS api_keys (
   key_prefix TEXT NOT NULL,
   key_hash TEXT NOT NULL UNIQUE,
   scopes TEXT[] NOT NULL,
+  organization_id TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   revoked_at TIMESTAMPTZ,
   last_used_at TIMESTAMPTZ
@@ -103,3 +104,4 @@ ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS messages_inbound_zero_retentio
 ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS messages_outbound_zero_retention BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE messages ADD COLUMN IF NOT EXISTS api_key_id TEXT REFERENCES api_keys(id);
 ALTER TABLE messages DROP COLUMN IF EXISTS source;
+ALTER TABLE api_keys ADD COLUMN IF NOT EXISTS organization_id TEXT;

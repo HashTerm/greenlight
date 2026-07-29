@@ -7,6 +7,7 @@ export interface ApiKeyRow {
   key_prefix: string
   key_hash: string
   scopes: string[]
+  organization_id: string | null
   created_at: Date
   revoked_at: Date | null
   last_used_at: Date | null
@@ -17,6 +18,7 @@ export interface ApiKeyPublic {
   name: string
   key_prefix: string
   scopes: string[]
+  organization_id: string | null
   created_at: string
   revoked_at: string | null
   last_used_at: string | null
@@ -39,6 +41,7 @@ export function toPublic(row: ApiKeyRow): ApiKeyPublic {
     name: row.name,
     key_prefix: row.key_prefix,
     scopes: row.scopes,
+    organization_id: row.organization_id,
     created_at: row.created_at.toISOString(),
     revoked_at: row.revoked_at?.toISOString() ?? null,
     last_used_at: row.last_used_at?.toISOString() ?? null,

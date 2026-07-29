@@ -13,17 +13,20 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
 import { logoutAction } from '@/lib/actions'
+import { registerEnterpriseNav } from '@/lib/extensions/register'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 
-const links = [
+const baseLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/channels', label: 'Channels', icon: Radio },
   { href: '/messages', label: 'Messages', icon: MessageSquare },
   { href: '/prompts', label: 'Prompts', icon: MessageCircleQuestion },
   { href: '/settings', label: 'Settings', icon: Settings },
 ] as const
+
+const links = [...baseLinks, ...registerEnterpriseNav()]
 
 function isNavLinkActive(pathname: string, href: string) {
   if (href === '/dashboard') return pathname === '/dashboard'

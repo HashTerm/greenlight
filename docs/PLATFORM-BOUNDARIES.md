@@ -12,10 +12,21 @@ platform monorepo (same umbrella workspace).
 | `ui/` | Admin UI for single-tenant self-host |
 | `docs-site/` | Public product documentation |
 
-**In scope:** BUSL community edition, extension-friendly hooks (when added),
+**In scope:** BUSL community edition, extension hooks in `core/src/extensions/`,
 single implicit tenant, scoped API keys.
 
-**Out of scope:** License enforcement, SSO, multi-org UI, Stripe, cloud
+## Extension hooks (`core/src/extensions/`)
+
+Community ships **no-op stubs** replaced at enterprise image build time:
+
+| Module | Community behavior |
+| ------ | ------------------ |
+| `license-gate.ts` | `licenseGate.isEnabled()` always `false` |
+| `register.ts` | `registerEnterpriseRoutes`, `onEnterpriseBoot` no-ops |
+
+Wire points: `api/app.ts`, `index.ts`. See `core/src/extensions/README.md`.
+
+**Out of scope:** License verification, SSO, multi-org UI, Stripe, cloud
 provisioning, enterprise-only audit exports.
 
 ## Private `greenlight-platform`

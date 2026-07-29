@@ -8,6 +8,7 @@ import { messageRoutes } from './routes/messages.js'
 import { statusRoutes } from './routes/status.js'
 import { settingsRoutes } from './routes/settings.js'
 import { keyRoutes } from './routes/keys.js'
+import { registerEnterpriseRoutes } from '../extensions/register.js'
 import { loadConfig } from '../core/config.js'
 import { getOpenApiDocument } from './openapi.js'
 
@@ -25,6 +26,8 @@ export function createApp(): Hono {
   app.route('/v1', statusRoutes)
   app.route('/v1', settingsRoutes)
   app.route('/v1', keyRoutes)
+
+  registerEnterpriseRoutes(app)
 
   if (config.ENABLE_DOCS) {
     app.get('/openapi.json', (c) => c.json(getOpenApiDocument()))
