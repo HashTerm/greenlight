@@ -1,70 +1,94 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
+import { PLATFORMS } from '../../core/platform.js'
 import {
+  ChannelAlreadyExistsError,
+  ChannelNotFoundError,
+  createChannel,
   listChannels,
-  registerChannel,
-  sendToChannel,
   unregisterChannel,
+  updateChannel,
 } from '../../services/channels/service.js'
-import { registerChannelSchema } from '../../services/channels/schemas.js'
+import { createChannelSchema, updateChannelSchema } from '../../services/channels/schemas.js'
 
-const sendSchema = z.object({
-  channel_id: z.string(),
-  text: z.string(),
+const listQuerySchema = z.object({
+  platform: z.enum(PLATFORMS).optional(),
+  channel_type: z.enum(['MESSAGE', 'PROMPT']).optional(),
+  limit: z.coerce.number().int().min(1).max(200).default(50),
 })
 
 export const channelRoutes = new Hono()
 
-channelRoutes.post('/register-channel', zValidator('json', registerChannelSchema), async (c) => {
+channelRoutes.post('/channels/new', zValidator('json', createChannelSchema), async (c) => {
   const body = c.req.valid('json')
 
   if (body.channel_type === 'MESSAGE' && !body.callback_url) {
     return c.json({ detail: 'MESSAGE channels require callback_url' }, 400)
   }
 
-  const status = await registerChannel({
-    channelId: body.channel_id,
-    platform: body.platform,
-    targetChatId: body.target_chat_id,
-    credentials: body.credentials,
-    callbackUrl: body.callback_url ?? null,
-    channelType: body.channel_type,
-  })
-
-  if (status === 'updated') {
-    return c.json({
-      status: `Channel ${body.channel_id} already registered (config updated).`,
-    })
-  }
-
-  return c.json({ status: `Channel ${body.channel_id} registered.` })
-})
-
-channelRoutes.post('/send', zValidator('json', sendSchema), async (c) => {
-  const body = c.req.valid('json')
   try {
-    const result = await sendToChannel(body.channel_id, body.text, 'api')
-    return c.json({
-      status: 'sent',
-      ...(result.messageId ? { message_id: result.messageId } : {}),
+    await createChannel({
+      channelId: body.channel_id,
+      platform: body.platform,
+      targetChatId: body.target_chat_id,
+      credentials: body.credentials,
+      callbackUrl: body.callback_url ?? null,
+      channelType: body.channel_type,
     })
+    return c.json({ status: `Channel ${body.channel_id} registered.` }, 201)
   } catch (err) {
-    return c.json({ detail: String(err) }, 404)
+    if (err instanceof ChannelAlreadyExistsError) {
+      return c.json({ detail: err.message }, 409)
+    }
+    throw err
   }
 })
 
-channelRoutes.get('/channels', async (c) => {
-  const channels = await listChannels()
+channelRoutes.get('/channels', zValidator('query', listQuerySchema), async (c) => {
+  const { platform, channel_type: channelType, limit } = c.req.valid('query')
+  const channels = await listChannels({
+    limit,
+    ...(platform ? { platform } : {}),
+    ...(channelType ? { channelType } : {}),
+  })
   return c.json(channels)
 })
 
+channelRoutes.patch('/channels/new', (c) => c.json({ detail: 'Channel not found' }, 404))
+channelRoutes.delete('/channels/new', (c) => c.json({ detail: 'Channel not found' }, 404))
+
+channelRoutes.patch('/channels/:id', zValidator('json', updateChannelSchema), async (c) => {
+  const channelId = decodeURIComponent(c.req.param('id'))
+  const body = c.req.valid('json')
+
+  try {
+    await updateChannel(channelId, {
+      targetChatId: body.target_chat_id,
+      credentials: body.credentials,
+      callbackUrl: body.callback_url,
+    })
+    return c.json({ status: `Channel ${channelId} updated.` })
+  } catch (err) {
+    if (err instanceof ChannelNotFoundError) {
+      return c.json({ detail: err.message }, 404)
+    }
+    if (err instanceof Error && err.message === 'MESSAGE channels require callback_url') {
+      return c.json({ detail: err.message }, 400)
+    }
+    throw err
+  }
+})
+
 channelRoutes.delete('/channels/:id', async (c) => {
-  const channelId = c.req.param('id')
+  const channelId = decodeURIComponent(c.req.param('id'))
   try {
     await unregisterChannel(channelId)
     return c.json({ status: `Channel ${channelId} unregistered.` })
   } catch (err) {
-    return c.json({ detail: String(err) }, 404)
+    if (err instanceof ChannelNotFoundError) {
+      return c.json({ detail: err.message }, 404)
+    }
+    throw err
   }
 })

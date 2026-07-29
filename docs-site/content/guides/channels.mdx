@@ -2,9 +2,13 @@
 
 Channels bind a platform, credentials, and target chat to a stable `channel_id`.
 
-## Register
+Register channels with `POST /v1/channels/new` (`/new` creates a durable
+resource). Outbound chat on MESSAGE channels uses `POST /v1/messages/send`, not
+`/new`.
 
-`POST /register-channel`
+## Create
+
+`POST /v1/channels/new`
 
 ```json
 {
@@ -23,18 +27,39 @@ Channels bind a platform, credentials, and target chat to a stable `channel_id`.
 | Field            | Type   | Notes                                                                                 |
 | ---------------- | ------ | ------------------------------------------------------------------------------------- |
 | `channel_id`     | string | Required, stable slug                                                                 |
-| `platform`       | enum   | `telegram` \| `slack` \| `teams` \| `discord` \| `gchat` \| `whatsapp` \| `messenger` |
+| `platform`       | enum   | `telegram` \| `slack` \| … — **immutable after creation**                             |
 | `target_chat_id` | string | Platform-specific chat / channel / space / PSID                                       |
 | `credentials`    | object | Platform-specific strings                                                             |
 | `callback_url`   | string | Required for `MESSAGE`                                                                |
-| `channel_type`   | enum   | `MESSAGE` (default) or `PROMPT`                                                       |
+| `channel_type`   | enum   | `MESSAGE` (default) or `PROMPT` — **immutable after creation**                        |
 
-Re-registering an active channel updates config and returns
-`already registered (config updated)`.
+Returns `409` if `channel_id` already exists. To reuse an id after
+`DELETE /v1/channels/{id}`, call `PATCH /v1/channels/{id}` (not
+`POST`).
+
+## Platform webhooks vs `callback_url`
+
+Two different URLs are involved for MESSAGE channels on webhook-based platforms:
+
+| URL | Direction | Purpose |
+| --- | --------- | ------- |
+| `{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}` | Platform → Greenlight | Chat platform delivers inbound events to Greenlight |
+| `callback_url` on the channel | Greenlight → your agent/automation | Greenlight forwards inbound chat as `message.created` |
+
+PROMPT channels usually only need the Agent API (`POST /v1/prompts/new`). Telegram
+can use long polling locally without a public platform webhook.
+
+## Update
+
+`PATCH /v1/channels/{id}`
+
+Update mutable fields: `target_chat_id`, `credentials`, `callback_url`. Also
+reactivates a channel after `DELETE`. `platform` and `channel_type` cannot be
+changed — create a new channel with a new `channel_id` instead.
 
 ## Routing rules
 
-- **PROMPT** — many agents or workflows can `POST /v1/prompts` to the same
+- **PROMPT** — many agents or workflows can `POST /v1/prompts/new` to the same
   `channel_id`. Answers go to each prompt’s `callback_url`, not a shared
   channel callback.
 - **MESSAGE** — inbound chat goes to the single `callback_url` set on the
@@ -48,22 +73,21 @@ choose each mode.
 ## List and delete
 
 ```bash
-GET    /channels
-DELETE /channels/{id}
+GET /v1/channels?platform=slack&channel_type=MESSAGE&limit=50
+DELETE /v1/channels/{id}
 ```
 
 Both require `X-API-Key` when auth is enabled.
 
-## Send a message
+## Send chat text (MESSAGE channels)
 
 ```bash
-POST /send
+POST /v1/messages/send
 ```
 
-Use a registered channel to deliver a plain message (not a prompt card). Useful
-after a `MESSAGE` channel callback. Outbound sends are stored in the message
-history (`message_id` in the response). Inbound chat is logged automatically.
-See [Messages](/guides/messages).
+Use `/send` to deliver plain chat text on a registered MESSAGE channel (not a
+prompt card). See [Messages](/guides/messages) for list, get, and send API
+details.
 
 ## Platform credentials
 

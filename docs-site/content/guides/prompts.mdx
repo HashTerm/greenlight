@@ -2,7 +2,15 @@
 
 Prompts are interactive questions delivered to a `PROMPT` channel.
 
-## Create (`POST /v1/prompts`)
+Create prompts with `POST /v1/prompts/new` — the `/new` verb means **create a
+durable resource**. For MESSAGE channel chat replies, use
+`POST /v1/messages/send` instead.
+
+## Create (`POST /v1/prompts/new`)
+
+Send **`application/json`** or **`multipart/form-data`** to the same path.
+
+### JSON body
 
 | Field            | Type     | Default                     | Notes                                                     |
 | ---------------- | -------- | --------------------------- | --------------------------------------------------------- |
@@ -16,12 +24,13 @@ Prompts are interactive questions delivered to a `PROMPT` channel.
 | `media_url`      | string   | —                           | Remote attachment URL                                     |
 | `media_path`     | string   | —                           | Local path under `MEDIA_ALLOWED_DIR`                      |
 
-Only one media source is allowed among `media_url`, `media_path`, and upload file.
+### Multipart form (file upload)
 
-## Upload (`POST /v1/prompts/upload`)
+Use the same logical fields as form fields. Send the attachment as `file`.
+`options` may be a JSON string. Do not combine `file` and `media_url`.
 
-Multipart form with the same logical fields. Send the file as `file`. Options may
-be a JSON string. Do not combine `file` and `media_url`.
+Only one media source is allowed among `media_url`, `media_path`, and upload
+`file`.
 
 Default content type for uploads is `image/jpeg`. Max size is governed by
 `MAX_MEDIA_SIZE_MB` (default 2).
@@ -49,11 +58,19 @@ Greenlight records `answer.type = "text"` and posts a confirmation in the thread
 Background expiry runs periodically. `CLEAN_ON_BOOT` can clear stale state on
 startup.
 
-## Fetch
+## List
 
 ```bash
-GET /v1/prompts/pending
-GET /v1/prompts/%23123
+GET /v1/prompts?state=pending
+GET /v1/prompts?state=all&limit=100
 ```
 
-IDs look like `#123` — URL-encode the `#` as `%23`.
+`state`: `pending` (default) \| `answered` \| `expired` \| `all`. `limit`: 1–200 (default 50).
+
+## Fetch by id
+
+IDs look like `#123` — URL-encode the `#` as `%23`:
+
+```bash
+GET /v1/prompts/%23123
+```

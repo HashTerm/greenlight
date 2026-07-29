@@ -10,7 +10,7 @@ When `USE_AUTH=true`, every agent route requires:
 X-API-Key: <API_KEY>
 ```
 
-Protected paths include `/v1/*`, `/register-channel`, `/send`, and `/channels`.
+Protected paths include `/v1/*`.
 
 ## Typical flow
 
@@ -20,22 +20,22 @@ sequenceDiagram
   participant Agent
   participant Greenlight
   participant Chat
-  Agent->>Greenlight: POST /register-channel
-  Agent->>Greenlight: POST /v1/prompts
+  Agent->>Greenlight: POST /v1/channels
+  Agent->>Greenlight: POST /v1/prompts/new
   Greenlight->>Chat: Deliver prompt card
   Chat-->>Greenlight: Human taps button
   Greenlight->>Agent: POST callback (signed)
 ```
 
-1. Register a `PROMPT` channel once
+1. Create a `PROMPT` channel once
 2. Create prompts with `callback_url` pointing at your agent
 3. Verify `X-Signature` on inbound answer webhooks
-4. Optionally poll `GET /v1/prompts/{id}` or `/v1/prompts/pending`
+4. Optionally poll `GET /v1/prompts/{id}` or `GET /v1/prompts?state=pending`
 
 ## Create a prompt
 
 ```bash
-curl -X POST http://localhost:8100/v1/prompts \
+curl -X POST http://localhost:8100/v1/prompts/new \
   -H "X-API-Key: $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -77,9 +77,9 @@ See [Callbacks](/guides/callbacks) for the full payload.
 
 For inbound chat → agent:
 
-1. Register `channel_type: "MESSAGE"` with a reachable `callback_url`
+1. Create `channel_type: "MESSAGE"` with a reachable `callback_url`
 2. Handle unsigned `message.created` JSON events
-3. Optionally reply with `POST /send`
+3. Optionally reply with `POST /v1/messages/send`
 
 For local agents, expose your callback with ngrok or Cloudflare Tunnel.
 
@@ -87,5 +87,5 @@ For local agents, expose your callback with ngrok or Cloudflare Tunnel.
 
 - [Automation platforms](/guides/automation-platforms) — n8n, Zapier, Make, and similar
 - [Prompts](/guides/prompts) — options, text replies, media
-- [Channels](/guides/channels) — register schema
+- [Channels](/guides/channels) — create schema
 - [Agent API](/api-reference/agent-api) — endpoint table

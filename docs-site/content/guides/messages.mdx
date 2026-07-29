@@ -4,12 +4,16 @@ Greenlight stores **MESSAGE channel** chat history in Postgres for operator
 audit. This is separate from **prompts** (approval cards with buttons and
 signed answer callbacks).
 
+Deliver outbound chat with `POST /v1/messages/send` — the `/send` verb is for
+MESSAGE channel text only. Create channels with `POST /v1/channels/new` and
+prompts with `POST /v1/prompts/new`.
+
 ## What is stored
 
 | Direction  | When                                      | Fields of note                      |
 | ---------- | ----------------------------------------- | ----------------------------------- |
 | `inbound`  | A human sends text on a `MESSAGE` channel | `from_user`, `text`, `channel_id`   |
-| `outbound` | `POST /send` or Admin UI send succeeds    | `source` (`api` or `admin`), `text` |
+| `outbound` | `POST /v1/messages/send` or Admin UI send succeeds | `source` (`api` or `admin`), `text` |
 
 Inbound rows are created even if forwarding to the channel `callback_url` fails,
 unless **do not store inbound** is enabled in Settings.
@@ -24,7 +28,7 @@ forwards as unsigned `message.created` events. See [Callbacks](/guides/callbacks
 ### Agent API
 
 ```bash
-POST /send
+POST /v1/messages/send
 ```
 
 ```json
@@ -53,6 +57,9 @@ direction (All / Inbound / Outbound). Click a row for full detail.
 Admin API: `GET /admin/v1/messages` and `GET /admin/v1/messages/{id}` — see
 [Admin API](/api-reference/admin-api).
 
+Agent API: `GET /v1/messages`, `GET /v1/messages/{id}`, and `POST /v1/messages/send` — see
+[Agent API](/api-reference/agent-api).
+
 ## Data retention
 
 Operators configure retention under **Settings → Data retention** in two layers:
@@ -77,7 +84,7 @@ and callbacks still work):
 | Inbound  | Off     |
 | Outbound | Off     |
 
-`POST /send` omits `message_id` in the response when outbound storage is disabled.
+`POST /v1/messages/send` omits `message_id` in the response when outbound storage is disabled.
 
 This is independent of per-prompt `ttl_sec` (soft `EXPIRED` state).
 
@@ -85,7 +92,8 @@ This is independent of per-prompt `ttl_sec` (soft `EXPIRED` state).
 
 |                     | Messages (`MESSAGE`)      | Prompts (`PROMPT`) |
 | ------------------- | ------------------------- | ------------------ |
-| Outbound API        | `POST /send`              | `POST /v1/prompts` |
+| Outbound verb       | `send`                    | `new`              |
+| Outbound API        | `POST /v1/messages/send` | `POST /v1/prompts/new` |
 | Interactive options | No                        | Yes                |
 | Answer callback     | N/A (use channel webhook) | Per-prompt, signed |
 | Admin list          | `/messages`               | `/prompts`         |

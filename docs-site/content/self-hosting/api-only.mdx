@@ -11,9 +11,9 @@ routes will not be mounted.
 
 The gateway on port **8100** is unchanged:
 
-- `POST /register-channel`
-- `POST /v1/prompts`
-- `GET /channels`
+- `POST /v1/channels/new`
+- `POST /v1/prompts/new`
+- `GET /v1/channels`
 - Platform webhooks under `/webhooks/...`
 
 ## Auth
@@ -33,12 +33,12 @@ All agent routes then require `X-API-Key`.
 ## Managing channels without the UI
 
 ```bash
-curl -X POST https://api.example.com/register-channel \
+curl -X POST https://api.example.com/v1/channels/new \
   -H "X-API-Key: $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{ ... }'
 
-curl https://api.example.com/channels \
+curl https://api.example.com/v1/channels \
   -H "X-API-Key: $API_KEY"
 ```
 

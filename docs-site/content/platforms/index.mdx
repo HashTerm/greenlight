@@ -1,7 +1,7 @@
 # Platforms
 
 Greenlight supports seven chat platforms. Credentials are registered **per
-channel** via `POST /register-channel`.
+channel** via `POST /v1/channels/new`.
 
 ## Comparison
 
@@ -23,20 +23,36 @@ channel** via `POST /register-channel`.
 
 Set `PUBLIC_WEBHOOK_URL` to your public HTTPS base with **no trailing slash**.
 
-## Register schema (shared)
+## Create schema (shared)
+
+`POST /v1/channels/new` body (fields vary by `channel_type`):
+
+**PROMPT** — no channel-level `callback_url` required:
 
 ```json
 {
-  "channel_id": "ops-slack",
+  "channel_id": "ops-approvals",
   "platform": "slack",
   "target_chat_id": "C01234567",
-  "credentials": {},
+  "credentials": { "bot_token": "xoxb-...", "signing_secret": "..." },
+  "channel_type": "PROMPT"
+}
+```
+
+**MESSAGE** — `callback_url` required (where Greenlight forwards inbound chat):
+
+```json
+{
+  "channel_id": "ops-slack-chat",
+  "platform": "slack",
+  "target_chat_id": "C01234567",
+  "credentials": { "bot_token": "xoxb-...", "signing_secret": "..." },
   "callback_url": "https://agent.example/on_message",
   "channel_type": "MESSAGE"
 }
 ```
 
-- `MESSAGE` channels **require** `callback_url`
-- `PROMPT` channels do not require channel-level `callback_url` (set it per prompt instead)
+Also configure the platform to send events to
+`{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}` (see platform guides).
 
 Pick a platform guide above for credentials and portal setup steps.

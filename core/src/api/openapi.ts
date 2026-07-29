@@ -10,7 +10,8 @@ export function getOpenApiDocument(): Record<string, unknown> {
       title: 'Greenlight — Multi-Platform Prompt & Channel Gateway',
       version: '0.1.0',
       description:
-        'Self-hosted HTTP gateway for human-in-the-loop AI agents across Telegram, Slack, Teams, Discord, Google Chat, WhatsApp, and Messenger.',
+        'Self-hosted HTTP gateway for human-in-the-loop AI agents across Telegram, Slack, Teams, Discord, Google Chat, WhatsApp, and Messenger.\n\n' +
+        '**Path verbs:** `POST …/new` creates a durable resource (channel or prompt). `POST …/send` delivers chat text on a MESSAGE channel only.',
       license: {
         name: 'BUSL-1.1',
         url: 'https://spdx.org/licenses/BUSL-1.1.html',
@@ -36,6 +37,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
       { name: 'Health' },
       { name: 'Prompts' },
       { name: 'Channels' },
+      { name: 'Messages' },
       { name: 'Webhooks' },
       { name: 'Admin' },
     ],
@@ -166,7 +168,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
             answer: { type: 'string', nullable: true },
           },
         },
-        RegisterChannelRequest: {
+        CreateChannelRequest: {
           type: 'object',
           required: ['channel_id', 'platform', 'target_chat_id', 'credentials'],
           properties: {
@@ -186,7 +188,19 @@ export function getOpenApiDocument(): Record<string, unknown> {
             channel_type: { $ref: '#/components/schemas/ChannelType' },
           },
         },
-        RegisterChannelResponse: {
+        UpdateChannelRequest: {
+          type: 'object',
+          properties: {
+            target_chat_id: { type: 'string', minLength: 1 },
+            callback_url: { type: 'string', nullable: true },
+            credentials: {
+              type: 'object',
+              additionalProperties: { type: 'string' },
+              description: 'Partial credentials patch; omitted keys are unchanged.',
+            },
+          },
+        },
+        ChannelResponse: {
           type: 'object',
           required: ['status'],
           properties: {
@@ -197,8 +211,8 @@ export function getOpenApiDocument(): Record<string, unknown> {
           type: 'object',
           required: ['channel_id', 'text'],
           properties: {
-            channel_id: { type: 'string' },
-            text: { type: 'string' },
+            channel_id: { type: 'string', minLength: 1 },
+            text: { type: 'string', minLength: 1 },
           },
         },
         Channel: {
@@ -290,10 +304,12 @@ export function getOpenApiDocument(): Record<string, unknown> {
           },
         },
       },
-      '/v1/prompts': {
+      '/v1/prompts/new': {
         post: {
           tags: ['Prompts'],
-          summary: 'Create and send a prompt',
+          summary: 'Create a prompt',
+          description:
+            'Creates a durable prompt resource and posts it to the PROMPT channel. Accepts `application/json` or `multipart/form-data` (for file upload). Use `/send` only for MESSAGE channel chat text.',
           security: [{ ApiKeyAuth: [] }],
           requestBody: {
             required: true,
@@ -301,11 +317,32 @@ export function getOpenApiDocument(): Record<string, unknown> {
               'application/json': {
                 schema: { $ref: '#/components/schemas/CreatePromptRequest' },
               },
+              'multipart/form-data': {
+                schema: {
+                  type: 'object',
+                  required: ['text'],
+                  properties: {
+                    text: { type: 'string' },
+                    channel_id: { type: 'string' },
+                    options: {
+                      type: 'string',
+                      description: 'JSON array of option strings',
+                    },
+                    allow_text: { type: 'string' },
+                    callback_url: { type: 'string' },
+                    correlation_id: { type: 'string' },
+                    ttl_sec: { type: 'string' },
+                    media_url: { type: 'string' },
+                    media_path: { type: 'string' },
+                    file: { type: 'string', format: 'binary' },
+                  },
+                },
+              },
             },
           },
           responses: {
             '200': {
-              description: 'Prompt created and posted',
+              description: 'Prompt created',
               content: {
                 'application/json': {
                   schema: {
@@ -330,60 +367,8 @@ export function getOpenApiDocument(): Record<string, unknown> {
                 },
               },
             },
-          },
-        },
-      },
-      '/v1/prompts/upload': {
-        post: {
-          tags: ['Prompts'],
-          summary: 'Create prompt with multipart file upload',
-          security: [{ ApiKeyAuth: [] }],
-          requestBody: {
-            required: true,
-            content: {
-              'multipart/form-data': {
-                schema: {
-                  type: 'object',
-                  required: ['text'],
-                  properties: {
-                    text: { type: 'string' },
-                    channel_id: { type: 'string' },
-                    options: {
-                      type: 'string',
-                      description: 'JSON array of option strings',
-                    },
-                    allow_text: { type: 'string' },
-                    callback_url: { type: 'string' },
-                    correlation_id: { type: 'string' },
-                    ttl_sec: { type: 'string' },
-                    media_url: { type: 'string' },
-                    file: { type: 'string', format: 'binary' },
-                  },
-                },
-              },
-            },
-          },
-          responses: {
-            '200': {
-              description: 'Prompt created',
-              content: {
-                'application/json': {
-                  schema: {
-                    $ref: '#/components/schemas/CreatePromptResponse',
-                  },
-                },
-              },
-            },
-            '400': {
-              description: 'Validation error',
-              content: {
-                'application/json': {
-                  schema: { $ref: '#/components/schemas/Error' },
-                },
-              },
-            },
-            '401': {
-              description: 'Unauthorized',
+            '415': {
+              description: 'Unsupported Content-Type',
               content: {
                 'application/json': {
                   schema: { $ref: '#/components/schemas/Error' },
@@ -393,14 +378,35 @@ export function getOpenApiDocument(): Record<string, unknown> {
           },
         },
       },
-      '/v1/prompts/pending': {
+      '/v1/prompts': {
         get: {
           tags: ['Prompts'],
-          summary: 'List unanswered prompts',
+          summary: 'List prompts',
           security: [{ ApiKeyAuth: [] }],
+          parameters: [
+            {
+              name: 'state',
+              in: 'query',
+              schema: {
+                type: 'string',
+                enum: ['pending', 'answered', 'expired', 'all'],
+                default: 'pending',
+              },
+            },
+            {
+              name: 'limit',
+              in: 'query',
+              schema: {
+                type: 'integer',
+                minimum: 1,
+                maximum: 200,
+                default: 50,
+              },
+            },
+          ],
           responses: {
             '200': {
-              description: 'Pending prompts',
+              description: 'Prompt list',
               content: {
                 'application/json': {
                   schema: {
@@ -455,34 +461,82 @@ export function getOpenApiDocument(): Record<string, unknown> {
           },
         },
       },
-      '/register-channel': {
+      '/v1/channels': {
+        get: {
+          tags: ['Channels'],
+          summary: 'List channels',
+          security: [{ ApiKeyAuth: [] }],
+          parameters: [
+            {
+              name: 'platform',
+              in: 'query',
+              schema: { $ref: '#/components/schemas/Platform' },
+            },
+            {
+              name: 'channel_type',
+              in: 'query',
+              schema: { type: 'string', enum: ['MESSAGE', 'PROMPT'] },
+            },
+            {
+              name: 'limit',
+              in: 'query',
+              schema: {
+                type: 'integer',
+                minimum: 1,
+                maximum: 200,
+                default: 50,
+              },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Channels',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'array',
+                    items: { $ref: '#/components/schemas/Channel' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/v1/channels/new': {
         post: {
           tags: ['Channels'],
-          summary: 'Register or update a channel',
+          summary: 'Create a channel',
+          description:
+            'Registers a durable channel resource. Use `/send` only for MESSAGE channel chat text.',
           security: [{ ApiKeyAuth: [] }],
           requestBody: {
             required: true,
             content: {
               'application/json': {
-                schema: {
-                  $ref: '#/components/schemas/RegisterChannelRequest',
-                },
+                schema: { $ref: '#/components/schemas/CreateChannelRequest' },
               },
             },
           },
           responses: {
-            '200': {
-              description: 'Channel registered or updated',
+            '201': {
+              description: 'Channel created',
               content: {
                 'application/json': {
-                  schema: {
-                    $ref: '#/components/schemas/RegisterChannelResponse',
-                  },
+                  schema: { $ref: '#/components/schemas/ChannelResponse' },
                 },
               },
             },
             '400': {
-              description: 'Validation error',
+              description: 'Validation error or missing MESSAGE callback_url',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
+                },
+              },
+            },
+            '409': {
+              description: 'Channel already exists',
               content: {
                 'application/json': {
                   schema: { $ref: '#/components/schemas/Error' },
@@ -492,10 +546,142 @@ export function getOpenApiDocument(): Record<string, unknown> {
           },
         },
       },
-      '/send': {
-        post: {
+      '/v1/channels/{id}': {
+        patch: {
           tags: ['Channels'],
-          summary: 'Send a message via channel',
+          summary: 'Update a channel',
+          description:
+            'Updates mutable fields and reactivates deactivated channels. platform and channel_type cannot be changed.',
+          security: [{ ApiKeyAuth: [] }],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Channel id (the `channel_id` slug registered at creation)',
+              schema: { type: 'string' },
+            },
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/UpdateChannelRequest' },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              description: 'Channel updated',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ChannelResponse' },
+                },
+              },
+            },
+            '404': {
+              description: 'Channel not found',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
+                },
+              },
+            },
+          },
+        },
+        delete: {
+          tags: ['Channels'],
+          summary: 'Unregister channel',
+          security: [{ ApiKeyAuth: [] }],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              description: 'Channel id (the `channel_id` slug registered at creation)',
+              schema: { type: 'string' },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Unregistered',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/ChannelResponse' },
+                },
+              },
+            },
+            '404': {
+              description: 'Not found',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/v1/messages': {
+        get: {
+          tags: ['Messages'],
+          summary: 'List message history',
+          security: [{ ApiKeyAuth: [] }],
+          parameters: [
+            {
+              name: 'direction',
+              in: 'query',
+              schema: {
+                type: 'string',
+                enum: ['inbound', 'outbound', 'all'],
+                default: 'all',
+              },
+            },
+            {
+              name: 'channel_id',
+              in: 'query',
+              schema: { type: 'string' },
+            },
+            {
+              name: 'limit',
+              in: 'query',
+              schema: {
+                type: 'integer',
+                minimum: 1,
+                maximum: 200,
+                default: 50,
+              },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Message history',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'array',
+                    items: { $ref: '#/components/schemas/Message' },
+                  },
+                },
+              },
+            },
+            '401': {
+              description: 'Unauthorized',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/v1/messages/send': {
+        post: {
+          tags: ['Messages'],
+          summary: 'Send chat text on a MESSAGE channel',
+          description:
+            'Delivers plain text in an existing MESSAGE channel thread. Use `/new` to create channels or prompts.',
           security: [{ ApiKeyAuth: [] }],
           requestBody: {
             required: true,
@@ -520,6 +706,14 @@ export function getOpenApiDocument(): Record<string, unknown> {
                 },
               },
             },
+            '400': {
+              description: 'Not a MESSAGE channel or send error',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
+                },
+              },
+            },
             '404': {
               description: 'Channel not found',
               content: {
@@ -531,47 +725,25 @@ export function getOpenApiDocument(): Record<string, unknown> {
           },
         },
       },
-      '/channels': {
+      '/v1/messages/{id}': {
         get: {
-          tags: ['Channels'],
-          summary: 'List active channels',
-          security: [{ ApiKeyAuth: [] }],
-          responses: {
-            '200': {
-              description: 'Active channels',
-              content: {
-                'application/json': {
-                  schema: {
-                    type: 'array',
-                    items: { $ref: '#/components/schemas/Channel' },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-      '/channels/{id}': {
-        delete: {
-          tags: ['Channels'],
-          summary: 'Unregister channel',
+          tags: ['Messages'],
+          summary: 'Get message by id',
           security: [{ ApiKeyAuth: [] }],
           parameters: [
             {
               name: 'id',
               in: 'path',
               required: true,
-              schema: { type: 'string' },
+              schema: { type: 'string', format: 'uuid' },
             },
           ],
           responses: {
             '200': {
-              description: 'Unregistered',
+              description: 'Message record',
               content: {
                 'application/json': {
-                  schema: {
-                    $ref: '#/components/schemas/RegisterChannelResponse',
-                  },
+                  schema: { $ref: '#/components/schemas/Message' },
                 },
               },
             },
@@ -586,7 +758,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
           },
         },
       },
-      '/webhooks/{platform}/{channelId}': {
+      '/webhooks/{platform}/{channel_id}': {
         get: {
           tags: ['Webhooks'],
           summary: 'Platform webhook verification (WhatsApp, Messenger)',
@@ -599,9 +771,10 @@ export function getOpenApiDocument(): Record<string, unknown> {
               schema: { $ref: '#/components/schemas/Platform' },
             },
             {
-              name: 'channelId',
+              name: 'channel_id',
               in: 'path',
               required: true,
+              description: 'Registered Greenlight channel slug',
               schema: { type: 'string' },
             },
           ],
@@ -621,9 +794,10 @@ export function getOpenApiDocument(): Record<string, unknown> {
               schema: { $ref: '#/components/schemas/Platform' },
             },
             {
-              name: 'channelId',
+              name: 'channel_id',
               in: 'path',
               required: true,
+              description: 'Registered Greenlight channel slug',
               schema: { type: 'string' },
             },
           ],
@@ -755,9 +929,13 @@ export function getOpenApiDocument(): Record<string, unknown> {
             },
           },
         },
+      },
+      '/admin/v1/messages/send': {
         post: {
           tags: ['Admin'],
-          summary: 'Send a message via MESSAGE channel',
+          summary: 'Send chat text on a MESSAGE channel',
+          description:
+            'Operator send — same delivery as `POST /v1/messages/send`, stored with `source: admin`.',
           security: [{ AdminToken: [] }],
           requestBody: {
             required: true,

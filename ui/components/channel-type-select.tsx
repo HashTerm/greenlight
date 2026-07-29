@@ -20,14 +20,25 @@ type ChannelTypeSelectProps = {
   name: string
   value: ChannelType
   onValueChange: (value: ChannelType) => void
+  disabled?: boolean
 }
 
-export function ChannelTypeSelect({ id, name, value, onValueChange }: ChannelTypeSelectProps) {
+export function ChannelTypeSelect({
+  id,
+  name,
+  value,
+  onValueChange,
+  disabled,
+}: ChannelTypeSelectProps) {
   return (
     <>
       <input type="hidden" name={name} value={value} />
-      <Select onValueChange={(next) => onValueChange(next as ChannelType)} value={value}>
-        <SelectTrigger id={id}>
+      <Select
+        disabled={disabled}
+        onValueChange={(next) => onValueChange(next as ChannelType)}
+        value={value}
+      >
+        <SelectTrigger id={id} disabled={disabled}>
           <SelectValue placeholder="Select channel type" />
         </SelectTrigger>
         <SelectContent>

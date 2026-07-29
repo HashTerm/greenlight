@@ -2,26 +2,40 @@
 
 Requires `X-API-Key` when `USE_AUTH=true`.
 
+## Path verbs
+
+| Verb | Paths | Meaning |
+| ---- | ----- | ------- |
+| **`new`** | `POST /v1/channels/new`, `POST /v1/prompts/new` | Create a **durable resource** (channel or prompt) |
+| **`send`** | `POST /v1/messages/send` | Deliver **chat text** on a MESSAGE channel |
+
+Do not use `send` for prompts or channels. Do not use `new` for outbound chat
+replies — use `send` on MESSAGE channels only.
+
 ## Endpoints
 
-| Method   | Path                  | Description                      |
-| -------- | --------------------- | -------------------------------- |
-| `GET`    | `/healthz`            | Health check (**no auth**)       |
-| `POST`   | `/v1/prompts`         | Create and send a prompt         |
-| `POST`   | `/v1/prompts/upload`  | Create prompt with file upload   |
-| `GET`    | `/v1/prompts/pending` | List unanswered prompts          |
-| `GET`    | `/v1/prompts/{id}`    | Get prompt (`%23123` for `#123`) |
-| `POST`   | `/register-channel`   | Register or update a channel     |
-| `POST`   | `/send`               | Send a message via channel       |
-| `GET`    | `/channels`           | List active channels             |
-| `DELETE` | `/channels/{id}`      | Unregister channel               |
+| Method   | Path                                              | Description                      |
+| -------- | ------------------------------------------------- | -------------------------------- |
+| `GET`    | `/healthz`                                        | Health check (**no auth**)       |
+| `POST`   | `/v1/prompts/new`                                 | Create a prompt (JSON or multipart) |
+| `GET`    | `/v1/prompts`                                     | List prompts (`state` filter)    |
+| `GET`    | `/v1/prompts/{id}`                                | Get prompt (`%23123` for `#123`) |
+| `POST`   | `/v1/channels/new`                                | Create a channel                 |
+| `GET`    | `/v1/channels`                                    | List channels (filters)          |
+| `PATCH`  | `/v1/channels/{id}`                               | Update a channel                 |
+| `DELETE` | `/v1/channels/{id}`                               | Unregister channel               |
+| `GET`    | `/v1/messages`                                    | List message history             |
+| `GET`    | `/v1/messages/{id}`                               | Get message by UUID              |
+| `POST`   | `/v1/messages/send`                               | Send chat text on MESSAGE channel |
 
 Platforms: `telegram`, `slack`, `teams`, `discord`, `gchat`, `whatsapp`,
 `messenger`.
 
-## `POST /v1/prompts`
+## `POST /v1/prompts/new`
 
-### Request body
+Accepts **`application/json`** or **`multipart/form-data`**.
+
+### JSON body
 
 | Field            | Type     | Required    | Notes                              |
 | ---------------- | -------- | ----------- | ---------------------------------- |
@@ -35,6 +49,11 @@ Platforms: `telegram`, `slack`, `teams`, `discord`, `gchat`, `whatsapp`,
 | `media_url`      | string   | No          | Mutually exclusive media sources   |
 | `media_path`     | string   | No          | Under `MEDIA_ALLOWED_DIR`          |
 
+### Multipart form
+
+Same fields as form parts. Send attachments as `file`. `options` may be a JSON
+string. Do not combine `file` and `media_url`.
+
 ### Response `200`
 
 ```json
@@ -45,21 +64,47 @@ Platforms: `telegram`, `slack`, `teams`, `discord`, `gchat`, `whatsapp`,
 }
 ```
 
-## `POST /register-channel`
+## `GET /v1/prompts`
+
+### Query
+
+| Param   | Type   | Default   | Notes                                         |
+| ------- | ------ | --------- | --------------------------------------------- |
+| `state` | string | `pending` | `pending` \| `answered` \| `expired` \| `all` |
+| `limit` | int    | `50`      | 1–200                                         |
+
+## `POST /v1/channels/new`
 
 See [Channels](/guides/channels) for the full schema and
 [Platforms](/platforms) for credentials.
 
-### Response
+### Response `201`
 
 ```json
 { "status": "Channel ops-slack registered." }
 ```
 
-or, on update:
+## `GET /v1/channels`
+
+### Query
+
+| Param          | Type   | Default | Notes                          |
+| -------------- | ------ | ------- | ------------------------------ |
+| `platform`     | enum   | —       | Filter by platform             |
+| `channel_type` | enum   | —       | `MESSAGE` \| `PROMPT`          |
+| `limit`        | int    | `50`    | 1–200                          |
+
+## `PATCH /v1/channels/{id}`
+
+Path `id` is the channel slug (`channel_id` from create).
+
+Update `target_chat_id`, `credentials`, and/or `callback_url`. Reactivates a
+deactivated channel. `platform` and `channel_type` cannot be changed.
+
+### Response `200`
 
 ```json
-{ "status": "Channel ops-slack already registered (config updated)." }
+{ "status": "Channel ops-slack updated." }
 ```
 
 ## `GET /v1/prompts/{id}`
@@ -67,10 +112,25 @@ or, on update:
 Returns prompt state including `answer`, timestamps, and options. Encode `#` as
 `%23`.
 
-## `POST /send`
+## `GET /v1/messages`
 
-Send plain text on a `MESSAGE` channel. Persisted in message history when
-delivery succeeds.
+### Query
+
+| Param        | Type   | Default | Notes                            |
+| ------------ | ------ | ------- | -------------------------------- |
+| `direction`  | string | `all`   | `inbound` \| `outbound` \| `all` |
+| `channel_id` | string | —       | Filter by channel                |
+| `limit`      | int    | `50`    | 1–200                            |
+
+## `GET /v1/messages/{id}`
+
+Returns a single message record by UUID.
+
+## `POST /v1/messages/send`
+
+Deliver plain chat text on a `MESSAGE` channel. Persisted in message history when
+delivery succeeds. For durable resources, use `POST /v1/channels/new` or
+`POST /v1/prompts/new` instead.
 
 ### Request body
 
@@ -95,4 +155,5 @@ delivery succeeds.
 | 400    | Validation / missing `callback_url` for MESSAGE |
 | 401    | Invalid or missing API key                      |
 | 404    | Prompt or channel not found                     |
+| 409    | Channel already exists                          |
 | 500    | Unexpected server error                         |

@@ -16,14 +16,25 @@ type PlatformSelectProps = {
   name: string
   value: Platform
   onValueChange: (value: Platform) => void
+  disabled?: boolean
 }
 
-export function PlatformSelect({ id, name, value, onValueChange }: PlatformSelectProps) {
+export function PlatformSelect({
+  id,
+  name,
+  value,
+  onValueChange,
+  disabled,
+}: PlatformSelectProps) {
   return (
     <>
       <input type="hidden" name={name} value={value} />
-      <Select onValueChange={(next) => onValueChange(next as Platform)} value={value}>
-        <SelectTrigger id={id}>
+      <Select
+        disabled={disabled}
+        onValueChange={(next) => onValueChange(next as Platform)}
+        value={value}
+      >
+        <SelectTrigger id={id} disabled={disabled}>
           <SelectValue placeholder="Select platform" />
         </SelectTrigger>
         <SelectContent>

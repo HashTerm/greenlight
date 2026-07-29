@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
 import { sendToChannel } from '../../../services/channels/service.js'
+import { sendMessageSchema } from '../../../services/messages/schemas.js'
 import { getMessage, listMessages } from '../../../services/messages/service.js'
 
 const listQuerySchema = z.object({
@@ -10,32 +11,9 @@ const listQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(200).default(50),
 })
 
-const createSchema = z.object({
-  channel_id: z.string(),
-  text: z.string().min(1),
-})
-
 export const adminMessageRoutes = new Hono()
 
-adminMessageRoutes.get('/messages', zValidator('query', listQuerySchema), async (c) => {
-  const { direction, channel_id: channelId, limit } = c.req.valid('query')
-  const rows = await listMessages({
-    limit,
-    channelId,
-    direction,
-  })
-  return c.json(rows)
-})
-
-adminMessageRoutes.get('/messages/:id', async (c) => {
-  const message = await getMessage(c.req.param('id'))
-  if (!message) {
-    return c.json({ detail: 'Message not found' }, 404)
-  }
-  return c.json(message)
-})
-
-adminMessageRoutes.post('/messages', zValidator('json', createSchema), async (c) => {
+adminMessageRoutes.post('/messages/send', zValidator('json', sendMessageSchema), async (c) => {
   const body = c.req.valid('json')
   try {
     const result = await sendToChannel(body.channel_id, body.text, 'admin')
@@ -59,4 +37,26 @@ adminMessageRoutes.post('/messages', zValidator('json', createSchema), async (c)
   } catch (err) {
     return c.json({ detail: String(err) }, 400)
   }
+})
+
+adminMessageRoutes.get('/messages', zValidator('query', listQuerySchema), async (c) => {
+  const { direction, channel_id: channelId, limit } = c.req.valid('query')
+  const rows = await listMessages({
+    limit,
+    channelId,
+    direction,
+  })
+  return c.json(rows)
+})
+
+adminMessageRoutes.get('/messages/:id', async (c) => {
+  const id = c.req.param('id')
+  if (id === 'send') {
+    return c.json({ detail: 'Message not found' }, 404)
+  }
+  const message = await getMessage(id)
+  if (!message) {
+    return c.json({ detail: 'Message not found' }, 404)
+  }
+  return c.json(message)
 })

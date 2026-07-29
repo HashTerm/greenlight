@@ -27,7 +27,7 @@
 ## Features & benefits
 
 - **Human-in-the-loop** — interactive prompts with buttons and optional free text; signed callbacks deliver answers to your agent or workflow
-- **Talk to your agent in chat** — MESSAGE channels forward inbound chat to your webhook; reply with `POST /send`
+- **Talk to your agent in chat** — MESSAGE channels forward inbound chat to your webhook; reply with `POST /v1/messages/send`
 - **Many workflows, one approval channel** — multiple automations can post prompts to the same PROMPT `channel_id`; each prompt’s answer goes to its own `callback_url`
 - **Seven platforms** — Telegram, Slack, Teams, Discord, Google Chat, WhatsApp, Messenger
 - **Per-channel credentials** — register bots and tokens per channel via API (not global env vars)
@@ -68,7 +68,7 @@ Register a channel, then send a prompt:
 ```bash
 export API_KEY="$(grep '^API_KEY=' .env | cut -d= -f2)"
 
-curl -X POST http://localhost:8100/register-channel \
+curl -X POST http://localhost:8100/v1/channels/new \
   -H "X-API-Key: $API_KEY" \
   -H 'Content-Type: application/json' \
   -d '{
@@ -79,7 +79,7 @@ curl -X POST http://localhost:8100/register-channel \
     "channel_type": "PROMPT"
   }'
 
-curl -X POST http://localhost:8100/v1/prompts \
+curl -X POST http://localhost:8100/v1/prompts/new \
   -H "X-API-Key: $API_KEY" \
   -H 'Content-Type: application/json' \
   -d '{

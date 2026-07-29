@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { Platform } from '../../core/platform.js'
 import { PLATFORMS } from '../../core/platform.js'
 
 const telegramCredentials = z.object({
@@ -44,7 +45,73 @@ const messengerCredentials = z.object({
   verify_token: z.string().min(1),
 })
 
-export const registerChannelSchema = z
+export function validatePlatformCredentials(
+  platform: Platform,
+  credentials: Record<string, string>,
+  ctx: z.RefinementCtx,
+  pathPrefix: (string | number)[] = ['credentials'],
+): void {
+  let result: z.SafeParseReturnType<unknown, unknown>
+  switch (platform) {
+    case 'telegram':
+      result = telegramCredentials.safeParse(credentials)
+      break
+    case 'slack':
+      result = slackCredentials.safeParse(credentials)
+      break
+    case 'teams':
+      result = teamsCredentials.safeParse(credentials)
+      break
+    case 'discord':
+      result = discordCredentials.safeParse(credentials)
+      break
+    case 'gchat':
+      result = gchatCredentials.safeParse(credentials)
+      if (result.success) {
+        try {
+          JSON.parse(credentials.service_account_json)
+        } catch {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: 'service_account_json must be valid JSON',
+            path: [...pathPrefix, 'service_account_json'],
+          })
+        }
+      }
+      break
+    case 'whatsapp':
+      result = whatsappCredentials.safeParse(credentials)
+      break
+    case 'messenger':
+      result = messengerCredentials.safeParse(credentials)
+      break
+    default:
+      return
+  }
+  if (!result.success) {
+    for (const issue of result.error.issues) {
+      ctx.addIssue({
+        ...issue,
+        path: [...pathPrefix, ...issue.path.map(String)],
+      })
+    }
+  }
+}
+
+export function getCredentialsValidationError(
+  platform: Platform,
+  credentials: Record<string, string>,
+): string | null {
+  const messages: string[] = []
+  validatePlatformCredentials(platform, credentials, {
+    addIssue: (issue) => {
+      messages.push(issue.message ?? 'Invalid credentials')
+    },
+  } as z.RefinementCtx)
+  return messages[0] ?? null
+}
+
+export const createChannelSchema = z
   .object({
     channel_id: z.string().min(1),
     platform: z.enum(PLATFORMS),
@@ -54,49 +121,19 @@ export const registerChannelSchema = z
     channel_type: z.enum(['MESSAGE', 'PROMPT']).optional().default('MESSAGE'),
   })
   .superRefine((data, ctx) => {
-    let result: z.SafeParseReturnType<unknown, unknown>
-    switch (data.platform) {
-      case 'telegram':
-        result = telegramCredentials.safeParse(data.credentials)
-        break
-      case 'slack':
-        result = slackCredentials.safeParse(data.credentials)
-        break
-      case 'teams':
-        result = teamsCredentials.safeParse(data.credentials)
-        break
-      case 'discord':
-        result = discordCredentials.safeParse(data.credentials)
-        break
-      case 'gchat':
-        result = gchatCredentials.safeParse(data.credentials)
-        if (result.success) {
-          try {
-            JSON.parse(data.credentials.service_account_json)
-          } catch {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              message: 'service_account_json must be valid JSON',
-              path: ['credentials', 'service_account_json'],
-            })
-          }
-        }
-        break
-      case 'whatsapp':
-        result = whatsappCredentials.safeParse(data.credentials)
-        break
-      case 'messenger':
-        result = messengerCredentials.safeParse(data.credentials)
-        break
-      default:
-        return
-    }
-    if (!result.success) {
-      for (const issue of result.error.issues) {
-        ctx.addIssue({
-          ...issue,
-          path: ['credentials', ...issue.path.map(String)],
-        })
-      }
-    }
+    validatePlatformCredentials(data.platform, data.credentials, ctx)
   })
+
+export const updateChannelSchema = z
+  .object({
+    target_chat_id: z.string().min(1).optional(),
+    callback_url: z.string().optional().nullable(),
+    credentials: z.record(z.string()).optional(),
+  })
+  .refine(
+    (data) =>
+      data.target_chat_id !== undefined ||
+      data.callback_url !== undefined ||
+      data.credentials !== undefined,
+    { message: 'At least one field must be provided' },
+  )

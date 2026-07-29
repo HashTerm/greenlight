@@ -63,7 +63,7 @@ public API URL):
 export API_KEY="$(grep '^API_KEY=' .env.self-host | cut -d= -f2)"
 export API_BASE="https://greenlight.example.com"
 
-curl -X POST "$API_BASE/register-channel" \
+curl -X POST "$API_BASE/v1/channels/new" \
   -H "X-API-Key: $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -86,7 +86,7 @@ For webhook-based platforms (Slack, Teams, Discord, and others), configure:
 ### 6. Send a test prompt
 
 ```bash
-curl -X POST "$API_BASE/v1/prompts" \
+curl -X POST "$API_BASE/v1/prompts/new" \
   -H "X-API-Key: $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -160,7 +160,7 @@ copy the chat ID (negative for groups). Then:
 ```bash
 export API_KEY="$(grep '^API_KEY=' .env | cut -d= -f2)"
 
-curl -X POST http://localhost:8100/register-channel \
+curl -X POST http://localhost:8100/v1/channels/new \
   -H "X-API-Key: $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -177,7 +177,7 @@ Or use **Admin UI → Channels → Add channel**.
 ### 5. Send a test prompt
 
 ```bash
-curl -X POST http://localhost:8100/v1/prompts \
+curl -X POST http://localhost:8100/v1/prompts/new \
   -H "X-API-Key: $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

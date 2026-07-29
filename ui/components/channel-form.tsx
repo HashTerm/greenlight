@@ -1,7 +1,7 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import { registerChannelAction } from '@/lib/actions'
+import { useActionState, useMemo, useState } from 'react'
+import { createChannelAction, updateChannelAction } from '@/lib/actions'
 import {
   CHANNEL_ID_PLACEHOLDER,
   MESSAGE_CALLBACK_URL_PLACEHOLDER,
@@ -29,9 +29,14 @@ interface ChannelFormProps {
 }
 
 export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
+  const isEditMode = Boolean(initial)
   const [platform, setPlatform] = useState<Platform>((initial?.platform as Platform) ?? 'telegram')
   const [channelType, setChannelType] = useState<ChannelType>(
     (initial?.channel_type as ChannelType) ?? 'MESSAGE',
+  )
+  const [state, formAction, isPending] = useActionState(
+    isEditMode ? updateChannelAction : createChannelAction,
+    {},
   )
 
   const fields = PLATFORM_FIELDS[platform]
@@ -48,7 +53,12 @@ export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
           <CardTitle>Channel details</CardTitle>
         </CardHeader>
         <CardContent>
-          <form action={registerChannelAction} className="space-y-4">
+          <form action={formAction} className="space-y-4">
+            {state.error ? (
+              <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+                {state.error}
+              </p>
+            ) : null}
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="channel_id">Channel ID</Label>
@@ -68,6 +78,7 @@ export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
                   name="platform"
                   value={platform}
                   onValueChange={setPlatform}
+                  disabled={isEditMode}
                 />
               </div>
               <div className="space-y-2">
@@ -87,9 +98,17 @@ export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
                   name="channel_type"
                   value={channelType}
                   onValueChange={setChannelType}
+                  disabled={isEditMode}
                 />
               </div>
             </div>
+
+            {isEditMode ? (
+              <p className="text-xs text-muted-foreground">
+                Platform and channel type cannot be changed after registration. Create a new channel
+                to use a different platform or mode.
+              </p>
+            ) : null}
 
             <div className="space-y-2">
               <Label htmlFor="callback_url">Callback URL (MESSAGE channels)</Label>
@@ -99,7 +118,14 @@ export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
                 type="url"
                 defaultValue={initial?.callback_url}
                 placeholder={MESSAGE_CALLBACK_URL_PLACEHOLDER}
+                required={channelType === 'MESSAGE'}
               />
+              {channelType === 'MESSAGE' ? (
+                <p className="text-xs text-muted-foreground">
+                  Where Greenlight forwards inbound messages from this chat. Use Prompt type instead
+                  if you only need approval buttons, not two-way chat.
+                </p>
+              ) : null}
             </div>
 
             <div className="space-y-4 border-t pt-4">
@@ -132,7 +158,9 @@ export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
               )}
             </div>
 
-            <Button type="submit">{initial ? 'Update channel' : 'Register channel'}</Button>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? 'Saving…' : initial ? 'Update channel' : 'Register channel'}
+            </Button>
           </form>
         </CardContent>
       </Card>

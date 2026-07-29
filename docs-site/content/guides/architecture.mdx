@@ -40,5 +40,5 @@ flowchart LR
 
 - Agents use `X-API-Key` only
 - Operators use Admin UI sessions + `X-Admin-Token` server-side
-- Chat platforms call `/webhooks/{platform}/{channelId}`
+- Chat platforms call `/webhooks/{platform}/{channel_id}`
 - Agents receive callbacks on URLs they registered (validated against SSRF rules)

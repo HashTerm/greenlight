@@ -35,7 +35,7 @@ Keep the token out of git — paste it only into Greenlight.
 ## 4. Register the channel
 
 ```bash
-curl -X POST http://localhost:8100/register-channel \
+curl -X POST http://localhost:8100/v1/channels/new \
   -H "X-API-Key: $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{

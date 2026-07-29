@@ -1,0 +1,41 @@
+---
+description: Do not preserve backward compatibility; prefer clean breaking changes
+alwaysApply: true
+---
+
+# No backward compatibility
+
+This project is pre-1.0. Do not add or maintain backward-compatibility shims, aliases, or dual code paths.
+
+## Do
+
+- Make breaking changes directly: rename, remove, or reshape APIs in one pass
+- Update all call sites, docs, and tests in the same change
+- Bump or reset versions/migrations when schemas or contracts change
+- Delete dead code instead of leaving deprecated wrappers
+
+## Do not
+
+- Keep old function names, env vars, or routes “for compatibility”
+- Add `@deprecated` re-exports that linger indefinitely
+- Support multiple response/request shapes for the same endpoint
+- Branch on “legacy” flags or version checks to avoid updating consumers
+
+```typescript
+// ❌ BAD — compatibility alias
+export const getUser = fetchUser;
+export { fetchUser as getUser };
+
+// ✅ GOOD — rename and fix all usages
+export async function fetchUser(id: string) { ... }
+```
+
+```typescript
+// ❌ BAD — dual schema support
+if (body.legacyField) { ... } else if (body.newField) { ... }
+
+// ✅ GOOD — one shape; migrate data or callers
+if (!body.newField) throw new ValidationError("newField is required");
+```
+
+When a change breaks external users, document it in release notes or migration guides — do not silently support the old behavior in code.

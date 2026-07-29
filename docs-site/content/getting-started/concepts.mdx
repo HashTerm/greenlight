@@ -35,8 +35,8 @@ sequenceDiagram
   participant Agent
   participant Greenlight
   participant Human
-  Agent->>Greenlight: POST /register-channel (PROMPT)
-  Agent->>Greenlight: POST /v1/prompts "Deploy v2.4 to prod?"
+  Agent->>Greenlight: POST /v1/channels/new (PROMPT)
+  Agent->>Greenlight: POST /v1/prompts/new "Deploy v2.4 to prod?"
   Greenlight->>Human: Prompt card (Approve / Reject)
   Human-->>Greenlight: Taps Approve
   Greenlight->>Agent: POST callback (signed, correlation_id)
@@ -45,7 +45,7 @@ sequenceDiagram
 ### MESSAGE — agent conversation
 
 Humans message the bot in chat; Greenlight forwards each message to your agent,
-which can reply with `POST /send`.
+which can reply with `POST /v1/messages/send`.
 
 ```mermaid
 %%{init: {'theme': 'neutral'}}%%
@@ -54,18 +54,28 @@ sequenceDiagram
   participant Chat as Slack / Telegram
   participant Greenlight
   participant Agent
-  Agent->>Greenlight: POST /register-channel (MESSAGE)
+  Agent->>Greenlight: POST /v1/channels/new (MESSAGE)
   Human->>Chat: "What's the deploy status?"
   Chat-->>Greenlight: Inbound message
   Greenlight->>Agent: POST message.created
-  Agent->>Greenlight: POST /send
+  Agent->>Greenlight: POST /v1/messages/send
   Greenlight->>Chat: "v2.4 is live in prod"
 ```
 
 The “agent” in these flows can be custom code or an [automation platform](/guides/automation-platforms) (n8n, Zapier, Make, etc.).
 
-Register channels with `POST /register-channel`. Credentials are stored per
+Create channels with `POST /v1/channels/new`. Credentials are stored per
 channel — one Greenlight instance can talk to many bots and workspaces.
+
+## API path verbs
+
+| Verb | Use for | Examples |
+| ---- | ------- | -------- |
+| **`new`** | Create a durable resource | `POST /v1/channels/new`, `POST /v1/prompts/new` |
+| **`send`** | Deliver chat text on a MESSAGE channel | `POST /v1/messages/send` |
+
+Prompts and channels are created once and tracked in the database. MESSAGE
+outbound is ongoing chat delivery — not a new resource type.
 
 ### Multiple workflows on one channel
 
@@ -75,7 +85,7 @@ HTTP client with a valid `X-API-Key` can use a `channel_id`.
 | Channel type | Multiple workflows posting outbound?                                     | Multiple inbound subscribers?                         |
 | ------------ | ------------------------------------------------------------------------ | ----------------------------------------------------- |
 | **PROMPT**   | **Yes** — share one `channel_id`; each prompt has its own `callback_url` | N/A — inbound is prompt answers only                  |
-| **MESSAGE**  | Outbound via `POST /send` from any client                                | **No** — one channel `callback_url` receives all chat |
+| **MESSAGE**  | Outbound via `POST /v1/messages/send` from any client | **No** — one channel `callback_url` receives all chat |
 
 Use a shared PROMPT channel when many CI jobs or automations need the same ops
 chat for approvals. Use MESSAGE when humans converse with a single agent

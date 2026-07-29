@@ -87,7 +87,7 @@ export async function fetchStatus(): Promise<AdminStatus> {
 }
 
 export async function fetchChannels(): Promise<Channel[]> {
-  return agentFetch<Channel[]>('/channels')
+  return agentFetch<Channel[]>('/v1/channels')
 }
 
 export async function fetchPrompts(
@@ -154,10 +154,10 @@ export async function createMessageAction(formData: FormData) {
   const channelId = String(formData.get('channel_id'))
   const text = String(formData.get('text'))
 
-  const result = await adminFetch<AdminSendMessageResponse>('/admin/v1/messages', {
-    method: 'POST',
-    body: JSON.stringify({ channel_id: channelId, text }),
-  })
+  const result = await adminFetch<AdminSendMessageResponse>('/admin/v1/messages/send', {
+      method: 'POST',
+      body: JSON.stringify({ channel_id: channelId, text }),
+    })
 
   revalidatePath('/messages')
   if ('id' in result && result.id) {
@@ -166,38 +166,102 @@ export async function createMessageAction(formData: FormData) {
   redirect('/messages')
 }
 
-export async function registerChannelAction(formData: FormData) {
+export type ChannelFormState = {
+  error?: string
+}
+
+function formatAgentApiError(err: unknown): string {
+  const message = err instanceof Error ? err.message : 'Channel request failed'
+  const detailMatch = message.match(/"detail":"([^"]+)"/)
+  return detailMatch?.[1] ?? message
+}
+
+function parseChannelFormCredentials(formData: FormData): Record<string, string> {
+  const credentials: Record<string, string> = {}
+  for (const [key, value] of formData.entries()) {
+    if (key.startsWith('cred_')) {
+      const credValue = String(value).trim()
+      if (credValue) credentials[key.slice(5)] = credValue
+    }
+  }
+  return credentials
+}
+
+export async function createChannelAction(
+  _prevState: ChannelFormState,
+  formData: FormData,
+): Promise<ChannelFormState> {
   const platform = String(formData.get('platform')) as Platform
   const channelId = String(formData.get('channel_id'))
   const targetChatId = String(formData.get('target_chat_id'))
   const channelType = String(formData.get('channel_type') ?? 'MESSAGE')
-  const callbackUrl = String(formData.get('callback_url') ?? '') || null
+  const callbackUrl = String(formData.get('callback_url') ?? '').trim() || null
 
-  const credentials: Record<string, string> = {}
-  for (const [key, value] of formData.entries()) {
-    if (key.startsWith('cred_')) {
-      credentials[key.slice(5)] = String(value)
+  if (channelType === 'MESSAGE' && !callbackUrl) {
+    return {
+      error:
+        'MESSAGE channels need a callback URL — the webhook where inbound Telegram messages are forwarded.',
     }
   }
 
-  await agentFetch('/register-channel', {
-    method: 'POST',
-    body: JSON.stringify({
-      channel_id: channelId,
-      platform,
-      target_chat_id: targetChatId,
-      credentials,
-      callback_url: callbackUrl,
-      channel_type: channelType,
-    }),
-  })
+  const credentials = parseChannelFormCredentials(formData)
+  if (Object.keys(credentials).length === 0) {
+    return { error: 'Platform credentials are required.' }
+  }
+
+  try {
+    await agentFetch('/v1/channels/new', {
+      method: 'POST',
+      body: JSON.stringify({
+        channel_id: channelId,
+        platform,
+        target_chat_id: targetChatId,
+        credentials,
+        callback_url: callbackUrl,
+        channel_type: channelType,
+      }),
+    })
+  } catch (err) {
+    return { error: formatAgentApiError(err) }
+  }
+
+  revalidatePath('/channels')
+  redirect(`/channels/${encodeURIComponent(channelId)}`)
+}
+
+export async function updateChannelAction(
+  _prevState: ChannelFormState,
+  formData: FormData,
+): Promise<ChannelFormState> {
+  const channelId = String(formData.get('channel_id'))
+  const targetChatId = String(formData.get('target_chat_id'))
+  const callbackUrl = String(formData.get('callback_url') ?? '').trim() || null
+  const credentials = parseChannelFormCredentials(formData)
+
+  const body: Record<string, unknown> = {}
+  if (targetChatId) body.target_chat_id = targetChatId
+  if (formData.has('callback_url')) body.callback_url = callbackUrl
+  if (Object.keys(credentials).length > 0) body.credentials = credentials
+
+  if (Object.keys(body).length === 0) {
+    return { error: 'No changes to save.' }
+  }
+
+  try {
+    await agentFetch(`/v1/channels/${encodeURIComponent(channelId)}`, {
+      method: 'PATCH',
+      body: JSON.stringify(body),
+    })
+  } catch (err) {
+    return { error: formatAgentApiError(err) }
+  }
 
   revalidatePath('/channels')
   redirect(`/channels/${encodeURIComponent(channelId)}`)
 }
 
 export async function deleteChannelAction(channelId: string) {
-  await agentFetch(`/channels/${encodeURIComponent(channelId)}`, {
+  await agentFetch(`/v1/channels/${encodeURIComponent(channelId)}`, {
     method: 'DELETE',
   })
   revalidatePath('/channels')
@@ -207,10 +271,10 @@ export async function deleteChannelAction(channelId: string) {
 export async function sendMessageAction(formData: FormData) {
   const channelId = String(formData.get('channel_id'))
   const text = String(formData.get('text'))
-  await adminFetch<Message>('/admin/v1/messages', {
-    method: 'POST',
-    body: JSON.stringify({ channel_id: channelId, text }),
-  })
+  await adminFetch<Message>('/admin/v1/messages/send', {
+      method: 'POST',
+      body: JSON.stringify({ channel_id: channelId, text }),
+    })
   revalidatePath(`/channels/${encodeURIComponent(channelId)}`)
   revalidatePath('/messages')
 }
@@ -252,7 +316,7 @@ export async function createPromptAction(formData: FormData) {
     if (!key) throw new Error('GREENLIGHT_API_KEY is not configured')
     const base = process.env.GREENLIGHT_API_URL ?? 'http://localhost:8100'
 
-    const res = await fetch(`${base}/v1/prompts/upload`, {
+    const res = await fetch(`${base}/v1/prompts/new`, {
       method: 'POST',
       headers: { 'X-API-Key': key },
       body: upload,
@@ -275,7 +339,7 @@ export async function createPromptAction(formData: FormData) {
   if (callbackUrl) body.callback_url = callbackUrl
   if (correlationId) body.correlation_id = correlationId
 
-  const result = await agentFetch<{ prompt_id: string }>('/v1/prompts', {
+  const result = await agentFetch<{ prompt_id: string }>('/v1/prompts/new', {
     method: 'POST',
     body: JSON.stringify(body),
   })

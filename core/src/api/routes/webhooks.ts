@@ -30,14 +30,14 @@ async function handlePlatformWebhook(
 
 function registerWebhookRoute(platform: Platform, methods: ('get' | 'post')[]) {
   const handler = async (c: { req: { param: (k: string) => string; raw: Request } }) => {
-    return handlePlatformWebhook(platform, c.req.param('channelId'), c.req.raw)
+    return handlePlatformWebhook(platform, c.req.param('channel_id'), c.req.raw)
   }
 
   if (methods.includes('get')) {
-    webhookRoutes.get(`/webhooks/${platform}/:channelId`, handler)
+    webhookRoutes.get(`/webhooks/${platform}/:channel_id`, handler)
   }
   if (methods.includes('post')) {
-    webhookRoutes.post(`/webhooks/${platform}/:channelId`, handler)
+    webhookRoutes.post(`/webhooks/${platform}/:channel_id`, handler)
   }
 }
 

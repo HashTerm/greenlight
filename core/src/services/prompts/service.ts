@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises'
 import { withClient } from '../../db/client.js'
 import { validateCallbackUrl, validateMediaPath, ValueError } from '../../core/security.js'
 import * as channelModels from '../channels/models.js'
+import type { PromptListState } from './models.js'
 import * as promptModels from './models.js'
 import { ensureBotForChannel, postToChat } from '../../chat/bot-manager.js'
 import { buildPromptCard } from '../../chat/prompt-card.js'
@@ -157,8 +158,8 @@ export async function getPrompt(promptId: string) {
   return withClient((client) => promptModels.getPrompt(client, promptId))
 }
 
-export async function listPendingPrompts() {
-  return withClient((client) => promptModels.listPending(client))
+export async function listPrompts(state: PromptListState, limit: number) {
+  return withClient((client) => promptModels.listPrompts(client, state, limit))
 }
 
 export async function expirePrompts(): Promise<number> {

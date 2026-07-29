@@ -23,7 +23,7 @@ prompts, and callback URLs.
 - **Signed prompt callbacks** — HMAC-SHA256 (`X-Signature`) on prompt answers.
   See [Callbacks](/guides/callbacks).
 - **Bidirectional chat on MESSAGE channels** — inbound messages forward to your
-  `callback_url`; replies go out with `POST /send`.
+  `callback_url`; replies go out with `POST /v1/messages/send`.
 - **Admin UI** — manage channels, prompts, and messages; view dashboard stats;
   configure data retention; send messages on MESSAGE channels.
 - **Automation-friendly HTTP API** — works with n8n, Zapier, Make, Pipedream,
@@ -43,7 +43,7 @@ prompts, and callback URLs.
 
 ## How workflows and channels work together
 
-Register a channel once (`POST /register-channel`), then pass that `channel_id`
+Create a channel once (`POST /v1/channels/new`), then pass that `channel_id`
 from any workflow that should talk to that chat.
 
 ### Many workflows → one PROMPT channel
@@ -60,8 +60,8 @@ flowchart LR
   gl[Greenlight]
   chat[Slack / Telegram / …]
 
-  w1 -->|"POST /v1/prompts (callback A)"| gl
-  w2 -->|"POST /v1/prompts (callback B)"| gl
+  w1 -->|"POST /v1/prompts/new (callback A)"| gl
+  w2 -->|"POST /v1/prompts/new (callback B)"| gl
   gl --> chat
   chat -->|answer| gl
   gl -->|signed callback| w1
@@ -92,7 +92,7 @@ sequenceDiagram
   Human->>Chat: Chat text
   Chat-->>Greenlight: Inbound webhook
   Greenlight->>Agent: POST message.created
-  Agent->>Greenlight: POST /send
+  Agent->>Greenlight: POST /v1/messages/send
   Greenlight->>Chat: Reply
 ```
 
@@ -105,10 +105,10 @@ sequenceDiagram
 | Many workflows posting questions to one chat | **PROMPT**  |
 | Humans freely messaging an agent in chat     | **MESSAGE** |
 
-| Type        | Agent → human      | Human → agent                                   | Callback                                 |
-| ----------- | ------------------ | ----------------------------------------------- | ---------------------------------------- |
-| **PROMPT**  | `POST /v1/prompts` | Prompt answers only (buttons or `ID:#123` text) | Per-prompt `callback_url` (signed)       |
-| **MESSAGE** | `POST /send`       | Any chat text                                   | Single channel `callback_url` (unsigned) |
+| Type        | Verb | Agent → human      | Human → agent                                   | Callback                                 |
+| ----------- | ---- | ------------------ | ----------------------------------------------- | ---------------------------------------- |
+| **PROMPT**  | `new` | `POST /v1/prompts/new` | Prompt answers only (buttons or `ID:#123` text) | Per-prompt `callback_url` (signed)       |
+| **MESSAGE** | `send` | `POST /v1/messages/send` | Any chat text                                   | Single channel `callback_url` (unsigned) |
 
 ## Limitations
 

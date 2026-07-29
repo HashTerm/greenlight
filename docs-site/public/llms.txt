@@ -18,7 +18,7 @@ Greenlight is source-available under BUSL-1.1 (not OSI open source until the Cha
 - [API-only](/self-hosting/api-only): Run without the Admin UI
 - [Agent integration](/guides/agent-integration): X-API-Key, create prompts, poll status
 - [Automation platforms](/guides/automation-platforms): n8n, Zapier, Make, Pipedream, and similar
-- [Channels](/guides/channels): Register-channel schema and channel types
+- [Channels](/guides/channels): Create channel schema and channel types
 - [Messages](/guides/messages): MESSAGE history, send, retention
 - [Prompts](/guides/prompts): Options, TTL, text replies, media
 - [Callbacks](/guides/callbacks): Signed prompt answers and message events
@@ -26,7 +26,7 @@ Greenlight is source-available under BUSL-1.1 (not OSI open source until the Cha
 - [Security](/guides/security): Signing, SSRF protection, secrets
 - [Troubleshooting](/guides/troubleshooting): Common failures
 - [Platforms](/platforms): Comparison table and per-platform guides
-- [Agent API](/api-reference/agent-api): /v1/*, /register-channel, /send, /channels
+- [Agent API](/api-reference/agent-api): GET/POST /v1/messages, POST /v1/prompts/new, POST /v1/channels/new, GET /v1/channels
 - [Admin API](/api-reference/admin-api): /admin/v1/status, prompts, messages, settings
 - [Webhooks](/api-reference/webhooks): Inbound platform endpoints
 - [OpenAPI](/api-reference/openapi): Machine-readable spec

@@ -3,7 +3,7 @@
 Inbound platform traffic hits:
 
 ```
-{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channelId}
+{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}
 ```
 
 | Method | Platforms               | Purpose                      |
@@ -24,7 +24,8 @@ Supported `{platform}` values: `telegram`, `slack`, `teams`, `discord`, `gchat`,
 - **Google Chat** — App URL (+ Pub/Sub if used)
 - **WhatsApp / Messenger** — Meta Callback URL; `verify_token` must match credentials
 
-Webhook routes are **not** protected by `X-API-Key`. Platform signing / verify
-tokens provide authenticity.
+Webhook routes live at `/webhooks/...` (not under `/v1`). They are **not**
+protected by `X-API-Key` — platform signing and verify tokens provide
+authenticity. Agent API routes under `/v1` are a separate surface.
 
 See each [platform guide](/platforms) for portal steps.

@@ -3,7 +3,7 @@
   "info": {
     "title": "Greenlight — Multi-Platform Prompt & Channel Gateway",
     "version": "0.1.0",
-    "description": "Self-hosted HTTP gateway for human-in-the-loop AI agents across Telegram, Slack, Teams, Discord, Google Chat, WhatsApp, and Messenger.",
+    "description": "Self-hosted HTTP gateway for human-in-the-loop AI agents across Telegram, Slack, Teams, Discord, Google Chat, WhatsApp, and Messenger.\n\n**Path verbs:** `POST …/new` creates a durable resource (channel or prompt). `POST …/send` delivers chat text on a MESSAGE channel only.",
     "license": {
       "name": "BUSL-1.1",
       "url": "https://spdx.org/licenses/BUSL-1.1.html"
@@ -34,6 +34,9 @@
     },
     {
       "name": "Channels"
+    },
+    {
+      "name": "Messages"
     },
     {
       "name": "Webhooks"
@@ -249,7 +252,7 @@
           }
         }
       },
-      "RegisterChannelRequest": {
+      "CreateChannelRequest": {
         "type": "object",
         "required": [
           "channel_id",
@@ -286,7 +289,27 @@
           }
         }
       },
-      "RegisterChannelResponse": {
+      "UpdateChannelRequest": {
+        "type": "object",
+        "properties": {
+          "target_chat_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "callback_url": {
+            "type": "string",
+            "nullable": true
+          },
+          "credentials": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Partial credentials patch; omitted keys are unchanged."
+          }
+        }
+      },
+      "ChannelResponse": {
         "type": "object",
         "required": [
           "status"
@@ -305,10 +328,12 @@
         ],
         "properties": {
           "channel_id": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           },
           "text": {
-            "type": "string"
+            "type": "string",
+            "minLength": 1
           }
         }
       },
@@ -504,12 +529,13 @@
         }
       }
     },
-    "/v1/prompts": {
+    "/v1/prompts/new": {
       "post": {
         "tags": [
           "Prompts"
         ],
-        "summary": "Create and send a prompt",
+        "summary": "Create a prompt",
+        "description": "Creates a durable prompt resource and posts it to the PROMPT channel. Accepts `application/json` or `multipart/form-data` (for file upload). Use `/send` only for MESSAGE channel chat text.",
         "security": [
           {
             "ApiKeyAuth": []
@@ -522,57 +548,7 @@
               "schema": {
                 "$ref": "#/components/schemas/CreatePromptRequest"
               }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Prompt created and posted",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/CreatePromptResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation or business error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Missing or invalid API key",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/prompts/upload": {
-      "post": {
-        "tags": [
-          "Prompts"
-        ],
-        "summary": "Create prompt with multipart file upload",
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
+            },
             "multipart/form-data": {
               "schema": {
                 "type": "object",
@@ -605,6 +581,9 @@
                   "media_url": {
                     "type": "string"
                   },
+                  "media_path": {
+                    "type": "string"
+                  },
                   "file": {
                     "type": "string",
                     "format": "binary"
@@ -626,7 +605,7 @@
             }
           },
           "400": {
-            "description": "Validation error",
+            "description": "Validation or business error",
             "content": {
               "application/json": {
                 "schema": {
@@ -636,7 +615,17 @@
             }
           },
           "401": {
-            "description": "Unauthorized",
+            "description": "Missing or invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Unsupported Content-Type",
             "content": {
               "application/json": {
                 "schema": {
@@ -648,20 +637,46 @@
         }
       }
     },
-    "/v1/prompts/pending": {
+    "/v1/prompts": {
       "get": {
         "tags": [
           "Prompts"
         ],
-        "summary": "List unanswered prompts",
+        "summary": "List prompts",
         "security": [
           {
             "ApiKeyAuth": []
           }
         ],
+        "parameters": [
+          {
+            "name": "state",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "pending",
+                "answered",
+                "expired",
+                "all"
+              ],
+              "default": "pending"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            }
+          }
+        ],
         "responses": {
           "200": {
-            "description": "Pending prompts",
+            "description": "Prompt list",
             "content": {
               "application/json": {
                 "schema": {
@@ -733,12 +748,71 @@
         }
       }
     },
-    "/register-channel": {
+    "/v1/channels": {
+      "get": {
+        "tags": [
+          "Channels"
+        ],
+        "summary": "List channels",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "platform",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/Platform"
+            }
+          },
+          {
+            "name": "channel_type",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "MESSAGE",
+                "PROMPT"
+              ]
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Channels",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Channel"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/channels/new": {
       "post": {
         "tags": [
           "Channels"
         ],
-        "summary": "Register or update a channel",
+        "summary": "Create a channel",
+        "description": "Registers a durable channel resource. Use `/send` only for MESSAGE channel chat text.",
         "security": [
           {
             "ApiKeyAuth": []
@@ -749,24 +823,34 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/RegisterChannelRequest"
+                "$ref": "#/components/schemas/CreateChannelRequest"
               }
             }
           }
         },
         "responses": {
-          "200": {
-            "description": "Channel registered or updated",
+          "201": {
+            "description": "Channel created",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RegisterChannelResponse"
+                  "$ref": "#/components/schemas/ChannelResponse"
                 }
               }
             }
           },
           "400": {
-            "description": "Validation error",
+            "description": "Validation error or missing MESSAGE callback_url",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Channel already exists",
             "content": {
               "application/json": {
                 "schema": {
@@ -778,12 +862,184 @@
         }
       }
     },
-    "/send": {
-      "post": {
+    "/v1/channels/{id}": {
+      "patch": {
         "tags": [
           "Channels"
         ],
-        "summary": "Send a message via channel",
+        "summary": "Update a channel",
+        "description": "Updates mutable fields and reactivates deactivated channels. platform and channel_type cannot be changed.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Channel id (the `channel_id` slug registered at creation)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateChannelRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Channel updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Channel not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Channels"
+        ],
+        "summary": "Unregister channel",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "Channel id (the `channel_id` slug registered at creation)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Unregistered",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChannelResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/messages": {
+      "get": {
+        "tags": [
+          "Messages"
+        ],
+        "summary": "List message history",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "direction",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "inbound",
+                "outbound",
+                "all"
+              ],
+              "default": "all"
+            }
+          },
+          {
+            "name": "channel_id",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 200,
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Message history",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Message"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/messages/send": {
+      "post": {
+        "tags": [
+          "Messages"
+        ],
+        "summary": "Send chat text on a MESSAGE channel",
+        "description": "Delivers plain text in an existing MESSAGE channel thread. Use `/new` to create channels or prompts.",
         "security": [
           {
             "ApiKeyAuth": []
@@ -820,6 +1076,16 @@
               }
             }
           },
+          "400": {
+            "description": "Not a MESSAGE channel or send error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
           "404": {
             "description": "Channel not found",
             "content": {
@@ -833,40 +1099,12 @@
         }
       }
     },
-    "/channels": {
+    "/v1/messages/{id}": {
       "get": {
         "tags": [
-          "Channels"
+          "Messages"
         ],
-        "summary": "List active channels",
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Active channels",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Channel"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/channels/{id}": {
-      "delete": {
-        "tags": [
-          "Channels"
-        ],
-        "summary": "Unregister channel",
+        "summary": "Get message by id",
         "security": [
           {
             "ApiKeyAuth": []
@@ -878,17 +1116,18 @@
             "in": "path",
             "required": true,
             "schema": {
-              "type": "string"
+              "type": "string",
+              "format": "uuid"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Unregistered",
+            "description": "Message record",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/RegisterChannelResponse"
+                  "$ref": "#/components/schemas/Message"
                 }
               }
             }
@@ -906,7 +1145,7 @@
         }
       }
     },
-    "/webhooks/{platform}/{channelId}": {
+    "/webhooks/{platform}/{channel_id}": {
       "get": {
         "tags": [
           "Webhooks"
@@ -923,9 +1162,10 @@
             }
           },
           {
-            "name": "channelId",
+            "name": "channel_id",
             "in": "path",
             "required": true,
+            "description": "Registered Greenlight channel slug",
             "schema": {
               "type": "string"
             }
@@ -953,9 +1193,10 @@
             }
           },
           {
-            "name": "channelId",
+            "name": "channel_id",
             "in": "path",
             "required": true,
+            "description": "Registered Greenlight channel slug",
             "schema": {
               "type": "string"
             }
@@ -1136,12 +1377,15 @@
             }
           }
         }
-      },
+      }
+    },
+    "/admin/v1/messages/send": {
       "post": {
         "tags": [
           "Admin"
         ],
-        "summary": "Send a message via MESSAGE channel",
+        "summary": "Send chat text on a MESSAGE channel",
+        "description": "Operator send — same delivery as `POST /v1/messages/send`, stored with `source: admin`.",
         "security": [
           {
             "AdminToken": []

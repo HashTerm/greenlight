@@ -17,7 +17,7 @@ export function channelInstanceKey(channel: ChannelRow): string {
   return instanceKey(channel.platform, channel.credentials)
 }
 
-export async function registerChannel(
+export async function insertChannel(
   client: pg.PoolClient,
   data: {
     channelId: string
@@ -30,15 +30,7 @@ export async function registerChannel(
 ): Promise<void> {
   await client.query(
     `INSERT INTO channels (channel_id, platform, target_chat_id, credentials, callback_url, channel_type)
-     VALUES ($1, $2, $3, $4, $5, $6)
-     ON CONFLICT (channel_id)
-     DO UPDATE SET
-       platform = EXCLUDED.platform,
-       target_chat_id = EXCLUDED.target_chat_id,
-       credentials = EXCLUDED.credentials,
-       callback_url = EXCLUDED.callback_url,
-       channel_type = EXCLUDED.channel_type,
-       is_active = true`,
+     VALUES ($1, $2, $3, $4, $5, $6)`,
     [
       data.channelId,
       data.platform,
@@ -47,6 +39,26 @@ export async function registerChannel(
       data.callbackUrl,
       data.channelType,
     ],
+  )
+}
+
+export async function updateChannel(
+  client: pg.PoolClient,
+  channelId: string,
+  data: {
+    targetChatId: string
+    credentials: Record<string, string>
+    callbackUrl: string | null
+  },
+): Promise<void> {
+  await client.query(
+    `UPDATE channels
+     SET target_chat_id = $2,
+         credentials = $3,
+         callback_url = $4,
+         is_active = true
+     WHERE channel_id = $1`,
+    [channelId, data.targetChatId, JSON.stringify(data.credentials), data.callbackUrl],
   )
 }
 
@@ -70,6 +82,38 @@ export async function getChannel(
 
 export async function listActiveChannels(client: pg.PoolClient): Promise<ChannelRow[]> {
   const result = await client.query<ChannelRow>('SELECT * FROM channels WHERE is_active = true')
+  return result.rows.map((row) => ({
+    ...row,
+    credentials:
+      typeof row.credentials === 'string'
+        ? (JSON.parse(row.credentials) as Record<string, string>)
+        : row.credentials,
+  }))
+}
+
+export async function listChannelsFiltered(
+  client: pg.PoolClient,
+  filters: { platform?: Platform; channelType?: string; limit: number },
+): Promise<ChannelRow[]> {
+  const conditions: string[] = []
+  const params: unknown[] = []
+  let paramIndex = 1
+
+  if (filters.platform) {
+    conditions.push(`platform = $${paramIndex++}`)
+    params.push(filters.platform)
+  }
+  if (filters.channelType) {
+    conditions.push(`channel_type = $${paramIndex++}`)
+    params.push(filters.channelType)
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
+  params.push(filters.limit)
+  const result = await client.query<ChannelRow>(
+    `SELECT * FROM channels ${where} ORDER BY registered_at DESC LIMIT $${paramIndex}`,
+    params,
+  )
   return result.rows.map((row) => ({
     ...row,
     credentials:

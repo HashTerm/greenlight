@@ -71,10 +71,10 @@ Array of message records: `id`, `channel_id`, `direction`, `text`, `platform`,
 
 Single message record. Returns `404` when not found.
 
-## `POST /admin/v1/messages`
+## `POST /admin/v1/messages/send`
 
-Send outbound text on a `MESSAGE` channel (same delivery as `POST /send`, stored
-with `source: admin`).
+Send outbound text on a `MESSAGE` channel (same delivery as
+`POST /v1/messages/send`, stored with `source: admin`).
 
 ### Request body
 

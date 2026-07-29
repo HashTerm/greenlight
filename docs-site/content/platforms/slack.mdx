@@ -13,11 +13,13 @@ with your app signing secret.
 6. Set Event Subscriptions Request URL to your Greenlight webhook URL
 7. Invite the bot to the target channel and copy the channel ID (`C…`)
 
-## Register
+## Create
+
+`POST /v1/channels/new` with:
 
 ```json
 {
-  "channel_id": "ops-slack",
+  "channel_id": "ops-slack-chat",
   "platform": "slack",
   "target_chat_id": "C01234567",
   "credentials": {
@@ -29,6 +31,9 @@ with your app signing secret.
 }
 ```
 
+`callback_url` is where Greenlight forwards inbound chat. Set the Slack Events API
+request URL separately to the Greenlight inbound webhook below.
+
 ### Credentials
 
 | Field            | Required |
@@ -37,7 +42,7 @@ with your app signing secret.
 | `signing_secret` | Yes      |
 | `app_token`      | No       |
 
-## Webhook URL
+## Webhook URL (platform → Greenlight)
 
 ```
 {PUBLIC_WEBHOOK_URL}/webhooks/slack/{channel_id}

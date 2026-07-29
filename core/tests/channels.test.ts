@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { registerChannelSchema } from '../src/services/channels/schemas.js'
+import {
+  createChannelSchema,
+  updateChannelSchema,
+} from '../src/services/channels/schemas.js'
 import {
   credentialFingerprint,
   platformChannelId,
@@ -9,8 +12,8 @@ import {
 } from '../src/core/platform.js'
 
 describe('channel schemas', () => {
-  it('requires platform and target_chat_id', () => {
-    const body = registerChannelSchema.parse({
+  it('requires platform and target_chat_id for create', () => {
+    const body = createChannelSchema.parse({
       channel_id: 'finance-bot',
       platform: 'telegram',
       target_chat_id: '-100123',
@@ -23,7 +26,7 @@ describe('channel schemas', () => {
   })
 
   it('accepts PROMPT channels without callback_url', () => {
-    const body = registerChannelSchema.parse({
+    const body = createChannelSchema.parse({
       channel_id: 'prompts',
       platform: 'telegram',
       target_chat_id: '-100123',
@@ -35,7 +38,7 @@ describe('channel schemas', () => {
 
   it('rejects legacy telegram_chat_id fields', () => {
     expect(() =>
-      registerChannelSchema.parse({
+      createChannelSchema.parse({
         channel_id: 'finance-bot',
         telegram_chat_id: '-100123',
         bot_token: '123456789:TOKEN',
@@ -43,9 +46,9 @@ describe('channel schemas', () => {
     ).toThrow()
   })
 
-  it('validates slack credentials', () => {
+  it('validates slack credentials on create', () => {
     expect(() =>
-      registerChannelSchema.parse({
+      createChannelSchema.parse({
         channel_id: 'ops-slack',
         platform: 'slack',
         target_chat_id: 'C01234567',
@@ -56,7 +59,7 @@ describe('channel schemas', () => {
   })
 
   it('accepts slack credentials with signing_secret', () => {
-    const body = registerChannelSchema.parse({
+    const body = createChannelSchema.parse({
       channel_id: 'ops-slack',
       platform: 'slack',
       target_chat_id: 'C01234567',
@@ -71,7 +74,7 @@ describe('channel schemas', () => {
 
   it('validates gchat credentials and service_account_json', () => {
     expect(() =>
-      registerChannelSchema.parse({
+      createChannelSchema.parse({
         channel_id: 'ops-gchat',
         platform: 'gchat',
         target_chat_id: 'spaces/AAAA',
@@ -83,7 +86,7 @@ describe('channel schemas', () => {
       }),
     ).toThrow()
 
-    const body = registerChannelSchema.parse({
+    const body = createChannelSchema.parse({
       channel_id: 'ops-gchat',
       platform: 'gchat',
       target_chat_id: 'spaces/AAAA',
@@ -100,7 +103,7 @@ describe('channel schemas', () => {
   })
 
   it('validates whatsapp credentials', () => {
-    const body = registerChannelSchema.parse({
+    const body = createChannelSchema.parse({
       channel_id: 'support-wa',
       platform: 'whatsapp',
       target_chat_id: '15551234567',
@@ -116,7 +119,7 @@ describe('channel schemas', () => {
   })
 
   it('validates messenger credentials', () => {
-    const body = registerChannelSchema.parse({
+    const body = createChannelSchema.parse({
       channel_id: 'support-fb',
       platform: 'messenger',
       target_chat_id: '27161130920158013',
@@ -128,6 +131,13 @@ describe('channel schemas', () => {
       callback_url: 'https://example.com/hook',
     })
     expect(body.platform).toBe('messenger')
+  })
+
+  it('requires at least one field on update', () => {
+    expect(() => updateChannelSchema.parse({})).toThrow()
+    expect(updateChannelSchema.parse({ target_chat_id: '-100999' }).target_chat_id).toBe(
+      '-100999',
+    )
   })
 })
 
