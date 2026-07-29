@@ -23,6 +23,8 @@ RUN apk add --no-cache wget
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME=0.0.0.0
 
 COPY --from=builder /app/ui/.next/standalone ./
 COPY --from=builder /app/node_modules/postgres ./node_modules/postgres
@@ -33,7 +35,7 @@ COPY --from=builder /app/ui/scripts ./scripts
 COPY --from=builder /app/ui/docker-entrypoint.sh ./docker-entrypoint.sh
 RUN chmod +x docker-entrypoint.sh
 
-EXPOSE 3001
+EXPOSE 3000
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["node", "ui/server.js"]

@@ -17,9 +17,35 @@ Deploy Greenlight as a Compose app in [Dokploy](https://dokploy.com/).
    - `WEBHOOK_SECRET`
    - `API_KEY` (required when `USE_AUTH=true`)
 5. Set `PUBLIC_WEBHOOK_URL` to your public HTTPS API host (**no trailing slash**).
-6. Route traffic:
-   - API + platform webhooks → `greenlight:8100`
-   - Admin UI → `greenlight-ui:3000`
+6. Route traffic in Dokploy (services use `expose`, not host ports):
+
+   **Two subdomains** (recommended):
+
+   | Public URL                | Service         | Container port | Path |
+   | ------------------------- | --------------- | -------------- | ---- |
+   | `https://app.example.com` | `greenlight-ui` | `3000`         | `/`  |
+   | `https://api.example.com` | `greenlight`    | `8100`         | `/`  |
+
+   ```env
+   AUTH_URL=https://app.example.com
+   PUBLIC_WEBHOOK_URL=https://api.example.com
+   ```
+
+   **Same host with path prefix** (e.g. API under `/wh`):
+
+   | Public URL                          | Service         | Container port | Path in Dokploy                    |
+   | ----------------------------------- | --------------- | -------------- | ---------------------------------- |
+   | `https://greenlight.example.com`    | `greenlight-ui` | `3000`         | `/`                                |
+   | `https://greenlight.example.com/wh` | `greenlight`    | `8100`         | `/wh` (**leading slash required**) |
+
+   ```env
+   AUTH_URL=https://greenlight.example.com
+   PUBLIC_WEBHOOK_URL=https://greenlight.example.com/wh
+   ```
+
+   Traefik/Dokploy must **strip** `/wh` when forwarding to core (core routes are
+   rooted at `/webhooks`, `/v1`, `/healthz`, not `/wh/...`).
+
 7. Deploy, then register channels via API or the Admin UI.
 
 **Docs site only** (build on server): use compose file `docker-compose.docs.build.yml`

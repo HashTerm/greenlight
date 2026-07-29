@@ -59,12 +59,13 @@ The UI talks to core with **`GREENLIGHT_*`** names (not `API_KEY` / `ADMIN_INTER
 
 ## Server / boot
 
-| Variable        | Used by | Purpose                               |
-| --------------- | ------- | ------------------------------------- |
-| `PORT`          | core    | HTTP port (default `8100`)            |
-| `HOST`          | core    | Bind address (default `0.0.0.0`)      |
-| `CLEAN_ON_BOOT` | core    | Clean stale prompt state on startup   |
-| `ENABLE_DOCS`   | core    | Serve `GET /openapi.json` when `true` |
+| Variable        | Used by | Purpose                                                    |
+| --------------- | ------- | ---------------------------------------------------------- |
+| `PORT`          | core    | HTTP port (default `8100`)                                 |
+| `HOST`          | core    | Bind address (default `0.0.0.0`)                           |
+| `HOSTNAME`      | ui      | Bind address for Next standalone (use `0.0.0.0` in Docker) |
+| `CLEAN_ON_BOOT` | core    | Clean stale prompt state on startup                        |
+| `ENABLE_DOCS`   | core    | Serve `GET /openapi.json` when `true`                      |
 
 ## Compose Postgres
 

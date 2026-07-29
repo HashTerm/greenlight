@@ -53,6 +53,7 @@ services:
     env_file: .env
     environment:
       PORT: '3001'
+      HOSTNAME: '0.0.0.0'
       GREENLIGHT_API_URL: http://greenlight:8100
       GREENLIGHT_API_KEY: ${API_KEY}
       GREENLIGHT_ADMIN_TOKEN: ${ADMIN_INTERNAL_TOKEN}
