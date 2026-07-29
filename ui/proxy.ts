@@ -21,5 +21,6 @@ export default auth((req) => {
 })
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico|api/health).*)'],
+  // Exclude static public assets — unauthenticated requests to /logo/* must not redirect to /login
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|favicon.svg|logo/|api/health).*)'],
 }
