@@ -12,7 +12,7 @@ flowchart LR
   platforms[Chat Platforms]
 
   agent -->|X-API-Key| core
-  ui -->|"X-API-Key and X-Admin-Token"| core
+  ui -->|X-API-Key| core
   core --> db
   core <-->|adapters| platforms
   core -->|signed prompt callbacks| agent
@@ -24,7 +24,7 @@ flowchart LR
 
 | Piece         | Role                                                                   |
 | ------------- | ---------------------------------------------------------------------- |
-| **core**      | Hono server on `:8100` — agent API, admin API, webhooks, bot lifecycle |
+| **core**      | Hono server on `:8100` — `/v1` API, webhooks, bot lifecycle            |
 | **ui**        | Next.js admin app on `:3001` — setup, channels, prompts, dashboard     |
 | **docs-site** | Nextra docs on `:3003`                                                 |
 | **Postgres**  | Channels, prompts, admin users                                         |
@@ -38,7 +38,7 @@ flowchart LR
 
 ## Trust boundaries
 
-- Agents use `X-API-Key` only
-- Operators use Admin UI sessions + `X-Admin-Token` server-side
+- Agents and the Admin UI use scoped `X-API-Key` headers
+- Operators use Admin UI browser sessions (`AUTH_SECRET`)
 - Chat platforms call `/webhooks/{platform}/{channel_id}`
 - Agents receive callbacks on URLs they registered (validated against SSRF rules)

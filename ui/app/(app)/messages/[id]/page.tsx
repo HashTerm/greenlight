@@ -53,7 +53,7 @@ export default async function MessageDetailPage({ params }: { params: Promise<{ 
           )}
           {message.direction === 'outbound' && (
             <p>
-              <span className="text-muted-foreground">Source:</span> {message.source ?? '—'}
+              <span className="text-muted-foreground">API key:</span> {message.api_key_id ?? '—'}
             </p>
           )}
           <p>

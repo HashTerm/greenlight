@@ -47,6 +47,19 @@ CREATE INDEX IF NOT EXISTS idx_channels_active ON channels(is_active);
 CREATE INDEX IF NOT EXISTS idx_channels_platform_target ON channels(platform, target_chat_id);
 CREATE INDEX IF NOT EXISTS idx_channels_type ON channels(channel_type);
 
+CREATE TABLE IF NOT EXISTS api_keys (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  key_prefix TEXT NOT NULL,
+  key_hash TEXT NOT NULL UNIQUE,
+  scopes TEXT[] NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  revoked_at TIMESTAMPTZ,
+  last_used_at TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_api_keys_prefix ON api_keys(key_prefix);
+
 CREATE TABLE IF NOT EXISTS messages (
   id TEXT PRIMARY KEY,
   channel_id TEXT NOT NULL REFERENCES channels(channel_id),
@@ -54,7 +67,7 @@ CREATE TABLE IF NOT EXISTS messages (
   text TEXT NOT NULL,
   platform TEXT NOT NULL,
   from_user TEXT,
-  source TEXT CHECK (source IS NULL OR source IN ('api', 'admin')),
+  api_key_id TEXT REFERENCES api_keys(id),
   platform_message_id TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -88,3 +101,5 @@ ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS messages_inbound_retention_day
 ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS messages_outbound_retention_days INTEGER NOT NULL DEFAULT 30;
 ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS messages_inbound_zero_retention BOOLEAN NOT NULL DEFAULT false;
 ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS messages_outbound_zero_retention BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS api_key_id TEXT REFERENCES api_keys(id);
+ALTER TABLE messages DROP COLUMN IF EXISTS source;

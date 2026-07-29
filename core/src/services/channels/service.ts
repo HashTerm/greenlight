@@ -5,7 +5,6 @@ import {
   stopBotForChannelWithRow,
 } from '../../chat/bot-manager.js'
 import type { Platform } from '../../core/platform.js'
-import type { MessageSource } from '../messages/models.js'
 import * as messageModels from '../messages/models.js'
 import * as settingsModels from '../settings/models.js'
 import * as channelModels from './models.js'
@@ -105,7 +104,7 @@ export async function updateChannel(
 export async function sendToChannel(
   channelId: string,
   text: string,
-  source: MessageSource = 'api',
+  apiKeyId: string | null = null,
 ): Promise<{ messageId?: string }> {
   return withClient(async (client) => {
     const channel = await channelModels.getChannel(client, channelId)
@@ -130,7 +129,7 @@ export async function sendToChannel(
       direction: 'outbound',
       text,
       platform: channel.platform,
-      source,
+      apiKeyId,
       platformMessageId: platformMessageId ?? null,
     })
     return { messageId: row.id }

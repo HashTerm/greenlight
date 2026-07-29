@@ -1,10 +1,11 @@
 import { Hono } from 'hono'
-import { withClient } from '../../../db/client.js'
-import { ANSWERED, PENDING } from '../../../services/prompts/models.js'
+import { withClient } from '../../db/client.js'
+import { ANSWERED, PENDING } from '../../services/prompts/models.js'
+import { requireScope } from '../middleware/require-scope.js'
 
-export const adminStatusRoutes = new Hono()
+export const statusRoutes = new Hono()
 
-adminStatusRoutes.get('/status', async (c) => {
+statusRoutes.get('/status', requireScope('status:read'), async (c) => {
   try {
     const stats = await withClient(async (client) => {
       const dbCheck = await client.query('SELECT 1 AS ok')

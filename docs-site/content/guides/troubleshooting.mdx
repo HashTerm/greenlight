@@ -8,9 +8,8 @@
 | Bot not responding in Telegram                   | Add bot to group; confirm `target_chat_id`                                                                                             |
 | Can't log into Admin UI                          | Complete `/setup` or reset `admin_users`                                                                                               |
 | `/setup` redirects to `/login`                   | Admin already exists — log in or delete `admin_users` row                                                                              |
-| Agent API returns 401                            | Set `X-API-Key` matching `API_KEY`; ensure `USE_AUTH=true` if expected                                                                 |
-| Admin API returns 404                            | `ADMIN_INTERNAL_TOKEN` unset — Admin API not mounted                                                                                   |
-| Admin API returns 401                            | Send `X-Admin-Token` (not `X-API-Key`)                                                                                                 |
+| API returns 401                            | Set `X-API-Key` with a valid scoped key; ensure `USE_AUTH=true` if expected |
+| API returns 403                            | Key lacks required scope — use admin key or grant the scope via Settings   |
 | Prompt not delivered                             | Check channel type is `PROMPT`; inspect core logs                                                                                      |
 | Callbacks never arrive                           | Public `callback_url`; verify signing; check retry / offline notification                                                              |
 | WhatsApp / Messenger options rejected            | Max **3** button options on those platforms                                                                                            |
@@ -34,8 +33,8 @@ npm run docker:logs
 ```bash
 curl http://localhost:8100/healthz
 curl http://localhost:3001/api/health   # Admin UI (hybrid dev port)
-curl -H "X-Admin-Token: $ADMIN_INTERNAL_TOKEN" \
-  http://localhost:8100/admin/v1/status
+curl -H "X-API-Key: $GREENLIGHT_API_KEY" \
+  http://localhost:8100/v1/status
 ```
 
 Self-host containers probe `http://127.0.0.1:3000/api/health` (UI) and `http://127.0.0.1:8100/healthz` (API) internally. Do not use `/wh/healthz` when API is routed under `/wh`.

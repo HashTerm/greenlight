@@ -6,12 +6,14 @@ import * as promptModels from './services/prompts/models.js'
 import { shutdownAllBots } from './chat/bot-manager.js'
 import { restoreChannelsOnStartup } from './services/channels/service.js'
 import { expirePrompts } from './services/prompts/service.js'
+import { bootstrapApiKeyFromEnv } from './services/api-keys/bootstrap.js'
 import { runRetention } from './services/settings/service.js'
 
 async function bootstrap(): Promise<void> {
   const config = loadConfig()
 
   await migrate()
+  await bootstrapApiKeyFromEnv()
 
   if (config.CLEAN_ON_BOOT) {
     await withClient((client) => promptModels.cleanOnBoot(client))

@@ -22,25 +22,23 @@ Environment variables for `core` and `ui`. Copy `.env.example` as a starting poi
 | ------------------------- | ------- | ------------------------------------------------------------------ |
 | `CALLBACK_SIGNING_SECRET` | core    | HMAC secret for prompt answer callbacks                            |
 | `USE_AUTH`                | core    | Set `true` to require `X-API-Key`. Dev Compose often forces `true` |
-| `API_KEY`                 | core    | Agent API key (required when `USE_AUTH=true`)                      |
-| `ADMIN_INTERNAL_TOKEN`    | core    | Admin API token. If unset, `/admin/v1/*` is not mounted            |
+| `API_KEY`                 | core    | Bootstrap-only: seeds admin key when `api_keys` is empty on first boot |
 
 ## Admin UI
 
-The UI talks to core with **`GREENLIGHT_*`** names (not `API_KEY` / `ADMIN_INTERNAL_TOKEN` directly).
+The UI talks to core with **`GREENLIGHT_*`** names.
 
 | Variable                 | Purpose                                                          |
 | ------------------------ | ---------------------------------------------------------------- |
 | `GREENLIGHT_API_URL`     | Core base URL (default `http://localhost:8100`)                  |
-| `GREENLIGHT_API_KEY`     | Sent as `X-API-Key` — must match core `API_KEY`                  |
-| `GREENLIGHT_ADMIN_TOKEN` | Sent as `X-Admin-Token` — must match core `ADMIN_INTERNAL_TOKEN` |
+| `GREENLIGHT_API_KEY`     | Sent as `X-API-Key` — must be a valid database key with required scopes |
 | `AUTH_SECRET`            | NextAuth session secret                                          |
 | `DATABASE_URL`           | Same Postgres as core (admin users table)                        |
 | `PUBLIC_WEBHOOK_URL`     | Shown on channel detail pages                                    |
 
-**Hybrid `npm run dev`:** set `GREENLIGHT_*` in the root `.env` (see `.env.example`). Values should match `API_KEY` and `ADMIN_INTERNAL_TOKEN`.
+**Hybrid `npm run dev`:** set `GREENLIGHT_API_KEY` in the root `.env` (see `.env.example`). Match a key with admin scopes (bootstrap `API_KEY` or one created in Settings).
 
-**Docker / self-host Compose:** injects `GREENLIGHT_API_KEY` and `GREENLIGHT_ADMIN_TOKEN` from `API_KEY` and `ADMIN_INTERNAL_TOKEN` — you do not need duplicate entries in the container env file.
+**Docker / self-host Compose:** injects `GREENLIGHT_API_KEY` from `API_KEY` for the initial bootstrap key.
 
 ## Media
 

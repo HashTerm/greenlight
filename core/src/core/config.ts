@@ -19,7 +19,6 @@ const envSchema = z
       .optional()
       .transform((v) => v === 'true'),
     API_KEY: z.string().optional(),
-    ADMIN_INTERNAL_TOKEN: z.string().optional(),
     MEDIA_ALLOWED_DIR: z.string().optional(),
     MAX_MEDIA_SIZE_MB: z
       .string()

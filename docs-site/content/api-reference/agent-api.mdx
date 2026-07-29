@@ -1,35 +1,114 @@
-# Agent API
+# API Reference
 
-Requires `X-API-Key` when `USE_AUTH=true`.
+All authenticated routes live under `/v1` and use database-backed API keys with
+scoped permissions.
+
+```http
+X-API-Key: <your-api-key>
+```
+
+When `USE_AUTH=true` and the `api_keys` table is empty on first boot, core
+bootstraps an `admin` key from the `API_KEY` environment variable. Create
+replacement keys via `POST /v1/keys/new` and revoke the bootstrap key.
 
 ## Path verbs
 
 | Verb | Paths | Meaning |
 | ---- | ----- | ------- |
-| **`new`** | `POST /v1/channels/new`, `POST /v1/prompts/new` | Create a **durable resource** (channel or prompt) |
+| **`new`** | `POST /v1/channels/new`, `POST /v1/prompts/new`, `POST /v1/keys/new` | Create a **durable resource** |
 | **`send`** | `POST /v1/messages/send` | Deliver **chat text** on a MESSAGE channel |
 
-Do not use `send` for prompts or channels. Do not use `new` for outbound chat
-replies — use `send` on MESSAGE channels only.
+## Scopes
+
+Middleware checks **any-of** required scopes per route. The `admin` scope grants
+all permissions.
+
+| Scope | Routes |
+| ----- | ------ |
+| `status:read` | `GET /v1/status` |
+| `settings:read` | `GET /v1/settings` |
+| `settings:write` | `PATCH /v1/settings` |
+| `keys:read` | `GET /v1/keys`, `GET /v1/keys/{id}` |
+| `keys:write` | `POST /v1/keys/new`, `DELETE /v1/keys/{id}` |
+| `channels:read` | `GET /v1/channels` |
+| `channels:write` | `POST /v1/channels/new`, `PATCH/DELETE /v1/channels/{id}` |
+| `prompts:read` | `GET /v1/prompts`, `GET /v1/prompts/{id}` |
+| `prompts:write` | `POST /v1/prompts/new` |
+| `messages:read` | `GET /v1/messages`, `GET /v1/messages/{id}` |
+| `messages:send` | `POST /v1/messages/send` |
+| `admin` | All of the above |
+
+**Presets** (for `POST /v1/keys/new`):
+
+- `admin` → `['admin']`
+- `agent` → channels, prompts, messages read+write (no settings/keys/status)
+- `readonly` → all `*:read` scopes including `status:read`
 
 ## Endpoints
 
-| Method   | Path                                              | Description                      |
-| -------- | ------------------------------------------------- | -------------------------------- |
-| `GET`    | `/healthz`                                        | Health check (**no auth**)       |
-| `POST`   | `/v1/prompts/new`                                 | Create a prompt (JSON or multipart) |
-| `GET`    | `/v1/prompts`                                     | List prompts (`state` filter)    |
-| `GET`    | `/v1/prompts/{id}`                                | Get prompt (`%23123` for `#123`) |
-| `POST`   | `/v1/channels/new`                                | Create a channel                 |
-| `GET`    | `/v1/channels`                                    | List channels (filters)          |
-| `PATCH`  | `/v1/channels/{id}`                               | Update a channel                 |
-| `DELETE` | `/v1/channels/{id}`                               | Unregister channel               |
-| `GET`    | `/v1/messages`                                    | List message history             |
-| `GET`    | `/v1/messages/{id}`                               | Get message by UUID              |
-| `POST`   | `/v1/messages/send`                               | Send chat text on MESSAGE channel |
+| Method   | Path                | Scope(s)              | Description                      |
+| -------- | ------------------- | --------------------- | -------------------------------- |
+| `GET`    | `/healthz`          | —                     | Health check (**no auth**)       |
+| `GET`    | `/v1/status`        | `status:read`         | Operator status / dashboard      |
+| `GET`    | `/v1/settings`      | `settings:read`       | Retention settings               |
+| `PATCH`  | `/v1/settings`      | `settings:write`      | Update retention settings        |
+| `GET`    | `/v1/keys`          | `keys:read`           | List API keys                    |
+| `GET`    | `/v1/keys/{id}`     | `keys:read`           | Get API key metadata             |
+| `POST`   | `/v1/keys/new`      | `keys:write`          | Create API key (plaintext once)  |
+| `DELETE` | `/v1/keys/{id}`     | `keys:write`          | Revoke API key                   |
+| `POST`   | `/v1/prompts/new`   | `prompts:write`       | Create a prompt (JSON or multipart) |
+| `GET`    | `/v1/prompts`       | `prompts:read`        | List prompts (`state` filter)    |
+| `GET`    | `/v1/prompts/{id}`  | `prompts:read`        | Get prompt (`%23123` for `#123`) |
+| `POST`   | `/v1/channels/new`  | `channels:write`      | Create a channel                 |
+| `GET`    | `/v1/channels`      | `channels:read`       | List channels (filters)          |
+| `PATCH`  | `/v1/channels/{id}` | `channels:write`      | Update a channel                 |
+| `DELETE` | `/v1/channels/{id}` | `channels:write`      | Unregister channel               |
+| `GET`    | `/v1/messages`      | `messages:read`       | List message history             |
+| `GET`    | `/v1/messages/{id}` | `messages:read`       | Get message by UUID              |
+| `POST`   | `/v1/messages/send` | `messages:send`       | Send chat text on MESSAGE channel |
 
 Platforms: `telegram`, `slack`, `teams`, `discord`, `gchat`, `whatsapp`,
 `messenger`.
+
+## `GET /v1/status`
+
+Deep health for operators and the Admin UI dashboard.
+
+### Response `200`
+
+```json
+{
+  "status": "ok",
+  "database": "ok",
+  "channels_active": 2,
+  "prompts_pending": 1,
+  "prompts_answered_24h": 4,
+  "platforms": {
+    "telegram": 1,
+    "slack": 1
+  }
+}
+```
+
+## `GET /v1/settings` / `PATCH /v1/settings`
+
+Data retention configuration. PATCH body uses the same fields as the GET
+response (except `updated_at` is ignored). Days must be 1–3650 when the
+corresponding toggle is enabled.
+
+## `POST /v1/keys/new`
+
+### Request body
+
+| Field    | Type     | Required | Notes                                      |
+| -------- | -------- | -------- | ------------------------------------------ |
+| `name`   | string   | Yes      | Display name                               |
+| `preset` | string   | No       | `admin` \| `agent` \| `readonly`           |
+| `scopes` | string[] | No       | Custom scopes (required if `preset` omitted) |
+
+### Response `200`
+
+API key metadata plus `key` (plaintext, shown once).
 
 ## `POST /v1/prompts/new`
 
@@ -122,15 +201,17 @@ Returns prompt state including `answer`, timestamps, and options. Encode `#` as
 | `channel_id` | string | —       | Filter by channel                |
 | `limit`      | int    | `50`    | 1–200                            |
 
+Outbound messages include `api_key_id` when stored.
+
 ## `GET /v1/messages/{id}`
 
 Returns a single message record by UUID.
 
 ## `POST /v1/messages/send`
 
-Deliver plain chat text on a `MESSAGE` channel. Persisted in message history when
-delivery succeeds. For durable resources, use `POST /v1/channels/new` or
-`POST /v1/prompts/new` instead.
+Deliver plain chat text on a `MESSAGE` channel. When retention allows,
+returns the full stored message record (`201`). When zero retention is enabled,
+returns `{ "status": "sent", "stored": false, ... }`.
 
 ### Request body
 
@@ -139,21 +220,13 @@ delivery succeeds. For durable resources, use `POST /v1/channels/new` or
 | `channel_id` | string | Yes      | MESSAGE channel |
 | `text`       | string | Yes      | Message body    |
 
-### Response `200`
-
-```json
-{
-  "status": "sent",
-  "message_id": "550e8400-e29b-41d4-a716-446655440000"
-}
-```
-
 ## Common errors
 
 | Status | `detail` example                                |
 | ------ | ----------------------------------------------- |
 | 400    | Validation / missing `callback_url` for MESSAGE |
 | 401    | Invalid or missing API key                      |
+| 403    | Missing required scope                          |
 | 404    | Prompt or channel not found                     |
 | 409    | Channel already exists                          |
 | 500    | Unexpected server error                         |

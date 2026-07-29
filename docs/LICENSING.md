@@ -66,5 +66,18 @@ No, not under BUSL-1.1 while the Additional Use Grant restrictions apply.
 enterprise or SaaS work to be merged into this repository.
 
 **Where is enterprise / cloud code?**  
-Not part of this repository or the BUSL community grant. Contact the Licensor
-for commercial licensing.
+In the private **greenlight-platform** monorepo (not part of this repository or
+the BUSL community grant):
+
+- **Enterprise** — proprietary **source** in `enterprise/`, injected into the
+  **same** `greenlight` Docker image at build (there is **no** separate
+  `greenlight-enterprise` image). Self-hosters add a **license** at runtime to
+  unlock features.
+- **Cloud** — separate SaaS control plane (billing, subscriptions,
+  organisations, provisioning), not a duplicate of `core/`.
+
+Public [Editions & admin identity](/getting-started/editions) summarizes
+behavior; platform architecture is documented for internal use in
+`greenlight-platform/ARCHITECTURE.md`.
+
+Contact the Licensor for commercial licensing.

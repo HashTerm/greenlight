@@ -42,7 +42,13 @@
       "name": "Webhooks"
     },
     {
-      "name": "Admin"
+      "name": "Status"
+    },
+    {
+      "name": "Settings"
+    },
+    {
+      "name": "API keys"
     }
   ],
   "components": {
@@ -51,13 +57,7 @@
         "type": "apiKey",
         "in": "header",
         "name": "X-API-Key",
-        "description": "Agent API key. Required when USE_AUTH=true. Never use on Admin routes."
-      },
-      "AdminToken": {
-        "type": "apiKey",
-        "in": "header",
-        "name": "X-Admin-Token",
-        "description": "Admin API token (ADMIN_INTERNAL_TOKEN). Required for /admin/v1/*. Routes are only mounted when the token is configured."
+        "description": "Database-backed API key with scoped permissions. Bootstrap from API_KEY env on first boot when api_keys is empty."
       }
     },
     "schemas": {
@@ -442,13 +442,10 @@
             "type": "string",
             "nullable": true
           },
-          "source": {
+          "api_key_id": {
             "type": "string",
-            "enum": [
-              "api",
-              "admin"
-            ],
-            "nullable": true
+            "nullable": true,
+            "description": "Outbound API key id"
           },
           "platform_message_id": {
             "type": "string",
@@ -459,6 +456,85 @@
             "format": "date-time"
           }
         }
+      },
+      "ApiKey": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "key_prefix": {
+            "type": "string"
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "revoked_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "last_used_at": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CreateApiKeyRequest": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "preset": {
+            "type": "string",
+            "enum": [
+              "admin",
+              "agent",
+              "readonly"
+            ]
+          },
+          "scopes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CreatedApiKey": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiKey"
+          },
+          {
+            "type": "object",
+            "required": [
+              "key"
+            ],
+            "properties": {
+              "key": {
+                "type": "string",
+                "description": "Plaintext key — shown once at creation"
+              }
+            }
+          }
+        ]
       },
       "RetentionSettings": {
         "type": "object",
@@ -1209,16 +1285,16 @@
         }
       }
     },
-    "/admin/v1/status": {
+    "/v1/status": {
       "get": {
         "tags": [
-          "Admin"
+          "Status"
         ],
         "summary": "Deep health / operator status",
-        "description": "Only available when ADMIN_INTERNAL_TOKEN is set (otherwise 404).",
+        "description": "Requires `status:read` scope (or `admin`).",
         "security": [
           {
-            "AdminToken": []
+            "ApiKeyAuth": []
           }
         ],
         "responses": {
@@ -1233,7 +1309,17 @@
             }
           },
           "401": {
-            "description": "Invalid admin token",
+            "description": "Invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing required scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -1245,261 +1331,16 @@
         }
       }
     },
-    "/admin/v1/prompts": {
+    "/v1/settings": {
       "get": {
         "tags": [
-          "Admin"
-        ],
-        "summary": "List prompts for operators",
-        "security": [
-          {
-            "AdminToken": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "state",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "pending",
-                "answered",
-                "expired",
-                "all"
-              ],
-              "default": "all"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200,
-              "default": 50
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Prompt history",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Prompt"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Invalid admin token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/messages": {
-      "get": {
-        "tags": [
-          "Admin"
-        ],
-        "summary": "List message history",
-        "security": [
-          {
-            "AdminToken": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "direction",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "enum": [
-                "inbound",
-                "outbound",
-                "all"
-              ],
-              "default": "all"
-            }
-          },
-          {
-            "name": "channel_id",
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "schema": {
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 200,
-              "default": 50
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Message history",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Message"
-                  }
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Invalid admin token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/messages/send": {
-      "post": {
-        "tags": [
-          "Admin"
-        ],
-        "summary": "Send chat text on a MESSAGE channel",
-        "description": "Operator send — same delivery as `POST /v1/messages/send`, stored with `source: admin`.",
-        "security": [
-          {
-            "AdminToken": []
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/SendMessageRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Message sent and stored",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Message"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Validation or send error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Invalid admin token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/messages/{id}": {
-      "get": {
-        "tags": [
-          "Admin"
-        ],
-        "summary": "Get message by id",
-        "security": [
-          {
-            "AdminToken": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Message record",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Message"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Invalid admin token",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Not found",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/admin/v1/settings": {
-      "get": {
-        "tags": [
-          "Admin"
+          "Settings"
         ],
         "summary": "Get data retention settings",
+        "description": "Requires `settings:read` scope (or `admin`).",
         "security": [
           {
-            "AdminToken": []
+            "ApiKeyAuth": []
           }
         ],
         "responses": {
@@ -1514,7 +1355,17 @@
             }
           },
           "401": {
-            "description": "Invalid admin token",
+            "description": "Invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing required scope",
             "content": {
               "application/json": {
                 "schema": {
@@ -1527,12 +1378,13 @@
       },
       "patch": {
         "tags": [
-          "Admin"
+          "Settings"
         ],
         "summary": "Update data retention settings",
+        "description": "Requires `settings:write` scope (or `admin`).",
         "security": [
           {
-            "AdminToken": []
+            "ApiKeyAuth": []
           }
         ],
         "requestBody": {
@@ -1567,7 +1419,280 @@
             }
           },
           "401": {
-            "description": "Invalid admin token",
+            "description": "Invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing required scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/keys": {
+      "get": {
+        "tags": [
+          "API keys"
+        ],
+        "summary": "List API keys",
+        "description": "Requires `keys:read` scope (or `admin`).",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API keys (no plaintext)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ApiKey"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing required scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/keys/new": {
+      "post": {
+        "tags": [
+          "API keys"
+        ],
+        "summary": "Create API key",
+        "description": "Requires `keys:write` scope (or `admin`). Returns plaintext key once.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateApiKeyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Created key with plaintext",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedApiKey"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing required scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/keys/{id}": {
+      "get": {
+        "tags": [
+          "API keys"
+        ],
+        "summary": "Get API key by id",
+        "description": "Requires `keys:read` scope (or `admin`).",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API key metadata",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiKey"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing required scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "API keys"
+        ],
+        "summary": "Revoke API key",
+        "description": "Requires `keys:write` scope (or `admin`). Cannot revoke the last key with key-management access.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Key revoked",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "revoked"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cannot revoke last manager key or self",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid API key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Missing required scope",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
             "content": {
               "application/json": {
                 "schema": {

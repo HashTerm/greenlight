@@ -10,6 +10,7 @@ Greenlight is source-available under BUSL-1.1 (not OSI open source until the Cha
 - [Quickstart](/getting-started/quickstart): Self-hosting and development quickstarts
 - [Features & benefits](/getting-started/features): Capabilities, multi-workflow channels, limitations
 - [Concepts](/getting-started/concepts): PROMPT vs MESSAGE, auth layers, platform adapters
+- [Editions & admin identity](/getting-started/editions): Self-host vs enterprise vs cloud; repo boundaries
 - [Admin UI](/getting-started/admin-ui): Setup, channels, prompts, messages, retention settings
 - [Docker](/self-hosting/docker): Self-host Compose and Swarm
 - [Dokploy](/self-hosting/dokploy): Deploy with Dokploy
@@ -26,8 +27,7 @@ Greenlight is source-available under BUSL-1.1 (not OSI open source until the Cha
 - [Security](/guides/security): Signing, SSRF protection, secrets
 - [Troubleshooting](/guides/troubleshooting): Common failures
 - [Platforms](/platforms): Comparison table and per-platform guides
-- [Agent API](/api-reference/agent-api): GET/POST /v1/messages, POST /v1/prompts/new, POST /v1/channels/new, GET /v1/channels
-- [Admin API](/api-reference/admin-api): /admin/v1/status, prompts, messages, settings
+- [API reference](/api-reference/agent-api): Unified `/v1` routes with scoped API keys
 - [Webhooks](/api-reference/webhooks): Inbound platform endpoints
 - [OpenAPI](/api-reference/openapi): Machine-readable spec
 - [Licensing](/legal/licensing): BUSL-1.1 editions and FAQ

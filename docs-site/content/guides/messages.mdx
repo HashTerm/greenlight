@@ -13,7 +13,7 @@ prompts with `POST /v1/prompts/new`.
 | Direction  | When                                      | Fields of note                      |
 | ---------- | ----------------------------------------- | ----------------------------------- |
 | `inbound`  | A human sends text on a `MESSAGE` channel | `from_user`, `text`, `channel_id`   |
-| `outbound` | `POST /v1/messages/send` or Admin UI send succeeds | `source` (`api` or `admin`), `text` |
+| `outbound` | `POST /v1/messages/send` or Admin UI send succeeds | `api_key_id`, `text` |
 
 Inbound rows are created even if forwarding to the channel `callback_url` fails,
 unless **do not store inbound** is enabled in Settings.
@@ -54,8 +54,8 @@ You can also send from a channel detail page (**Send message**).
 **Messages** in the Admin UI lists inbound and outbound rows with filters for
 direction (All / Inbound / Outbound). Click a row for full detail.
 
-Admin API: `GET /admin/v1/messages` and `GET /admin/v1/messages/{id}` — see
-[Admin API](/api-reference/admin-api).
+Use `GET /v1/messages` and `GET /v1/messages/{id}` — see
+[API reference](/api-reference/agent-api).
 
 Agent API: `GET /v1/messages`, `GET /v1/messages/{id}`, and `POST /v1/messages/send` — see
 [Agent API](/api-reference/agent-api).

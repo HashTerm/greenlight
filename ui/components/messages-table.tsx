@@ -18,7 +18,7 @@ export function MessagesTable({ messages }: { messages: Message[] }) {
           <TableHead>Time</TableHead>
           <TableHead>Channel</TableHead>
           <TableHead>Direction</TableHead>
-          <TableHead>From / source</TableHead>
+          <TableHead>From / API key</TableHead>
           <TableHead>Text</TableHead>
         </TableRow>
       </TableHeader>
@@ -37,7 +37,7 @@ export function MessagesTable({ messages }: { messages: Message[] }) {
             <TableCell className="text-xs">
               {message.direction === 'inbound'
                 ? (message.from_user ?? '—')
-                : (message.source ?? '—')}
+                : (message.api_key_id ?? '—')}
             </TableCell>
             <TableCell className="max-w-md">
               <Link

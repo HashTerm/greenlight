@@ -11,11 +11,10 @@ Deploy Greenlight as a Compose app in [Dokploy](https://dokploy.com/).
    and set secrets yourself).
 4. Confirm strong secrets are set:
    - `POSTGRES_PASSWORD`
-   - `ADMIN_INTERNAL_TOKEN`
    - `AUTH_SECRET`
    - `CALLBACK_SIGNING_SECRET`
    - `WEBHOOK_SECRET`
-   - `API_KEY` (required when `USE_AUTH=true`)
+   - `API_KEY` (bootstraps admin key when `USE_AUTH=true` and `api_keys` is empty)
 5. Set `PUBLIC_WEBHOOK_URL` to your public HTTPS API host (**no trailing slash**).
 6. Route traffic in Dokploy (services use `expose`, not host ports):
 

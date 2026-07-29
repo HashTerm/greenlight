@@ -8,10 +8,12 @@ import { signIn, signOut } from '@/auth'
 import { db } from '@/lib/db'
 import { adminUsers } from '@/drizzle/schema'
 import {
-  adminFetch,
-  agentFetch,
+  apiFetch,
   type AdminStatus,
+  type ApiKeyRecord,
+  type ApiKeyPreset,
   type Channel,
+  type CreatedApiKey,
   type Message,
   type Prompt,
   type RetentionSettings,
@@ -83,21 +85,21 @@ export async function changePassword(formData: FormData) {
 }
 
 export async function fetchStatus(): Promise<AdminStatus> {
-  return adminFetch<AdminStatus>('/admin/v1/status')
+  return apiFetch<AdminStatus>('/v1/status')
 }
 
 export async function fetchChannels(): Promise<Channel[]> {
-  return agentFetch<Channel[]>('/v1/channels')
+  return apiFetch<Channel[]>('/v1/channels')
 }
 
 export async function fetchPrompts(
   state: 'pending' | 'answered' | 'expired' | 'all' = 'all',
 ): Promise<Prompt[]> {
-  return adminFetch<Prompt[]>(`/admin/v1/prompts?state=${state}&limit=200`)
+  return apiFetch<Prompt[]>(`/v1/prompts?state=${state}&limit=200`)
 }
 
 export async function fetchPrompt(id: string): Promise<Prompt> {
-  return agentFetch<Prompt>(`/v1/prompts/${encodeURIComponent(id)}`)
+  return apiFetch<Prompt>(`/v1/prompts/${encodeURIComponent(id)}`)
 }
 
 export async function fetchMessages(
@@ -106,15 +108,38 @@ export async function fetchMessages(
 ): Promise<Message[]> {
   const params = new URLSearchParams({ direction, limit: '200' })
   if (channelId) params.set('channel_id', channelId)
-  return adminFetch<Message[]>(`/admin/v1/messages?${params}`)
+  return apiFetch<Message[]>(`/v1/messages?${params}`)
 }
 
 export async function fetchMessage(id: string): Promise<Message> {
-  return adminFetch<Message>(`/admin/v1/messages/${encodeURIComponent(id)}`)
+  return apiFetch<Message>(`/v1/messages/${encodeURIComponent(id)}`)
 }
 
 export async function fetchRetentionSettings(): Promise<RetentionSettings> {
-  return adminFetch<RetentionSettings>('/admin/v1/settings')
+  return apiFetch<RetentionSettings>('/v1/settings')
+}
+
+export async function fetchApiKeys(): Promise<ApiKeyRecord[]> {
+  return apiFetch<ApiKeyRecord[]>('/v1/keys')
+}
+
+export async function createApiKeyAction(formData: FormData): Promise<CreatedApiKey> {
+  const name = String(formData.get('name') ?? '').trim()
+  const preset = String(formData.get('preset') ?? 'agent') as ApiKeyPreset
+  if (!name) throw new Error('Name is required')
+
+  const result = await apiFetch<CreatedApiKey>('/v1/keys/new', {
+    method: 'POST',
+    body: JSON.stringify({ name, preset }),
+  })
+
+  revalidatePath('/settings')
+  return result
+}
+
+export async function revokeApiKeyAction(id: string): Promise<void> {
+  await apiFetch(`/v1/keys/${encodeURIComponent(id)}`, { method: 'DELETE' })
+  revalidatePath('/settings')
 }
 
 export async function updateRetentionSettingsAction(formData: FormData) {
@@ -131,7 +156,7 @@ export async function updateRetentionSettingsAction(formData: FormData) {
     formData.get('messages_outbound_retention_days') ?? 30,
   )
 
-  await adminFetch<RetentionSettings>('/admin/v1/settings', {
+  await apiFetch<RetentionSettings>('/v1/settings', {
     method: 'PATCH',
     body: JSON.stringify({
       prompts_retention_enabled: promptsRetentionEnabled,
@@ -154,7 +179,7 @@ export async function createMessageAction(formData: FormData) {
   const channelId = String(formData.get('channel_id'))
   const text = String(formData.get('text'))
 
-  const result = await adminFetch<AdminSendMessageResponse>('/admin/v1/messages/send', {
+  const result = await apiFetch<AdminSendMessageResponse>('/v1/messages/send', {
       method: 'POST',
       body: JSON.stringify({ channel_id: channelId, text }),
     })
@@ -210,7 +235,7 @@ export async function createChannelAction(
   }
 
   try {
-    await agentFetch('/v1/channels/new', {
+    await apiFetch('/v1/channels/new', {
       method: 'POST',
       body: JSON.stringify({
         channel_id: channelId,
@@ -248,7 +273,7 @@ export async function updateChannelAction(
   }
 
   try {
-    await agentFetch(`/v1/channels/${encodeURIComponent(channelId)}`, {
+    await apiFetch(`/v1/channels/${encodeURIComponent(channelId)}`, {
       method: 'PATCH',
       body: JSON.stringify(body),
     })
@@ -261,7 +286,7 @@ export async function updateChannelAction(
 }
 
 export async function deleteChannelAction(channelId: string) {
-  await agentFetch(`/v1/channels/${encodeURIComponent(channelId)}`, {
+  await apiFetch(`/v1/channels/${encodeURIComponent(channelId)}`, {
     method: 'DELETE',
   })
   revalidatePath('/channels')
@@ -271,7 +296,7 @@ export async function deleteChannelAction(channelId: string) {
 export async function sendMessageAction(formData: FormData) {
   const channelId = String(formData.get('channel_id'))
   const text = String(formData.get('text'))
-  await adminFetch<Message>('/admin/v1/messages/send', {
+  await apiFetch<Message>('/v1/messages/send', {
       method: 'POST',
       body: JSON.stringify({ channel_id: channelId, text }),
     })
@@ -339,7 +364,7 @@ export async function createPromptAction(formData: FormData) {
   if (callbackUrl) body.callback_url = callbackUrl
   if (correlationId) body.correlation_id = correlationId
 
-  const result = await agentFetch<{ prompt_id: string }>('/v1/prompts/new', {
+  const result = await apiFetch<{ prompt_id: string }>('/v1/prompts/new', {
     method: 'POST',
     body: JSON.stringify(body),
   })

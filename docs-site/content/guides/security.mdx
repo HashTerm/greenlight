@@ -4,8 +4,8 @@
 
 Rotate and store securely:
 
-- `API_KEY` — agent access
-- `ADMIN_INTERNAL_TOKEN` — admin API (never give to agents)
+- API keys (database-backed, scoped) — create via Settings or `POST /v1/keys/new`
+- `API_KEY` — bootstrap-only env var for first boot when `api_keys` is empty
 - `AUTH_SECRET` — UI sessions
 - `CALLBACK_SIGNING_SECRET` — prompt callback HMAC
 - `WEBHOOK_SECRET` — platform webhook verification
@@ -14,7 +14,7 @@ Rotate and store securely:
 ## Auth recommendations
 
 - Production: `USE_AUTH=true`
-- Separate agent keys from admin tokens
+- Use scoped keys (`agent`, `readonly`) for automation; reserve `admin` for operators
 - Prefer API-only mode when you do not need the Admin UI
 
 ## Callback URL validation
@@ -39,3 +39,19 @@ Always verify `X-Signature` on prompt answer callbacks. Channel
 
 Community self-host is allowed under BUSL-1.1. Selling Greenlight as a competing
 hosted subscription is not. See [Licensing](/legal/licensing).
+
+## Edition roadmap
+
+Community edition stores scoped API keys and `api_key_id` on outbound messages.
+Enterprise and Cloud add organization boundaries and fuller audit:
+
+- **Org scope** — `organization_id` on keys, channels, prompts, and messages so
+  a key or session cannot cross tenants (required for Cloud; enterprise uses one
+  invisible org).
+- **Dual actors** — distinguish **API key** actions from **human user** actions
+  (UI should not rely on a shared admin service key long term).
+- **Audit events** — append-only log: org, actor type/id, action, resource,
+  timestamp (not only `api_key_id` on message rows).
+
+See [Editions & admin identity](/getting-started/editions) for how admin setup
+differs per edition.

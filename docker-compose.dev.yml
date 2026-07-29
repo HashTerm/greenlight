@@ -26,7 +26,6 @@ services:
     environment:
       USE_AUTH: 'true'
       API_KEY: ${API_KEY}
-      ADMIN_INTERNAL_TOKEN: ${ADMIN_INTERNAL_TOKEN}
       # Override host-side localhost URL from .env for in-network access
       DATABASE_URL: postgresql://greenlight:greenlight@postgres:5432/greenlight
     depends_on:
@@ -56,7 +55,6 @@ services:
       HOSTNAME: '0.0.0.0'
       GREENLIGHT_API_URL: http://greenlight:8100
       GREENLIGHT_API_KEY: ${API_KEY}
-      GREENLIGHT_ADMIN_TOKEN: ${ADMIN_INTERNAL_TOKEN}
       PUBLIC_WEBHOOK_URL: ${PUBLIC_WEBHOOK_URL}
       DATABASE_URL: postgresql://greenlight:greenlight@postgres:5432/greenlight
       AUTH_SECRET: ${AUTH_SECRET}

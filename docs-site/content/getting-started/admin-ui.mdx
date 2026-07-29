@@ -1,10 +1,13 @@
 # Admin UI
 
 The optional **greenlight-ui** Next.js app manages channels, prompts, and
-dashboard stats. It talks to the core API server-side:
+dashboard stats. It talks to the core API server-side with a scoped
+`X-API-Key` (`GREENLIGHT_API_KEY`).
 
-- Agent routes via `X-API-Key`
-- Admin routes via `X-Admin-Token`
+**Community self-host:** one super admin account created at `/setup`; no org
+switcher and no additional human users in the open-source UI today. Enterprise
+and Cloud add multi-user and organization models — see
+[Editions & admin identity](/getting-started/editions).
 
 ## First-time setup
 
@@ -83,12 +86,11 @@ deletion on for 30 days; zero retention off for both directions.
 | ------------------------ | --------------------------------------------------------------------- |
 | `DATABASE_URL`           | Same Postgres as core (admin users table)                             |
 | `GREENLIGHT_API_URL`     | Core base URL (default `http://localhost:8100`)                       |
-| `GREENLIGHT_API_KEY`     | Calls Agent API (`X-API-Key`) — match core `API_KEY`                  |
-| `GREENLIGHT_ADMIN_TOKEN` | Calls Admin API (`X-Admin-Token`) — match core `ADMIN_INTERNAL_TOKEN` |
+| `GREENLIGHT_API_KEY`     | Calls core API (`X-API-Key`) — admin-scoped key (bootstrap or from Settings) |
 | `AUTH_SECRET`            | NextAuth sessions                                                     |
 
-For hybrid `npm run dev`, set `GREENLIGHT_*` in the root `.env`. Docker Compose
-maps them from `API_KEY` / `ADMIN_INTERNAL_TOKEN` automatically.
+For hybrid `npm run dev`, set `GREENLIGHT_API_KEY` in the root `.env`. Docker Compose
+maps it from `API_KEY` for the bootstrap key.
 
 See [Configuration](/self-hosting/configuration) for the full list.
 

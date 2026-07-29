@@ -8,54 +8,72 @@ function baseEnv(): void {
   process.env.WEBHOOK_SECRET = 'webhook-secret-value'
   process.env.USE_AUTH = 'true'
   process.env.API_KEY = 'agent-api-key'
-  process.env.ADMIN_INTERNAL_TOKEN = 'admin-internal-token'
   resetConfigForTests()
 }
 
-describe('admin API auth', () => {
+describe('unified /v1 API auth', () => {
   beforeEach(() => {
     baseEnv()
   })
 
-  it('rejects API key on admin routes', async () => {
+  it('returns 404 for removed /admin/v1/status', async () => {
     const app = createApp()
     const res = await app.request('/admin/v1/status', {
       headers: { 'X-API-Key': 'agent-api-key' },
-    })
-    expect(res.status).toBe(401)
-  })
-
-  it('rejects wrong admin token', async () => {
-    const app = createApp()
-    const res = await app.request('/admin/v1/status', {
-      headers: { 'X-Admin-Token': 'wrong-token' },
-    })
-    expect(res.status).toBe(401)
-  })
-
-  it('accepts admin token on admin routes', async () => {
-    const app = createApp()
-    const res = await app.request('/admin/v1/status', {
-      headers: { 'X-Admin-Token': 'admin-internal-token' },
-    })
-    expect(res.status).not.toBe(401)
-  })
-
-  it('accepts API key on agent routes', async () => {
-    const app = createApp()
-    const res = await app.request('/channels', {
-      headers: { 'X-API-Key': 'agent-api-key' },
-    })
-    expect(res.status).not.toBe(401)
-  })
-
-  it('does not mount admin routes without ADMIN_INTERNAL_TOKEN', async () => {
-    delete process.env.ADMIN_INTERNAL_TOKEN
-    resetConfigForTests()
-    const app = createApp()
-    const res = await app.request('/admin/v1/status', {
-      headers: { 'X-Admin-Token': 'admin-internal-token' },
     })
     expect(res.status).toBe(404)
+  })
+
+  it('returns 404 for removed /admin/v1/settings', async () => {
+    const app = createApp()
+    const res = await app.request('/admin/v1/settings', {
+      headers: { 'X-Admin-Token': 'anything' },
+    })
+    expect(res.status).toBe(404)
+  })
+
+  it('rejects missing API key on /v1/status', async () => {
+    const app = createApp()
+    const res = await app.request('/v1/status')
+    expect(res.status).toBe(401)
+  })
+
+  it('accepts admin-scoped API key on /v1/status', async () => {
+    const app = createApp()
+    const res = await app.request('/v1/status', {
+      headers: { 'X-API-Key': 'agent-api-key' },
+    })
+    expect(res.status).not.toBe(401)
+    expect(res.status).not.toBe(403)
+  })
+
+  it('returns 403 for agent key on PATCH /v1/settings', async () => {
+    const app = createApp()
+    const res = await app.request('/v1/settings', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': 'agent-only-key',
+      },
+      body: JSON.stringify({ prompts_retention_enabled: false }),
+    })
+    expect(res.status).toBe(403)
+  })
+
+  it('accepts admin key on GET /v1/keys', async () => {
+    const app = createApp()
+    const res = await app.request('/v1/keys', {
+      headers: { 'X-API-Key': 'agent-api-key' },
+    })
+    expect(res.status).not.toBe(401)
+    expect(res.status).not.toBe(403)
+  })
+
+  it('returns 403 for agent key on GET /v1/keys', async () => {
+    const app = createApp()
+    const res = await app.request('/v1/keys', {
+      headers: { 'X-API-Key': 'agent-only-key' },
+    })
+    expect(res.status).toBe(403)
   })
 })

@@ -1,5 +1,6 @@
 import { Archive, KeyRound, Server, Settings } from 'lucide-react'
-import { changePassword, fetchRetentionSettings } from '@/lib/actions'
+import { ApiKeysSection } from '@/components/api-keys-section'
+import { changePassword, fetchApiKeys, fetchRetentionSettings } from '@/lib/actions'
 import { CardSectionTitle } from '@/components/card-section-title'
 import { PageHeader } from '@/components/page-header'
 import { RetentionSettingsForm } from '@/components/retention-settings-form'
@@ -10,7 +11,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 export default async function SettingsPage() {
-  const [health, retentionResult] = await Promise.all([
+  const [health, retentionResult, apiKeysResult] = await Promise.all([
     healthCheck().catch(() => ({ status: 'error' })),
     fetchRetentionSettings()
       .then((settings) => ({ settings, error: null as string | null }))
@@ -21,9 +22,13 @@ export default async function SettingsPage() {
         },
         error: err.message,
       })),
+    fetchApiKeys()
+      .then((keys) => ({ keys, error: null as string | null }))
+      .catch((err: Error) => ({ keys: [], error: err.message })),
   ])
 
   const { settings: retention, error: retentionError } = retentionResult
+  const { keys: apiKeys, error: apiKeysError } = apiKeysResult
 
   return (
     <div className="space-y-6">
@@ -65,6 +70,15 @@ export default async function SettingsPage() {
             </p>
           )}
           <RetentionSettingsForm initial={retention} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardSectionTitle icon={KeyRound}>API keys</CardSectionTitle>
+        </CardHeader>
+        <CardContent>
+          <ApiKeysSection error={apiKeysError} initialKeys={apiKeys} />
         </CardContent>
       </Card>
 

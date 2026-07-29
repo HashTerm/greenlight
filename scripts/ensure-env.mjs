@@ -4,8 +4,7 @@
  * Never modifies *.example files.
  *
  * For the dev profile, also syncs GREENLIGHT_* vars into an existing .env so hybrid
- * npm run dev can reach core (GREENLIGHT_API_KEY / GREENLIGHT_ADMIN_TOKEN must match
- * API_KEY / ADMIN_INTERNAL_TOKEN).
+ * npm run dev can reach core (GREENLIGHT_API_KEY must match API_KEY for bootstrap).
  *
  * Usage:
  *   node scripts/ensure-env.mjs
@@ -35,7 +34,6 @@ const PROFILES = {
 /** UI hybrid dev vars must match core secrets. */
 const DEV_MIRRORS = {
   GREENLIGHT_API_KEY: 'API_KEY',
-  GREENLIGHT_ADMIN_TOKEN: 'ADMIN_INTERNAL_TOKEN',
 }
 
 const PLACEHOLDER_RE = /^(replace-with-.+|change-me-strong)$/
@@ -197,15 +195,11 @@ function fillSecrets(content, { mirror }) {
   }
 
   const apiKey = generated.get('API_KEY')
-  const adminToken = generated.get('ADMIN_INTERNAL_TOKEN')
 
   return lines
     .map((line) => {
       if (apiKey && line.startsWith('GREENLIGHT_API_KEY=')) {
         return `GREENLIGHT_API_KEY=${apiKey}`
-      }
-      if (adminToken && line.startsWith('GREENLIGHT_ADMIN_TOKEN=')) {
-        return `GREENLIGHT_ADMIN_TOKEN=${adminToken}`
       }
       return line
     })

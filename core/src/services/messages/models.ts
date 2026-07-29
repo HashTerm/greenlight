@@ -2,7 +2,6 @@ import { randomUUID } from 'node:crypto'
 import type pg from 'pg'
 
 export type MessageDirection = 'outbound' | 'inbound'
-export type MessageSource = 'api' | 'admin'
 
 export interface MessageRow {
   id: string
@@ -11,7 +10,7 @@ export interface MessageRow {
   text: string
   platform: string
   from_user: string | null
-  source: MessageSource | null
+  api_key_id: string | null
   platform_message_id: string | null
   created_at: Date
 }
@@ -24,13 +23,13 @@ export async function createMessage(
     text: string
     platform: string
     fromUser?: string | null
-    source?: MessageSource | null
+    apiKeyId?: string | null
     platformMessageId?: string | null
   },
 ): Promise<MessageRow> {
   const id = randomUUID()
   const result = await client.query<MessageRow>(
-    `INSERT INTO messages (id, channel_id, direction, text, platform, from_user, source, platform_message_id)
+    `INSERT INTO messages (id, channel_id, direction, text, platform, from_user, api_key_id, platform_message_id)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
      RETURNING *`,
     [
@@ -40,7 +39,7 @@ export async function createMessage(
       input.text,
       input.platform,
       input.fromUser ?? null,
-      input.source ?? null,
+      input.apiKeyId ?? null,
       input.platformMessageId ?? null,
     ],
   )

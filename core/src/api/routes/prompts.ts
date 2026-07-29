@@ -9,6 +9,7 @@ import {
 } from '../../services/prompts/service.js'
 import { formatPromptId } from '../../services/prompts/models.js'
 import { ValueError } from '../../core/security.js'
+import { requireScope } from '../middleware/require-scope.js'
 
 const promptInSchema = z.object({
   channel_id: z.string().optional().nullable(),
@@ -97,7 +98,7 @@ async function parseMultipartPrompt(c: Context): Promise<CreatePromptInput | Res
   }
 }
 
-promptRoutes.post('/prompts/new', async (c) => {
+promptRoutes.post('/prompts/new', requireScope('prompts:write'), async (c) => {
   const contentType = c.req.header('content-type') ?? ''
 
   if (contentType.includes('multipart/form-data')) {
@@ -139,38 +140,43 @@ promptRoutes.post('/prompts/new', async (c) => {
   )
 })
 
-promptRoutes.get('/prompts', zValidator('query', listQuerySchema), async (c) => {
-  const { state, limit } = c.req.valid('query')
-  const rows = await listPrompts(state, limit)
-  return c.json(
-    rows.map((row) => ({
-      id: formatPromptId(row.prompt_num),
-      prompt_num: row.prompt_num,
-      chat_id: row.chat_id,
-      channel_id: row.chat_id,
-      text: row.text,
-      media_url: row.media_url,
-      options: row.options,
-      allow_text: row.allow_text,
-      callback_url: row.callback_url,
-      correlation_id: row.correlation_id,
-      state: row.state,
-      created_at: row.created_at.toISOString(),
-      expires_at: row.expires_at?.toISOString() ?? null,
-      answered_at: row.answered_at?.toISOString() ?? null,
-      answered_by_id: row.answered_by_id,
-      answered_by_username: row.answered_by_username,
-      answer: row.answer,
-    })),
-  )
-})
+promptRoutes.get(
+  '/prompts',
+  requireScope('prompts:read'),
+  zValidator('query', listQuerySchema),
+  async (c) => {
+    const { state, limit } = c.req.valid('query')
+    const rows = await listPrompts(state, limit)
+    return c.json(
+      rows.map((row) => ({
+        id: formatPromptId(row.prompt_num),
+        prompt_num: row.prompt_num,
+        chat_id: row.chat_id,
+        channel_id: row.chat_id,
+        text: row.text,
+        media_url: row.media_url,
+        options: row.options,
+        allow_text: row.allow_text,
+        callback_url: row.callback_url,
+        correlation_id: row.correlation_id,
+        state: row.state,
+        created_at: row.created_at.toISOString(),
+        expires_at: row.expires_at?.toISOString() ?? null,
+        answered_at: row.answered_at?.toISOString() ?? null,
+        answered_by_id: row.answered_by_id,
+        answered_by_username: row.answered_by_username,
+        answer: row.answer,
+      })),
+    )
+  },
+)
 
-promptRoutes.get('/prompts/:id', async (c) => {
-  const promptId = decodeURIComponent(c.req.param('id'))
+promptRoutes.get('/prompts/:id', requireScope('prompts:read'), async (c) => {
+  const promptId = decodeURIComponent(c.req.param('id') ?? '')
   if (promptId === 'pending' || promptId === 'new') {
     return c.json({ detail: 'not found' }, 404)
   }
-  const row = await getPrompt(promptId)
+  const row = await getPrompt(promptId ?? '')
   if (!row) return c.json({ detail: 'not found' }, 404)
 
   return c.json({

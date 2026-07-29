@@ -2,7 +2,7 @@ import { withClient } from '../../db/client.js'
 import type { ChannelRow } from '../channels/models.js'
 import { getRetentionSettings } from '../settings/service.js'
 import * as messageModels from './models.js'
-import type { MessageDirection, MessageListDirection, MessageSource } from './models.js'
+import type { MessageDirection, MessageListDirection } from './models.js'
 
 export type MessageRecord = {
   id: string
@@ -11,7 +11,7 @@ export type MessageRecord = {
   text: string
   platform: string
   from_user: string | null
-  source: MessageSource | null
+  api_key_id: string | null
   platform_message_id: string | null
   created_at: string
 }
@@ -24,7 +24,7 @@ function toRecord(row: messageModels.MessageRow): MessageRecord {
     text: row.text,
     platform: row.platform,
     from_user: row.from_user,
-    source: row.source,
+    api_key_id: row.api_key_id,
     platform_message_id: row.platform_message_id,
     created_at: row.created_at.toISOString(),
   }
@@ -33,7 +33,7 @@ function toRecord(row: messageModels.MessageRow): MessageRecord {
 export async function recordOutboundMessage(
   channel: ChannelRow,
   text: string,
-  source: MessageSource,
+  apiKeyId: string | null,
   platformMessageId?: string | null,
 ): Promise<MessageRecord> {
   const row = await withClient((client) =>
@@ -42,7 +42,7 @@ export async function recordOutboundMessage(
       direction: 'outbound',
       text,
       platform: channel.platform,
-      source,
+      apiKeyId,
       platformMessageId,
     }),
   )

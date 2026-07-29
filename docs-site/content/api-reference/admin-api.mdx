@@ -1,127 +1,15 @@
-# Admin API
+# Admin API (removed)
 
-Mounted at `/admin/v1` **only when** `ADMIN_INTERNAL_TOKEN` is set. Otherwise
-these routes return **404**.
+The former `/admin/v1` routes and `X-Admin-Token` authentication have been
+removed. Use the unified [API reference](/api-reference/agent-api) under `/v1`
+with scoped `X-API-Key` instead.
 
-Authenticate with:
+| Former route | Replacement |
+| ------------ | ----------- |
+| `GET /admin/v1/status` | `GET /v1/status` (`status:read`) |
+| `GET/PATCH /admin/v1/settings` | `GET/PATCH /v1/settings` |
+| `GET /admin/v1/prompts` | `GET /v1/prompts?state=all` |
+| `GET /admin/v1/messages` | `GET /v1/messages` |
+| `POST /admin/v1/messages/send` | `POST /v1/messages/send` |
 
-```http
-X-Admin-Token: <ADMIN_INTERNAL_TOKEN>
-```
-
-Do **not** send `X-API-Key` here — it will be rejected.
-
-## `GET /admin/v1/status`
-
-Deep health for operators and the Admin UI dashboard.
-
-### Response `200`
-
-```json
-{
-  "status": "ok",
-  "database": "ok",
-  "channels_active": 2,
-  "prompts_pending": 1,
-  "prompts_answered_24h": 4,
-  "platforms": {
-    "telegram": 1,
-    "slack": 1
-  }
-}
-```
-
-On database failure the endpoint still returns `200` with `"status": "error"`
-and zeroed counters.
-
-## `GET /admin/v1/prompts`
-
-Prompt history for operators.
-
-### Query
-
-| Param   | Type   | Default | Notes                                         |
-| ------- | ------ | ------- | --------------------------------------------- |
-| `state` | string | `all`   | `pending` \| `answered` \| `expired` \| `all` |
-| `limit` | int    | `50`    | 1–200                                         |
-
-### Response
-
-Array of prompt records including `id`, `prompt_num`, `text`, `state`,
-`options`, `answer`, and timestamps.
-
-## `GET /admin/v1/messages`
-
-MESSAGE channel history for operators.
-
-### Query
-
-| Param        | Type   | Default | Notes                            |
-| ------------ | ------ | ------- | -------------------------------- |
-| `direction`  | string | `all`   | `inbound` \| `outbound` \| `all` |
-| `channel_id` | string | —       | Filter by channel                |
-| `limit`      | int    | `50`    | 1–200                            |
-
-### Response
-
-Array of message records: `id`, `channel_id`, `direction`, `text`, `platform`,
-`from_user`, `source`, `platform_message_id`, `created_at`.
-
-## `GET /admin/v1/messages/{id}`
-
-Single message record. Returns `404` when not found.
-
-## `POST /admin/v1/messages/send`
-
-Send outbound text on a `MESSAGE` channel (same delivery as
-`POST /v1/messages/send`, stored with `source: admin`).
-
-### Request body
-
-```json
-{
-  "channel_id": "ops-slack",
-  "text": "Hello from the admin UI"
-}
-```
-
-### Response `201`
-
-Message record (same shape as list items).
-
-## `GET /admin/v1/settings`
-
-Data retention configuration.
-
-### Response `200`
-
-```json
-{
-  "prompts_retention_enabled": false,
-  "prompts_retention_days": 30,
-  "messages_inbound_retention_enabled": true,
-  "messages_outbound_retention_enabled": true,
-  "messages_inbound_retention_days": 30,
-  "messages_outbound_retention_days": 30,
-  "messages_inbound_zero_retention": false,
-  "messages_outbound_zero_retention": false,
-  "updated_at": "2026-07-29T12:00:00.000Z"
-}
-```
-
-## `PATCH /admin/v1/settings`
-
-Update retention toggles and day counts. Days must be 1–3650 when the
-corresponding toggle is enabled.
-
-### Request body
-
-Same fields as the GET response (except `updated_at` is ignored).
-
-## Errors
-
-| Status | Meaning                         |
-| ------ | ------------------------------- |
-| 401    | Missing/invalid `X-Admin-Token` |
-| 404    | Admin API not mounted           |
-| 503    | Admin middleware misconfigured  |
+Manage keys in the Admin UI **Settings** page or via `POST /v1/keys/new`.
