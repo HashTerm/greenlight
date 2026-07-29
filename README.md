@@ -140,7 +140,34 @@ docs-site/  — Product documentation (Nextra, port 3003)
 ```bash
 # Self-host: docker-compose.self-host.yml
 # Swarm: add -c docker-compose.self-host.stack.yml — see docs-site Self-Hosting
+npm run env:ensure -- --profile self-host
+docker compose -f docker-compose.self-host.yml --env-file .env.self-host up -d
 ```
+
+**Dokploy domains** (same host, API under path prefix):
+
+| Service         | Port | Traefik path | Public URL example                     |
+| --------------- | ---- | ------------ | -------------------------------------- |
+| `greenlight-ui` | 3000 | `/`          | `https://greenlight.hashterm.com/`     |
+| `greenlight`    | 8100 | `/wh`        | `https://greenlight.hashterm.com/wh/*` |
+
+API path in Dokploy must be `/wh` (leading slash required). Traefik strips `/wh` when forwarding to core.
+
+```env
+AUTH_URL=https://greenlight.hashterm.com
+PUBLIC_WEBHOOK_URL=https://greenlight.hashterm.com/wh
+```
+
+**Internal health only** (container probes — not public Traefik routes):
+
+| Service         | Internal URL                       |
+| --------------- | ---------------------------------- |
+| `greenlight-ui` | `http://127.0.0.1:3000/api/health` |
+| `greenlight`    | `http://127.0.0.1:8100/healthz`    |
+
+`/wh/healthz` is **not** valid — API health is not under the webhook path prefix.
+
+Full deploy guide: [Dokploy](docs-site/content/self-hosting/dokploy.mdx), [Coolify](docs-site/content/self-hosting/coolify.mdx), [Configuration](docs-site/content/self-hosting/configuration.mdx).
 
 ## Contributing
 
