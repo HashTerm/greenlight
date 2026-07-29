@@ -12,14 +12,10 @@ const repoRoot = path.join(uiDir, '..')
 loadEnvConfig(repoRoot)
 
 const nextBin = path.join(repoRoot, 'node_modules/next/dist/bin/next')
-const child = spawn(
-  process.execPath,
-  [nextBin, 'dev', '--port', '3001'],
-  {
-    stdio: 'inherit',
-    env: { ...process.env, NODE_OPTIONS: '' },
-  },
-)
+const child = spawn(process.execPath, [nextBin, 'dev', '--port', '3001'], {
+  stdio: 'inherit',
+  env: { ...process.env, NODE_OPTIONS: '' },
+})
 
 child.on('exit', (code, signal) => {
   if (signal) {

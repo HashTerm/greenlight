@@ -1,35 +1,53 @@
-import { changePassword } from '@/lib/actions'
-import { healthCheck } from '@/lib/greenlight-client'
+import { Archive, KeyRound, Server, Settings } from 'lucide-react'
+import { changePassword, fetchRetentionSettings } from '@/lib/actions'
+import { CardSectionTitle } from '@/components/card-section-title'
+import { PageHeader } from '@/components/page-header'
+import { RetentionSettingsForm } from '@/components/retention-settings-form'
+import { DEFAULT_RETENTION_SETTINGS, healthCheck } from '@/lib/greenlight-client'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
 export default async function SettingsPage() {
-  const health = await healthCheck().catch(() => ({ status: 'error' }))
+  const [health, retentionResult] = await Promise.all([
+    healthCheck().catch(() => ({ status: 'error' })),
+    fetchRetentionSettings()
+      .then((settings) => ({ settings, error: null as string | null }))
+      .catch((err: Error) => ({
+        settings: {
+          ...DEFAULT_RETENTION_SETTINGS,
+          updated_at: new Date(0).toISOString(),
+        },
+        error: err.message,
+      })),
+  ])
+
+  const { settings: retention, error: retentionError } = retentionResult
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Settings</h1>
-        <p className="text-sm text-neutral-500">Connectivity and account</p>
-      </div>
+      <PageHeader
+        description="Connectivity, data retention, and account"
+        icon={Settings}
+        title="Settings"
+      />
 
       <Card>
         <CardHeader>
-          <CardTitle>Greenlight API</CardTitle>
+          <CardSectionTitle icon={Server}>Greenlight API</CardSectionTitle>
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <p>
-            <span className="text-neutral-500">API URL:</span>{' '}
+            <span className="text-muted-foreground">API URL:</span>{' '}
             {process.env.GREENLIGHT_API_URL ?? 'http://localhost:8100'}
           </p>
           <p>
-            <span className="text-neutral-500">Public webhook base:</span>{' '}
+            <span className="text-muted-foreground">Public webhook base:</span>{' '}
             {process.env.PUBLIC_WEBHOOK_URL ?? 'not set'}
           </p>
           <p>
-            <span className="text-neutral-500">Health check:</span>{' '}
+            <span className="text-muted-foreground">Health check:</span>{' '}
             {health.status === 'ok' ? 'Connected' : 'Unreachable'}
           </p>
         </CardContent>
@@ -37,7 +55,22 @@ export default async function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Change password</CardTitle>
+          <CardSectionTitle icon={Archive}>Data retention</CardSectionTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {retentionError && (
+            <p className="text-sm text-destructive">
+              Could not load saved settings ({retentionError}). Showing defaults — save after the
+              API is reachable.
+            </p>
+          )}
+          <RetentionSettingsForm initial={retention} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardSectionTitle icon={KeyRound}>Change password</CardSectionTitle>
         </CardHeader>
         <CardContent>
           <form action={changePassword} className="max-w-md space-y-4">

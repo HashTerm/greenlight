@@ -2,10 +2,11 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 export const dynamic = 'force-dynamic'
 
-import { deleteChannelAction, fetchChannels, sendMessageAction } from '@/lib/actions'
+import { fetchChannels, sendMessageAction } from '@/lib/actions'
 import { getPublicWebhookUrl } from '@/lib/greenlight-client'
 import { formatGuideSteps } from '@/lib/platform-guides'
 import type { Platform } from '@/lib/platform-fields'
+import { DeleteChannelButton } from '@/components/delete-channel-button'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -37,8 +38,8 @@ export default async function ChannelDetailPage({ params }: { params: Promise<{ 
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold">{channel.channel_id}</h1>
-          <p className="text-sm text-neutral-500">
+          <h1>{channel.channel_id}</h1>
+          <p className="text-sm text-muted-foreground">
             {channel.platform} · {channel.channel_type}
           </p>
         </div>
@@ -46,11 +47,7 @@ export default async function ChannelDetailPage({ params }: { params: Promise<{ 
           <Button asChild variant="outline">
             <Link href={`/channels/${encodeURIComponent(id)}/edit`}>Edit</Link>
           </Button>
-          <form action={deleteChannelAction.bind(null, id)}>
-            <Button type="submit" variant="destructive">
-              Delete
-            </Button>
-          </form>
+          <DeleteChannelButton channelId={id} />
         </div>
       </div>
 
@@ -61,19 +58,19 @@ export default async function ChannelDetailPage({ params }: { params: Promise<{ 
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p>
-              <span className="text-neutral-500">Platform:</span> {channel.platform}
+              <span className="text-muted-foreground">Platform:</span> {channel.platform}
             </p>
             <p>
-              <span className="text-neutral-500">Target chat:</span> {channel.target_chat_id}
+              <span className="text-muted-foreground">Target chat:</span> {channel.target_chat_id}
             </p>
             <p>
-              <span className="text-neutral-500">Type:</span> {channel.channel_type}
+              <span className="text-muted-foreground">Type:</span> {channel.channel_type}
             </p>
             <p>
-              <span className="text-neutral-500">Callback:</span> {channel.callback_url ?? '—'}
+              <span className="text-muted-foreground">Callback:</span> {channel.callback_url ?? '—'}
             </p>
             <p>
-              <span className="text-neutral-500">Status:</span>{' '}
+              <span className="text-muted-foreground">Status:</span>{' '}
               <Badge variant={channel.is_active ? 'success' : 'destructive'}>
                 {channel.is_active ? 'Active' : 'Inactive'}
               </Badge>
@@ -86,7 +83,7 @@ export default async function ChannelDetailPage({ params }: { params: Promise<{ 
             <CardTitle>Webhook URL</CardTitle>
           </CardHeader>
           <CardContent>
-            <code className="block break-all rounded bg-neutral-100 p-3 text-xs">{webhookUrl}</code>
+            <code className="block break-all rounded-md bg-muted p-3 text-xs">{webhookUrl}</code>
           </CardContent>
         </Card>
 
@@ -95,7 +92,7 @@ export default async function ChannelDetailPage({ params }: { params: Promise<{ 
             <CardTitle>Register JSON template</CardTitle>
           </CardHeader>
           <CardContent>
-            <pre className="overflow-auto rounded bg-neutral-100 p-3 text-xs">{registerJson}</pre>
+            <pre className="overflow-auto rounded-md bg-muted p-3 text-xs">{registerJson}</pre>
           </CardContent>
         </Card>
 
@@ -115,7 +112,7 @@ export default async function ChannelDetailPage({ params }: { params: Promise<{ 
         {channel.channel_type === 'MESSAGE' && (
           <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle>Send test message</CardTitle>
+              <CardTitle>Send message</CardTitle>
             </CardHeader>
             <CardContent>
               <form action={sendMessageAction} className="space-y-3">

@@ -1,0 +1,7 @@
+export const MESSAGE_CALLBACK_URL_PLACEHOLDER = 'https://your-agent/hooks/messages'
+export const PROMPT_CALLBACK_URL_PLACEHOLDER = 'https://your-agent.example.com/on_answer'
+export const PROMPT_TEXT_PLACEHOLDER = 'Ready to deploy v2.4.1?'
+export const CORRELATION_ID_PLACEHOLDER = 'deploy-42'
+export const CHANNEL_ID_PLACEHOLDER = 'my-telegram-prompts'
+export const TARGET_CHAT_ID_PLACEHOLDER = '-1001234567890'
+export const MESSAGE_TEXT_PLACEHOLDER = 'Hello from Greenlight admin'

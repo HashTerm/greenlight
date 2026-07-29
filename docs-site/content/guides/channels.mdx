@@ -61,7 +61,9 @@ POST /send
 ```
 
 Use a registered channel to deliver a plain message (not a prompt card). Useful
-after a `MESSAGE` channel callback.
+after a `MESSAGE` channel callback. Outbound sends are stored in the message
+history (`message_id` in the response). Inbound chat is logged automatically.
+See [Messages](/guides/messages).
 
 ## Platform credentials
 

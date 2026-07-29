@@ -10,7 +10,7 @@ Greenlight is source-available under BUSL-1.1 (not OSI open source until the Cha
 - [Quickstart](/getting-started/quickstart): Self-hosting and development quickstarts
 - [Features & benefits](/getting-started/features): Capabilities, multi-workflow channels, limitations
 - [Concepts](/getting-started/concepts): PROMPT vs MESSAGE, auth layers, platform adapters
-- [Admin UI](/getting-started/admin-ui): Setup, channels, prompts, settings
+- [Admin UI](/getting-started/admin-ui): Setup, channels, prompts, messages, retention settings
 - [Docker](/self-hosting/docker): Self-host Compose and Swarm
 - [Dokploy](/self-hosting/dokploy): Deploy with Dokploy
 - [Coolify](/self-hosting/coolify): Deploy with Coolify
@@ -19,6 +19,7 @@ Greenlight is source-available under BUSL-1.1 (not OSI open source until the Cha
 - [Agent integration](/guides/agent-integration): X-API-Key, create prompts, poll status
 - [Automation platforms](/guides/automation-platforms): n8n, Zapier, Make, Pipedream, and similar
 - [Channels](/guides/channels): Register-channel schema and channel types
+- [Messages](/guides/messages): MESSAGE history, send, retention
 - [Prompts](/guides/prompts): Options, TTL, text replies, media
 - [Callbacks](/guides/callbacks): Signed prompt answers and message events
 - [Architecture](/guides/architecture): Agent → Greenlight → platforms → callbacks
@@ -26,7 +27,7 @@ Greenlight is source-available under BUSL-1.1 (not OSI open source until the Cha
 - [Troubleshooting](/guides/troubleshooting): Common failures
 - [Platforms](/platforms): Comparison table and per-platform guides
 - [Agent API](/api-reference/agent-api): /v1/*, /register-channel, /send, /channels
-- [Admin API](/api-reference/admin-api): /admin/v1/status, /admin/v1/prompts
+- [Admin API](/api-reference/admin-api): /admin/v1/status, prompts, messages, settings
 - [Webhooks](/api-reference/webhooks): Inbound platform endpoints
 - [OpenAPI](/api-reference/openapi): Machine-readable spec
 - [Licensing](/legal/licensing): BUSL-1.1 editions and FAQ

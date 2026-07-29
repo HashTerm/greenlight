@@ -1,0 +1,108 @@
+'use client'
+
+import Link from 'next/link'
+import { useState } from 'react'
+
+import { createPromptAction } from '@/lib/actions'
+import { FileInput } from '@/components/file-input'
+import { PromptOptionsField } from '@/components/prompt-options-field'
+import { PromptChannelSelect } from '@/components/prompt-channel-select'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import type { Channel } from '@/lib/greenlight-client'
+import {
+  CORRELATION_ID_PLACEHOLDER,
+  PROMPT_CALLBACK_URL_PLACEHOLDER,
+  PROMPT_TEXT_PLACEHOLDER,
+} from '@/lib/form-placeholders'
+import { maxPromptOptionsForPlatform } from '@/lib/prompt-options'
+import type { Platform } from '@/lib/platform-fields'
+
+type NewPromptFormProps = {
+  channels: Channel[]
+  hasPromptChannels: boolean
+}
+
+export function NewPromptForm({ channels, hasPromptChannels }: NewPromptFormProps) {
+  const [selectedChannelId, setSelectedChannelId] = useState(channels[0]?.channel_id ?? '')
+  const [optionsOverLimit, setOptionsOverLimit] = useState(false)
+
+  const selectedChannel = channels.find((channel) => channel.channel_id === selectedChannelId)
+  const platform = (selectedChannel?.platform as Platform | undefined) ?? null
+  const maxOptions = maxPromptOptionsForPlatform(platform)
+
+  return (
+    <form action={createPromptAction} className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="channel_id">PROMPT channel</Label>
+        <PromptChannelSelect
+          channels={channels}
+          id="channel_id"
+          name="channel_id"
+          onValueChange={setSelectedChannelId}
+        />
+        {!channels.length && (
+          <p className="text-sm text-muted-foreground">
+            No PROMPT channels.{' '}
+            <Link href="/channels/add" className="text-primary hover:underline">
+              Register one
+            </Link>
+          </p>
+        )}
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="text">Text</Label>
+        <Textarea
+          id="text"
+          name="text"
+          placeholder={PROMPT_TEXT_PLACEHOLDER}
+          required
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="file">Attachment</Label>
+        <FileInput id="file" name="file" />
+        <p className="text-sm text-muted-foreground">
+          Optional — image or document sent with the message
+        </p>
+      </div>
+      <PromptOptionsField
+        maxOptions={maxOptions}
+        platform={platform}
+        onOverLimitChange={setOptionsOverLimit}
+      />
+      <div className="flex items-center gap-2">
+        <input id="allow_text" name="allow_text" type="checkbox" />
+        <Label htmlFor="allow_text">Allow free-text reply</Label>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="callback_url">Callback URL</Label>
+          <Input
+            id="callback_url"
+            name="callback_url"
+            placeholder={PROMPT_CALLBACK_URL_PLACEHOLDER}
+            type="url"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="correlation_id">Correlation ID</Label>
+          <Input
+            id="correlation_id"
+            name="correlation_id"
+            placeholder={CORRELATION_ID_PLACEHOLDER}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="ttl_sec">TTL (seconds)</Label>
+          <Input id="ttl_sec" name="ttl_sec" type="number" defaultValue={3600} />
+        </div>
+      </div>
+      <Button disabled={!hasPromptChannels || optionsOverLimit} type="submit">
+        Create prompt
+      </Button>
+    </form>
+  )
+}

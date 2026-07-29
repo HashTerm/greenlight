@@ -39,6 +39,9 @@ Secret: `CALLBACK_SIGNING_SECRET`. Retries up to 5 times with exponential backof
 
 For `MESSAGE` channels with `callback_url`, inbound text becomes:
 
+Greenlight also stores inbound rows in the message history table for operator
+audit (see [Messages](/guides/messages)).
+
 ```json
 {
   "type": "message.created",

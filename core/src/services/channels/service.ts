@@ -5,6 +5,9 @@ import {
   stopBotForChannelWithRow,
 } from '../../chat/bot-manager.js'
 import type { Platform } from '../../core/platform.js'
+import type { MessageSource } from '../messages/models.js'
+import * as messageModels from '../messages/models.js'
+import * as settingsModels from '../settings/models.js'
 import * as channelModels from './models.js'
 
 export async function registerChannel(data: {
@@ -30,15 +33,38 @@ export async function registerChannel(data: {
   })
 }
 
-export async function sendToChannel(channelId: string, text: string): Promise<void> {
-  await withClient(async (client) => {
+export async function sendToChannel(
+  channelId: string,
+  text: string,
+  source: MessageSource = 'api',
+): Promise<{ messageId?: string }> {
+  return withClient(async (client) => {
     const channel = await channelModels.getChannel(client, channelId)
     if (!channel || !channel.is_active) {
       throw new Error(`Channel ${channelId} not registered`)
     }
 
+    if (channel.channel_type !== 'MESSAGE') {
+      throw new Error(`Channel ${channelId} is not a MESSAGE channel`)
+    }
+
     await ensureBotForChannel(channel)
-    await postToChat(channel, text)
+    const { messageId: platformMessageId } = await postToChat(channel, text)
+
+    const settings = await settingsModels.getSettings(client)
+    if (settings.messages_outbound_zero_retention) {
+      return {}
+    }
+
+    const row = await messageModels.createMessage(client, {
+      channelId: channel.channel_id,
+      direction: 'outbound',
+      text,
+      platform: channel.platform,
+      source,
+      platformMessageId: platformMessageId ?? null,
+    })
+    return { messageId: row.id }
   })
 }
 

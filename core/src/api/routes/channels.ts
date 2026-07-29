@@ -44,8 +44,11 @@ channelRoutes.post('/register-channel', zValidator('json', registerChannelSchema
 channelRoutes.post('/send', zValidator('json', sendSchema), async (c) => {
   const body = c.req.valid('json')
   try {
-    await sendToChannel(body.channel_id, body.text)
-    return c.json({ status: 'sent' })
+    const result = await sendToChannel(body.channel_id, body.text, 'api')
+    return c.json({
+      status: 'sent',
+      ...(result.messageId ? { message_id: result.messageId } : {}),
+    })
   } catch (err) {
     return c.json({ detail: String(err) }, 404)
   }

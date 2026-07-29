@@ -50,6 +50,74 @@ Prompt history for operators.
 Array of prompt records including `id`, `prompt_num`, `text`, `state`,
 `options`, `answer`, and timestamps.
 
+## `GET /admin/v1/messages`
+
+MESSAGE channel history for operators.
+
+### Query
+
+| Param        | Type   | Default | Notes                              |
+| ------------ | ------ | ------- | ---------------------------------- |
+| `direction`  | string | `all`   | `inbound` \| `outbound` \| `all`   |
+| `channel_id` | string | —       | Filter by channel                  |
+| `limit`      | int    | `50`    | 1–200                              |
+
+### Response
+
+Array of message records: `id`, `channel_id`, `direction`, `text`, `platform`,
+`from_user`, `source`, `platform_message_id`, `created_at`.
+
+## `GET /admin/v1/messages/{id}`
+
+Single message record. Returns `404` when not found.
+
+## `POST /admin/v1/messages`
+
+Send outbound text on a `MESSAGE` channel (same delivery as `POST /send`, stored
+with `source: admin`).
+
+### Request body
+
+```json
+{
+  "channel_id": "ops-slack",
+  "text": "Hello from the admin UI"
+}
+```
+
+### Response `201`
+
+Message record (same shape as list items).
+
+## `GET /admin/v1/settings`
+
+Data retention configuration.
+
+### Response `200`
+
+```json
+{
+  "prompts_retention_enabled": false,
+  "prompts_retention_days": 30,
+  "messages_inbound_retention_enabled": true,
+  "messages_outbound_retention_enabled": true,
+  "messages_inbound_retention_days": 30,
+  "messages_outbound_retention_days": 30,
+  "messages_inbound_zero_retention": false,
+  "messages_outbound_zero_retention": false,
+  "updated_at": "2026-07-29T12:00:00.000Z"
+}
+```
+
+## `PATCH /admin/v1/settings`
+
+Update retention toggles and day counts. Days must be 1–3650 when the
+corresponding toggle is enabled.
+
+### Request body
+
+Same fields as the GET response (except `updated_at` is ignored).
+
 ## Errors
 
 | Status | Meaning                         |

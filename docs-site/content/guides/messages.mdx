@@ -1,0 +1,91 @@
+# Messages
+
+Greenlight stores **MESSAGE channel** chat history in Postgres for operator
+audit. This is separate from **prompts** (approval cards with buttons and
+signed answer callbacks).
+
+## What is stored
+
+| Direction  | When                                                         | Fields of note                          |
+| ---------- | ------------------------------------------------------------ | --------------------------------------- |
+| `inbound`  | A human sends text on a `MESSAGE` channel                    | `from_user`, `text`, `channel_id`       |
+| `outbound` | `POST /send` or Admin UI send succeeds                       | `source` (`api` or `admin`), `text`     |
+
+Inbound rows are created even if forwarding to the channel `callback_url` fails,
+unless **do not store inbound** is enabled in Settings.
+Outbound rows are created only after the platform accepts the send, unless
+**do not store outbound** is enabled.
+
+Persistence does **not** replace your agent webhook — inbound chat still
+forwards as unsigned `message.created` events. See [Callbacks](/guides/callbacks).
+
+## Send outbound
+
+### Agent API
+
+```bash
+POST /send
+```
+
+```json
+{
+  "channel_id": "ops-slack",
+  "text": "Thanks — deploying now."
+}
+```
+
+Response includes `message_id` when the message was stored (omitted when outbound
+zero retention is enabled).
+
+### Admin UI
+
+1. **Messages → Send message**
+2. Pick a `MESSAGE` channel
+3. Enter text and submit
+
+You can also send from a channel detail page (**Send message**).
+
+## Review history
+
+**Messages** in the Admin UI lists inbound and outbound rows with filters for
+direction (All / Inbound / Outbound). Click a row for full detail.
+
+Admin API: `GET /admin/v1/messages` and `GET /admin/v1/messages/{id}` — see
+[Admin API](/api-reference/admin-api).
+
+## Data retention
+
+Operators configure retention under **Settings → Data retention** in two layers:
+
+### Scheduled deletion
+
+Hard-delete stored rows older than N days (runs every minute):
+
+| Target | Default |
+| ------ | ------- |
+| Prompts | Off, 30 days when enabled |
+| Inbound messages | On, 30 days when enabled |
+| Outbound messages | On, 30 days when enabled |
+
+### Zero retention (do not store)
+
+When enabled, messages of that direction are **never written** to history (chat
+and callbacks still work):
+
+| Target | Default |
+| ------ | ------- |
+| Inbound | Off |
+| Outbound | Off |
+
+`POST /send` omits `message_id` in the response when outbound storage is disabled.
+
+This is independent of per-prompt `ttl_sec` (soft `EXPIRED` state).
+
+## vs prompts
+
+|                         | Messages (`MESSAGE`)     | Prompts (`PROMPT`)        |
+| ----------------------- | ------------------------ | ------------------------- |
+| Outbound API            | `POST /send`             | `POST /v1/prompts`        |
+| Interactive options     | No                       | Yes                       |
+| Answer callback         | N/A (use channel webhook)| Per-prompt, signed        |
+| Admin list              | `/messages`              | `/prompts`                |

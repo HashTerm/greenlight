@@ -11,8 +11,8 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ i
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">{prompt.id}</h1>
-        <p className="text-sm text-neutral-500">
+        <h1>{prompt.id}</h1>
+        <p className="text-sm text-muted-foreground">
           <Badge
             variant={
               prompt.state === 'ANSWERED'
@@ -36,15 +36,15 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ i
             <p className="whitespace-pre-wrap">{prompt.text}</p>
             {prompt.media_url && (
               <p>
-                <span className="text-neutral-500">Media:</span>{' '}
-                <a href={prompt.media_url} className="underline" target="_blank" rel="noreferrer">
+                <span className="text-muted-foreground">Media:</span>{' '}
+                <a href={prompt.media_url} className="text-primary hover:underline" target="_blank" rel="noreferrer">
                   {prompt.media_url}
                 </a>
               </p>
             )}
             {prompt.options?.length ? (
               <div>
-                <p className="text-neutral-500">Options</p>
+                <p className="text-muted-foreground">Options</p>
                 <ul className="list-disc pl-5">
                   {prompt.options.map((o) => (
                     <li key={o}>{o}</li>
@@ -53,7 +53,7 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ i
               </div>
             ) : null}
             <p>
-              <span className="text-neutral-500">Allow text:</span> {String(prompt.allow_text)}
+              <span className="text-muted-foreground">Allow text:</span> {String(prompt.allow_text)}
             </p>
           </CardContent>
         </Card>
@@ -64,25 +64,26 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ i
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p>
-              <span className="text-neutral-500">Channel:</span> {prompt.chat_id}
+              <span className="text-muted-foreground">Channel:</span> {prompt.chat_id}
             </p>
             <p>
-              <span className="text-neutral-500">Correlation:</span> {prompt.correlation_id ?? '—'}
+              <span className="text-muted-foreground">Correlation:</span>{' '}
+              {prompt.correlation_id ?? '—'}
             </p>
             <p>
-              <span className="text-neutral-500">Callback:</span>{' '}
+              <span className="text-muted-foreground">Callback:</span>{' '}
               {prompt.callback_url ? `${prompt.callback_url.slice(0, 32)}…` : '—'}
             </p>
             <p>
-              <span className="text-neutral-500">Created:</span>{' '}
+              <span className="text-muted-foreground">Created:</span>{' '}
               {new Date(prompt.created_at).toLocaleString()}
             </p>
             <p>
-              <span className="text-neutral-500">Expires:</span>{' '}
+              <span className="text-muted-foreground">Expires:</span>{' '}
               {prompt.expires_at ? new Date(prompt.expires_at).toLocaleString() : '—'}
             </p>
             <p>
-              <span className="text-neutral-500">Answered:</span>{' '}
+              <span className="text-muted-foreground">Answered:</span>{' '}
               {prompt.answered_at ? new Date(prompt.answered_at).toLocaleString() : '—'}
             </p>
           </CardContent>
@@ -95,13 +96,13 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ i
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <p>
-                <span className="text-neutral-500">Type:</span> {prompt.answer.type}
+                <span className="text-muted-foreground">Type:</span> {prompt.answer.type}
               </p>
               <p>
-                <span className="text-neutral-500">Value:</span> {prompt.answer.value}
+                <span className="text-muted-foreground">Value:</span> {prompt.answer.value}
               </p>
               <p>
-                <span className="text-neutral-500">By:</span>{' '}
+                <span className="text-muted-foreground">By:</span>{' '}
                 {prompt.answered_by_username ?? prompt.answered_by_id ?? '—'}
               </p>
             </CardContent>

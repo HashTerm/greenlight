@@ -110,7 +110,7 @@ Full guides: [Quickstart](docs-site/content/getting-started/quickstart.mdx), [Pl
 
 1. Run `npm run dev` (or `npm run docker:full`)
 2. Open `http://localhost:3001/setup` to create the super admin
-3. Sign in at `/login` — manage channels, prompts, and dashboard stats
+3. Sign in at `/login` — manage channels, prompts, messages, and retention settings
 
 Telegram walkthrough: [Quickstart](docs-site/content/getting-started/quickstart.mdx) and
 [Telegram](docs-site/content/platforms/telegram.mdx). Canonical product docs live in `docs-site/`.

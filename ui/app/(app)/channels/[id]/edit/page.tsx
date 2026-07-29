@@ -11,8 +11,8 @@ export default async function EditChannelPage({ params }: { params: Promise<{ id
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Edit {channel.channel_id}</h1>
-        <p className="text-sm text-neutral-500">Update channel configuration</p>
+        <h1>Edit {channel.channel_id}</h1>
+        <p className="text-sm text-muted-foreground">Update channel configuration</p>
       </div>
       <ChannelForm
         initial={{

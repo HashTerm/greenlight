@@ -2,8 +2,9 @@ export const dynamic = 'force-dynamic'
 
 import { getUserCount, loginAction } from '@/lib/actions'
 import { redirect } from 'next/navigation'
+import { AuthLayout } from '@/components/auth-layout'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
@@ -12,13 +13,9 @@ export default async function LoginPage() {
   if (count === 0) redirect('/setup')
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-neutral-50 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Sign in</CardTitle>
-          <CardDescription>Greenlight admin console</CardDescription>
-        </CardHeader>
-        <CardContent>
+    <AuthLayout subtitle="Sign in to manage your gateway" title="Welcome back">
+      <Card>
+        <CardContent className="pt-6">
           <form action={loginAction} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -28,12 +25,12 @@ export default async function LoginPage() {
               <Label htmlFor="password">Password</Label>
               <Input id="password" name="password" type="password" required />
             </div>
-            <Button type="submit" className="w-full">
+            <Button className="w-full" type="submit">
               Sign in
             </Button>
           </form>
         </CardContent>
       </Card>
-    </div>
+    </AuthLayout>
   )
 }

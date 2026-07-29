@@ -251,6 +251,18 @@ export async function cleanOnBoot(client: pg.PoolClient): Promise<void> {
   await client.query('DELETE FROM prompts WHERE state = $1 AND message_id IS NULL', [PENDING])
 }
 
+export async function deleteOlderThan(client: pg.PoolClient, days: number): Promise<number> {
+  const result = await client.query<{ c: string }>(
+    `WITH del AS (
+       DELETE FROM prompts
+       WHERE created_at < now() - ($1::int * interval '1 day')
+       RETURNING 1
+     ) SELECT count(*)::text AS c FROM del`,
+    [days],
+  )
+  return Number(result.rows[0]?.c ?? 0)
+}
+
 export async function getPromptByActionKey(
   client: pg.PoolClient,
   actionKey: string,

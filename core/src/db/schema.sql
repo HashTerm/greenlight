@@ -32,9 +32,7 @@ CREATE TABLE IF NOT EXISTS prompt_options (
   PRIMARY KEY (prompt_id, option_id)
 );
 
-DROP TABLE IF EXISTS channels;
-
-CREATE TABLE channels (
+CREATE TABLE IF NOT EXISTS channels (
   channel_id TEXT PRIMARY KEY,
   platform TEXT NOT NULL CHECK (platform IN ('telegram', 'slack', 'teams', 'discord', 'gchat', 'whatsapp', 'messenger')),
   target_chat_id TEXT NOT NULL,
@@ -48,3 +46,45 @@ CREATE TABLE channels (
 CREATE INDEX IF NOT EXISTS idx_channels_active ON channels(is_active);
 CREATE INDEX IF NOT EXISTS idx_channels_platform_target ON channels(platform, target_chat_id);
 CREATE INDEX IF NOT EXISTS idx_channels_type ON channels(channel_type);
+
+CREATE TABLE IF NOT EXISTS messages (
+  id TEXT PRIMARY KEY,
+  channel_id TEXT NOT NULL REFERENCES channels(channel_id),
+  direction TEXT NOT NULL CHECK (direction IN ('outbound', 'inbound')),
+  text TEXT NOT NULL,
+  platform TEXT NOT NULL,
+  from_user TEXT,
+  source TEXT CHECK (source IS NULL OR source IN ('api', 'admin')),
+  platform_message_id TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at);
+CREATE INDEX IF NOT EXISTS idx_messages_channel ON messages(channel_id);
+CREATE INDEX IF NOT EXISTS idx_messages_direction ON messages(direction);
+
+CREATE TABLE IF NOT EXISTS app_settings (
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  prompts_retention_enabled BOOLEAN NOT NULL DEFAULT false,
+  prompts_retention_days INTEGER NOT NULL DEFAULT 30,
+  messages_inbound_retention_enabled BOOLEAN NOT NULL DEFAULT true,
+  messages_outbound_retention_enabled BOOLEAN NOT NULL DEFAULT true,
+  messages_inbound_retention_days INTEGER NOT NULL DEFAULT 30,
+  messages_outbound_retention_days INTEGER NOT NULL DEFAULT 30,
+  messages_inbound_zero_retention BOOLEAN NOT NULL DEFAULT false,
+  messages_outbound_zero_retention BOOLEAN NOT NULL DEFAULT false,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+INSERT INTO app_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
+
+-- Legacy columns (pre-directional retention); kept for existing DBs only
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS messages_retention_enabled BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS messages_retention_days INTEGER NOT NULL DEFAULT 30;
+
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS messages_inbound_retention_enabled BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS messages_outbound_retention_enabled BOOLEAN NOT NULL DEFAULT true;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS messages_inbound_retention_days INTEGER NOT NULL DEFAULT 30;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS messages_outbound_retention_days INTEGER NOT NULL DEFAULT 30;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS messages_inbound_zero_retention BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS messages_outbound_zero_retention BOOLEAN NOT NULL DEFAULT false;

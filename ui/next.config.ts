@@ -4,9 +4,7 @@ import { loadEnvConfig } from '@next/env'
 import type { NextConfig } from 'next'
 
 const uiDir =
-  typeof __dirname !== 'undefined'
-    ? __dirname
-    : path.dirname(fileURLToPath(import.meta.url))
+  typeof __dirname !== 'undefined' ? __dirname : path.dirname(fileURLToPath(import.meta.url))
 
 // Load root .env so hybrid npm dev shares secrets with core / compose
 loadEnvConfig(path.join(uiDir, '..'))

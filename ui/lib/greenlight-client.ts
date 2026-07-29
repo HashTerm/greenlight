@@ -81,6 +81,41 @@ export interface Prompt {
   answer: { type: string; value: string } | null
 }
 
+export interface Message {
+  id: string
+  channel_id: string
+  direction: 'inbound' | 'outbound'
+  text: string
+  platform: string
+  from_user: string | null
+  source: 'api' | 'admin' | null
+  platform_message_id: string | null
+  created_at: string
+}
+
+export interface RetentionSettings {
+  prompts_retention_enabled: boolean
+  prompts_retention_days: number
+  messages_inbound_retention_enabled: boolean
+  messages_outbound_retention_enabled: boolean
+  messages_inbound_retention_days: number
+  messages_outbound_retention_days: number
+  messages_inbound_zero_retention: boolean
+  messages_outbound_zero_retention: boolean
+  updated_at: string
+}
+
+export const DEFAULT_RETENTION_SETTINGS: Omit<RetentionSettings, 'updated_at'> = {
+  prompts_retention_enabled: false,
+  prompts_retention_days: 30,
+  messages_inbound_retention_enabled: true,
+  messages_outbound_retention_enabled: true,
+  messages_inbound_retention_days: 30,
+  messages_outbound_retention_days: 30,
+  messages_inbound_zero_retention: false,
+  messages_outbound_zero_retention: false,
+}
+
 export function getPublicWebhookUrl(): string {
   return process.env.PUBLIC_WEBHOOK_URL ?? 'http://localhost:8100'
 }

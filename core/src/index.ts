@@ -6,6 +6,7 @@ import * as promptModels from './services/prompts/models.js'
 import { shutdownAllBots } from './chat/bot-manager.js'
 import { restoreChannelsOnStartup } from './services/channels/service.js'
 import { expirePrompts } from './services/prompts/service.js'
+import { runRetention } from './services/settings/service.js'
 
 async function bootstrap(): Promise<void> {
   const config = loadConfig()
@@ -20,6 +21,10 @@ async function bootstrap(): Promise<void> {
 
   setInterval(() => {
     expirePrompts().catch((err) => console.error('expire prompts error:', err))
+  }, 60_000)
+
+  setInterval(() => {
+    runRetention().catch((err) => console.error('retention error:', err))
   }, 60_000)
 
   const app = createApp()

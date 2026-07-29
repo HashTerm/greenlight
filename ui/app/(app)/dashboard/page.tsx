@@ -1,5 +1,18 @@
 import Link from 'next/link'
+import {
+  CheckCircle2,
+  Clock,
+  Database,
+  LayoutDashboard,
+  List,
+  PieChart,
+  Radio,
+  TrendingUp,
+} from 'lucide-react'
 import { fetchChannels, fetchPrompts, fetchStatus } from '@/lib/actions'
+import { CardSectionTitle } from '@/components/card-section-title'
+import { DashboardEmptyMessage } from '@/components/dashboard-empty-message'
+import { PageHeader } from '@/components/page-header'
 import { PlatformChart, PromptStatsChart } from '@/components/charts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -12,6 +25,33 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+
+const statCards = [
+  {
+    label: 'Database',
+    icon: Database,
+    value: (status: Awaited<ReturnType<typeof fetchStatus>> | null) =>
+      status?.database === 'ok' ? 'Healthy' : 'Error',
+  },
+  {
+    label: 'Active channels',
+    icon: Radio,
+    value: (status: Awaited<ReturnType<typeof fetchStatus>> | null) =>
+      status?.channels_active ?? '—',
+  },
+  {
+    label: 'Pending prompts',
+    icon: Clock,
+    value: (status: Awaited<ReturnType<typeof fetchStatus>> | null) =>
+      status?.prompts_pending ?? '—',
+  },
+  {
+    label: 'Answered (24h)',
+    icon: CheckCircle2,
+    value: (status: Awaited<ReturnType<typeof fetchStatus>> | null) =>
+      status?.prompts_answered_24h ?? '—',
+  },
+] as const
 
 export default async function DashboardPage() {
   const [status, prompts, channels] = await Promise.all([
@@ -27,54 +67,43 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Dashboard</h1>
-          <p className="text-sm text-neutral-500">Gateway health and activity</p>
-        </div>
-        <div className="flex gap-2">
-          <Button asChild variant="outline">
-            <Link href="/channels/new">Add channel</Link>
-          </Button>
-          <Button asChild>
-            <Link href="/prompts/new">New prompt</Link>
-          </Button>
-        </div>
-      </div>
+      <PageHeader
+        description="Gateway health and activity"
+        icon={LayoutDashboard}
+        title="Dashboard"
+        actions={
+          <div className="flex gap-2">
+            <Button asChild variant="outline">
+              <Link href="/channels/add">Add channel</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/messages/send">Send message</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/prompts/new">New prompt</Link>
+            </Button>
+          </div>
+        }
+      />
 
       <div className="grid gap-4 md:grid-cols-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Database</CardDescription>
-            <CardTitle className="text-xl">
-              {status?.database === 'ok' ? 'Healthy' : 'Error'}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Active channels</CardDescription>
-            <CardTitle className="text-xl">{status?.channels_active ?? '—'}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Pending prompts</CardDescription>
-            <CardTitle className="text-xl">{status?.prompts_pending ?? '—'}</CardTitle>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Answered (24h)</CardDescription>
-            <CardTitle className="text-xl">{status?.prompts_answered_24h ?? '—'}</CardTitle>
-          </CardHeader>
-        </Card>
+        {statCards.map(({ label, icon: Icon, value }) => (
+          <Card key={label}>
+            <CardHeader className="gap-1 p-4">
+              <div className="flex items-center justify-between">
+                <CardDescription>{label}</CardDescription>
+                <Icon className="size-4 text-muted-foreground" />
+              </div>
+              <CardTitle className="text-base">{value(status)}</CardTitle>
+            </CardHeader>
+          </Card>
+        ))}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Platform breakdown</CardTitle>
+            <CardSectionTitle icon={PieChart}>Platform breakdown</CardSectionTitle>
           </CardHeader>
           <CardContent>
             <PlatformChart data={status?.platforms ?? {}} />
@@ -82,7 +111,7 @@ export default async function DashboardPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Prompt activity (14 days)</CardTitle>
+            <CardSectionTitle icon={TrendingUp}>Prompt activity (14 days)</CardSectionTitle>
           </CardHeader>
           <CardContent>
             <PromptStatsChart prompts={prompts} />
@@ -93,76 +122,84 @@ export default async function DashboardPage() {
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Recent prompts</CardTitle>
+            <CardSectionTitle icon={List}>Recent prompts</CardSectionTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>State</TableHead>
-                  <TableHead>Text</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentPrompts.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell>
-                      <Link href={`/prompts/${encodeURIComponent(p.id)}`} className="underline">
-                        {p.id}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          p.state === 'ANSWERED'
-                            ? 'success'
-                            : p.state === 'PENDING'
-                              ? 'warning'
-                              : 'default'
-                        }
-                      >
-                        {p.state}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate">{p.text}</TableCell>
+            {recentPrompts.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>State</TableHead>
+                    <TableHead>Text</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {recentPrompts.map((p) => (
+                    <TableRow key={p.id}>
+                      <TableCell>
+                        <Link href={`/prompts/${encodeURIComponent(p.id)}`} className="text-primary hover:underline">
+                          {p.id}
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            p.state === 'ANSWERED'
+                              ? 'success'
+                              : p.state === 'PENDING'
+                                ? 'warning'
+                                : 'default'
+                          }
+                        >
+                          {p.state}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="max-w-xs truncate">{p.text}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <DashboardEmptyMessage>No recent prompts.</DashboardEmptyMessage>
+            )}
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent channels</CardTitle>
+            <CardSectionTitle icon={Radio}>Recent channels</CardSectionTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>ID</TableHead>
-                  <TableHead>Platform</TableHead>
-                  <TableHead>Type</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentChannels.map((c) => (
-                  <TableRow key={c.channel_id}>
-                    <TableCell>
-                      <Link
-                        href={`/channels/${encodeURIComponent(c.channel_id)}`}
-                        className="underline"
-                      >
-                        {c.channel_id}
-                      </Link>
-                    </TableCell>
-                    <TableCell>{c.platform}</TableCell>
-                    <TableCell>{c.channel_type}</TableCell>
+            {recentChannels.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>ID</TableHead>
+                    <TableHead>Platform</TableHead>
+                    <TableHead>Type</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {recentChannels.map((c) => (
+                    <TableRow key={c.channel_id}>
+                      <TableCell>
+                        <Link
+                          href={`/channels/${encodeURIComponent(c.channel_id)}`}
+                          className="text-primary hover:underline"
+                        >
+                          {c.channel_id}
+                        </Link>
+                      </TableCell>
+                      <TableCell>{c.platform}</TableCell>
+                      <TableCell>{c.channel_type}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <DashboardEmptyMessage>No recent channels.</DashboardEmptyMessage>
+            )}
           </CardContent>
         </Card>
       </div>

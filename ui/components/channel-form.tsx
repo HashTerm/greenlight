@@ -2,12 +2,19 @@
 
 import { useMemo, useState } from 'react'
 import { registerChannelAction } from '@/lib/actions'
+import {
+  CHANNEL_ID_PLACEHOLDER,
+  MESSAGE_CALLBACK_URL_PLACEHOLDER,
+  TARGET_CHAT_ID_PLACEHOLDER,
+} from '@/lib/form-placeholders'
 import { formatGuideSteps } from '@/lib/platform-guides'
-import { PLATFORMS, PLATFORM_FIELDS, type Platform } from '@/lib/platform-fields'
+import { PLATFORM_FIELDS, type Platform } from '@/lib/platform-fields'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { ChannelTypeSelect, type ChannelType } from '@/components/channel-type-select'
+import { PlatformSelect } from '@/components/platform-select'
 import { Textarea } from '@/components/ui/textarea'
 
 interface ChannelFormProps {
@@ -23,6 +30,9 @@ interface ChannelFormProps {
 
 export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
   const [platform, setPlatform] = useState<Platform>((initial?.platform as Platform) ?? 'telegram')
+  const [channelType, setChannelType] = useState<ChannelType>(
+    (initial?.channel_type as ChannelType) ?? 'MESSAGE',
+  )
 
   const fields = PLATFORM_FIELDS[platform]
   const webhookBase = process.env.NEXT_PUBLIC_WEBHOOK_URL ?? 'http://localhost:8100'
@@ -46,25 +56,19 @@ export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
                   id="channel_id"
                   name="channel_id"
                   defaultValue={initial?.channel_id}
+                  placeholder={CHANNEL_ID_PLACEHOLDER}
                   readOnly={lockChannelId}
                   required
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="platform">Platform</Label>
-                <select
+                <PlatformSelect
                   id="platform"
                   name="platform"
-                  className="flex h-9 w-full rounded-md border border-neutral-300 bg-white px-3 text-sm"
                   value={platform}
-                  onChange={(e) => setPlatform(e.target.value as Platform)}
-                >
-                  {PLATFORMS.map((p) => (
-                    <option key={p} value={p}>
-                      {p}
-                    </option>
-                  ))}
-                </select>
+                  onValueChange={setPlatform}
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="target_chat_id">Target chat ID</Label>
@@ -72,20 +76,18 @@ export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
                   id="target_chat_id"
                   name="target_chat_id"
                   defaultValue={initial?.target_chat_id}
+                  placeholder={TARGET_CHAT_ID_PLACEHOLDER}
                   required
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="channel_type">Channel type</Label>
-                <select
+                <ChannelTypeSelect
                   id="channel_type"
                   name="channel_type"
-                  className="flex h-9 w-full rounded-md border border-neutral-300 bg-white px-3 text-sm"
-                  defaultValue={initial?.channel_type ?? 'MESSAGE'}
-                >
-                  <option value="MESSAGE">MESSAGE</option>
-                  <option value="PROMPT">PROMPT</option>
-                </select>
+                  value={channelType}
+                  onValueChange={setChannelType}
+                />
               </div>
             </div>
 
@@ -96,7 +98,7 @@ export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
                 name="callback_url"
                 type="url"
                 defaultValue={initial?.callback_url}
-                placeholder="https://your-agent/hooks/messages"
+                placeholder={MESSAGE_CALLBACK_URL_PLACEHOLDER}
               />
             </div>
 
@@ -124,7 +126,7 @@ export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
                 </div>
               ))}
               {initial && (
-                <p className="text-xs text-neutral-500">
+                <p className="text-xs text-muted-foreground">
                   Leave credential fields blank to keep existing values (re-submit all to update).
                 </p>
               )}
@@ -140,7 +142,7 @@ export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
           <CardTitle>Setup guide</CardTitle>
         </CardHeader>
         <CardContent>
-          <ol className="list-decimal space-y-2 pl-5 text-sm text-neutral-600">
+          <ol className="list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
             {guideSteps.map((step) => (
               <li key={step}>{step}</li>
             ))}

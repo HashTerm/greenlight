@@ -67,6 +67,27 @@ or, on update:
 Returns prompt state including `answer`, timestamps, and options. Encode `#` as
 `%23`.
 
+## `POST /send`
+
+Send plain text on a `MESSAGE` channel. Persisted in message history when
+delivery succeeds.
+
+### Request body
+
+| Field        | Type   | Required | Notes           |
+| ------------ | ------ | -------- | --------------- |
+| `channel_id` | string | Yes      | MESSAGE channel |
+| `text`       | string | Yes      | Message body    |
+
+### Response `200`
+
+```json
+{
+  "status": "sent",
+  "message_id": "550e8400-e29b-41d4-a716-446655440000"
+}
+```
+
 ## Common errors
 
 | Status | `detail` example                                |

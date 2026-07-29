@@ -12,6 +12,12 @@ import {
   YAxis,
 } from 'recharts'
 import type { Prompt } from '@/lib/greenlight-client'
+import { DashboardEmptyMessage } from '@/components/dashboard-empty-message'
+
+const axisProps = {
+  stroke: 'var(--muted-foreground)',
+  tick: { fill: 'var(--muted-foreground)' },
+}
 
 export function PlatformChart({ data }: { data: Record<string, number> }) {
   const chartData = Object.entries(data).map(([platform, count]) => ({
@@ -20,18 +26,18 @@ export function PlatformChart({ data }: { data: Record<string, number> }) {
   }))
 
   if (!chartData.length) {
-    return <p className="text-sm text-neutral-500">No channels registered yet.</p>
+    return <DashboardEmptyMessage>No channels registered yet.</DashboardEmptyMessage>
   }
 
   return (
     <div className="h-64">
       <ResponsiveContainer width="100%" height="100%">
         <BarChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="platform" />
-          <YAxis allowDecimals={false} />
+          <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" />
+          <XAxis dataKey="platform" {...axisProps} />
+          <YAxis allowDecimals={false} {...axisProps} />
           <Tooltip />
-          <Bar dataKey="count" fill="#171717" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="count" fill="var(--chart-1)" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>
@@ -57,19 +63,19 @@ export function PromptStatsChart({ prompts }: { prompts: Prompt[] }) {
   const chartData = [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day)).slice(-14)
 
   if (!chartData.length) {
-    return <p className="text-sm text-neutral-500">No prompt activity yet.</p>
+    return <DashboardEmptyMessage>No prompt activity yet.</DashboardEmptyMessage>
   }
 
   return (
     <div className="h-64">
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="day" />
-          <YAxis allowDecimals={false} />
+          <CartesianGrid stroke="var(--border)" strokeDasharray="3 3" />
+          <XAxis dataKey="day" {...axisProps} />
+          <YAxis allowDecimals={false} {...axisProps} />
           <Tooltip />
-          <Line type="monotone" dataKey="created" stroke="#171717" name="Created" />
-          <Line type="monotone" dataKey="answered" stroke="#16a34a" name="Answered" />
+          <Line type="monotone" dataKey="created" stroke="var(--chart-2)" name="Created" />
+          <Line type="monotone" dataKey="answered" stroke="var(--primary)" name="Answered" />
         </LineChart>
       </ResponsiveContainer>
     </div>

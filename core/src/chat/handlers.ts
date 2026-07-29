@@ -5,6 +5,7 @@ import { loadConfig } from '../core/config.js'
 import { credentialFingerprint, parseThreadChannelId, type Platform } from '../core/platform.js'
 import * as promptModels from '../services/prompts/models.js'
 import * as channelModels from '../services/channels/models.js'
+import { recordInboundMessage } from '../services/messages/service.js'
 import { getBotByKey } from './bot-registry.js'
 import { instanceKey } from '../core/platform.js'
 
@@ -113,9 +114,15 @@ export function wireHandlers(
       return
     }
 
-    if (channel.channel_type === 'MESSAGE' && channel.callback_url) {
+    if (channel.channel_type === 'MESSAGE') {
       const from =
         user?.userName ?? user?.fullName ?? (user?.userId ? `user_${user.userId}` : 'unknown')
+
+      await recordInboundMessage(channel, trimmed, from).catch((err) =>
+        console.error('record inbound message error:', err),
+      )
+
+      if (!channel.callback_url) return
 
       const ok = await forwardChannelCallback(channel.callback_url, {
         type: 'message.created',

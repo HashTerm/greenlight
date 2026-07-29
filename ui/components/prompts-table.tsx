@@ -26,7 +26,7 @@ export function PromptsTable({ prompts }: { prompts: Prompt[] }) {
         {prompts.map((p) => (
           <TableRow key={p.id}>
             <TableCell>
-              <Link href={`/prompts/${encodeURIComponent(p.id)}`} className="underline">
+              <Link href={`/prompts/${encodeURIComponent(p.id)}`} className="text-primary hover:underline">
                 {p.id}
               </Link>
             </TableCell>
@@ -41,7 +41,7 @@ export function PromptsTable({ prompts }: { prompts: Prompt[] }) {
               </Badge>
             </TableCell>
             <TableCell className="font-mono text-xs">{p.chat_id}</TableCell>
-            <TableCell className="text-xs text-neutral-500">
+            <TableCell className="text-xs text-muted-foreground">
               {new Date(p.created_at).toLocaleString()}
             </TableCell>
           </TableRow>

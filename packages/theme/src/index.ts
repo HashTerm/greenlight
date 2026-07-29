@@ -9,9 +9,4 @@ export {
   resolveTheme,
   themeIsValid,
 } from './shared'
-export type {
-  ResolvedTheme,
-  ThemeConfig,
-  ThemeContextType,
-  ThemePreference,
-} from './types'
+export type { ResolvedTheme, ThemeConfig, ThemeContextType, ThemePreference } from './types'
