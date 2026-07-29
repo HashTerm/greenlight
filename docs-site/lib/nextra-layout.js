@@ -1,24 +1,28 @@
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { ThemeProvider } from '@greenlight/theme'
 import { SkipNavLink } from 'nextra/components'
-import { z } from 'zod'
-import { MobileNav } from 'nextra-theme-docs-layout-internals/components/sidebar.js'
-import { LayoutPropsSchema } from 'nextra-theme-docs-layout-internals/schemas.js'
+import { z } from '../../node_modules/nextra-theme-docs/node_modules/zod/index.js'
+import { MobileNav } from '../../node_modules/nextra-theme-docs/dist/components/sidebar.js'
+import { LayoutPropsSchema } from '../../node_modules/nextra-theme-docs/dist/schemas.js'
 import {
   ConfigProvider,
   ThemeConfigProvider,
-} from 'nextra-theme-docs-layout-internals/stores/index.js'
+} from '../../node_modules/nextra-theme-docs/dist/stores/index.js'
 
 const docsThemeConfig = {
   enableClassAttribute: true,
 }
 
 const Layout = (props) => {
-  const { data, error } = LayoutPropsSchema.safeParse(props)
+  const { children, ...themeConfig } = props
+  const { data, error } = LayoutPropsSchema.safeParse({
+    ...themeConfig,
+    children: children ?? null,
+  })
   if (error) {
     throw z.prettifyError(error)
   }
-  const { footer, navbar, pageMap, banner, children, ...rest } = data
+  const { footer, navbar, pageMap, banner, children: _parsedChildren, ...rest } = data
 
   return jsx(ThemeConfigProvider, {
     value: rest,
