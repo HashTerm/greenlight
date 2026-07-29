@@ -1,7 +1,8 @@
 import { jsx, jsxs } from 'react/jsx-runtime'
 import { ThemeProvider } from '@greenlight/theme'
 import { SkipNavLink } from 'nextra/components'
-import { z } from '../../node_modules/nextra-theme-docs/node_modules/zod/index.js'
+import { z } from 'zod'
+// Nextra does not export these modules; relative paths work with Turbopack (unlike resolveAlias prefixes).
 import { MobileNav } from '../../node_modules/nextra-theme-docs/dist/components/sidebar.js'
 import { LayoutPropsSchema } from '../../node_modules/nextra-theme-docs/dist/schemas.js'
 import {
