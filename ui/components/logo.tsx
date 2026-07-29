@@ -18,6 +18,7 @@ export function Logo({ className, showLabel = true, href = '/dashboard' }: LogoP
         height={40}
         priority
         src="/logo/greenlight-mark-dark.svg"
+        unoptimized
         width={40}
       />
       <Image
@@ -26,6 +27,7 @@ export function Logo({ className, showLabel = true, href = '/dashboard' }: LogoP
         height={40}
         priority
         src="/logo/greenlight-mark-light.svg"
+        unoptimized
         width={40}
       />
       {showLabel ? (

@@ -1,10 +1,23 @@
 import { auth } from '@/middleware-auth'
 import { NextResponse } from 'next/server'
 
-const publicPaths = ['/login', '/setup', '/api/auth', '/api/health']
+const publicPaths = ['/login', '/setup', '/api/auth', '/api/health', '/logo']
+
+function isStaticPublicAsset(pathname: string): boolean {
+  return (
+    pathname.startsWith('/logo/') ||
+    pathname === '/favicon.svg' ||
+    pathname === '/favicon.ico'
+  )
+}
 
 export default auth((req) => {
   const { pathname } = req.nextUrl
+
+  if (isStaticPublicAsset(pathname)) {
+    return NextResponse.next()
+  }
+
   const isPublic = publicPaths.some((p) => pathname === p || pathname.startsWith(`${p}/`))
 
   if (!req.auth && !isPublic) {
