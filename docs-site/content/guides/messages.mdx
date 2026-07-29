@@ -6,10 +6,10 @@ signed answer callbacks).
 
 ## What is stored
 
-| Direction  | When                                                         | Fields of note                          |
-| ---------- | ------------------------------------------------------------ | --------------------------------------- |
-| `inbound`  | A human sends text on a `MESSAGE` channel                    | `from_user`, `text`, `channel_id`       |
-| `outbound` | `POST /send` or Admin UI send succeeds                       | `source` (`api` or `admin`), `text`     |
+| Direction  | When                                      | Fields of note                      |
+| ---------- | ----------------------------------------- | ----------------------------------- |
+| `inbound`  | A human sends text on a `MESSAGE` channel | `from_user`, `text`, `channel_id`   |
+| `outbound` | `POST /send` or Admin UI send succeeds    | `source` (`api` or `admin`), `text` |
 
 Inbound rows are created even if forwarding to the channel `callback_url` fails,
 unless **do not store inbound** is enabled in Settings.
@@ -61,21 +61,21 @@ Operators configure retention under **Settings → Data retention** in two layer
 
 Hard-delete stored rows older than N days (runs every minute):
 
-| Target | Default |
-| ------ | ------- |
-| Prompts | Off, 30 days when enabled |
-| Inbound messages | On, 30 days when enabled |
-| Outbound messages | On, 30 days when enabled |
+| Target            | Default                   |
+| ----------------- | ------------------------- |
+| Prompts           | Off, 30 days when enabled |
+| Inbound messages  | On, 30 days when enabled  |
+| Outbound messages | On, 30 days when enabled  |
 
 ### Zero retention (do not store)
 
 When enabled, messages of that direction are **never written** to history (chat
 and callbacks still work):
 
-| Target | Default |
-| ------ | ------- |
-| Inbound | Off |
-| Outbound | Off |
+| Target   | Default |
+| -------- | ------- |
+| Inbound  | Off     |
+| Outbound | Off     |
 
 `POST /send` omits `message_id` in the response when outbound storage is disabled.
 
@@ -83,9 +83,9 @@ This is independent of per-prompt `ttl_sec` (soft `EXPIRED` state).
 
 ## vs prompts
 
-|                         | Messages (`MESSAGE`)     | Prompts (`PROMPT`)        |
-| ----------------------- | ------------------------ | ------------------------- |
-| Outbound API            | `POST /send`             | `POST /v1/prompts`        |
-| Interactive options     | No                       | Yes                       |
-| Answer callback         | N/A (use channel webhook)| Per-prompt, signed        |
-| Admin list              | `/messages`              | `/prompts`                |
+|                     | Messages (`MESSAGE`)      | Prompts (`PROMPT`) |
+| ------------------- | ------------------------- | ------------------ |
+| Outbound API        | `POST /send`              | `POST /v1/prompts` |
+| Interactive options | No                        | Yes                |
+| Answer callback     | N/A (use channel webhook) | Per-prompt, signed |
+| Admin list          | `/messages`               | `/prompts`         |

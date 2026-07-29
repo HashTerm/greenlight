@@ -50,8 +50,7 @@ export function PromptOptionsField({
     setOptions((current) => [...current, ''])
   }
 
-  const excessCount =
-    maxOptions !== null && filledCount > maxOptions ? filledCount - maxOptions : 0
+  const excessCount = maxOptions !== null && filledCount > maxOptions ? filledCount - maxOptions : 0
 
   return (
     <div className="space-y-2">
@@ -80,13 +79,7 @@ export function PromptOptionsField({
           ))}
         </div>
       )}
-      <Button
-        disabled={!canAdd}
-        size="sm"
-        type="button"
-        variant="outline"
-        onClick={addOption}
-      >
+      <Button disabled={!canAdd} size="sm" type="button" variant="outline" onClick={addOption}>
         <PlusIcon />
         Add option
       </Button>

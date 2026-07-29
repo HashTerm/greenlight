@@ -32,12 +32,7 @@ export function NewMessageForm({ channels, hasMessageChannels }: NewMessageFormP
       </div>
       <div className="space-y-2">
         <Label htmlFor="text">Message</Label>
-        <Textarea
-          id="text"
-          name="text"
-          placeholder={MESSAGE_TEXT_PLACEHOLDER}
-          required
-        />
+        <Textarea id="text" name="text" placeholder={MESSAGE_TEXT_PLACEHOLDER} required />
       </div>
       <Button disabled={!hasMessageChannels} type="submit">
         Deliver

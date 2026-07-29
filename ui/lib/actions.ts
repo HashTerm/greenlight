@@ -126,9 +126,7 @@ export async function updateRetentionSettingsAction(formData: FormData) {
   const messagesInboundZeroRetention = formData.get('messages_inbound_zero_retention') === 'on'
   const messagesOutboundZeroRetention = formData.get('messages_outbound_zero_retention') === 'on'
   const promptsRetentionDays = Number(formData.get('prompts_retention_days') ?? 30)
-  const messagesInboundRetentionDays = Number(
-    formData.get('messages_inbound_retention_days') ?? 30,
-  )
+  const messagesInboundRetentionDays = Number(formData.get('messages_inbound_retention_days') ?? 30)
   const messagesOutboundRetentionDays = Number(
     formData.get('messages_outbound_retention_days') ?? 30,
   )

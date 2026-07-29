@@ -25,10 +25,7 @@ export function countFilledPromptOptions(options: string[]): number {
   return options.filter((option) => option.trim()).length
 }
 
-export function isOverPromptOptionLimit(
-  options: string[],
-  maxOptions: number | null,
-): boolean {
+export function isOverPromptOptionLimit(options: string[], maxOptions: number | null): boolean {
   if (maxOptions === null) return false
   return countFilledPromptOptions(options) > maxOptions
 }

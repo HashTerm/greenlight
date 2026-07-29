@@ -37,7 +37,12 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ i
             {prompt.media_url && (
               <p>
                 <span className="text-muted-foreground">Media:</span>{' '}
-                <a href={prompt.media_url} className="text-primary hover:underline" target="_blank" rel="noreferrer">
+                <a
+                  href={prompt.media_url}
+                  className="text-primary hover:underline"
+                  target="_blank"
+                  rel="noreferrer"
+                >
                   {prompt.media_url}
                 </a>
               </p>

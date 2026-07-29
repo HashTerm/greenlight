@@ -45,9 +45,7 @@ export function FileInput({ className, id, onFileChange, ...props }: FileInputPr
             )}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium">
-              {fileName ?? 'Choose a file'}
-            </p>
+            <p className="truncate text-sm font-medium">{fileName ?? 'Choose a file'}</p>
             <p className="text-xs text-muted-foreground">
               {fileName ? 'Click to replace' : 'Click to browse from your device'}
             </p>

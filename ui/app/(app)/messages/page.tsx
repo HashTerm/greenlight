@@ -1,10 +1,5 @@
 import Link from 'next/link'
-import {
-  ArrowDownLeft,
-  ArrowUpRight,
-  Inbox,
-  MessageSquare,
-} from 'lucide-react'
+import { ArrowDownLeft, ArrowUpRight, Inbox, MessageSquare } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { fetchMessages } from '@/lib/actions'
 import { CardSectionTitle } from '@/components/card-section-title'

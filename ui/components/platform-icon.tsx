@@ -1,12 +1,6 @@
 import { cn } from '@/lib/utils'
 
-export function PlatformIcon({
-  className,
-  iconSvg,
-}: {
-  className?: string
-  iconSvg: string
-}) {
+export function PlatformIcon({ className, iconSvg }: { className?: string; iconSvg: string }) {
   return (
     <span
       aria-hidden="true"

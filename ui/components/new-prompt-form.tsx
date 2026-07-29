@@ -54,12 +54,7 @@ export function NewPromptForm({ channels, hasPromptChannels }: NewPromptFormProp
       </div>
       <div className="space-y-2">
         <Label htmlFor="text">Text</Label>
-        <Textarea
-          id="text"
-          name="text"
-          placeholder={PROMPT_TEXT_PLACEHOLDER}
-          required
-        />
+        <Textarea id="text" name="text" placeholder={PROMPT_TEXT_PLACEHOLDER} required />
       </div>
       <div className="space-y-2">
         <Label htmlFor="file">Attachment</Label>

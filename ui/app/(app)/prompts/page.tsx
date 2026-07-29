@@ -1,11 +1,5 @@
 import Link from 'next/link'
-import {
-  CheckCircle2,
-  Clock,
-  List,
-  MessageCircleQuestion,
-  TimerOff,
-} from 'lucide-react'
+import { CheckCircle2, Clock, List, MessageCircleQuestion, TimerOff } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { fetchPrompts } from '@/lib/actions'
 import { CardSectionTitle } from '@/components/card-section-title'

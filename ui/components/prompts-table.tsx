@@ -26,7 +26,10 @@ export function PromptsTable({ prompts }: { prompts: Prompt[] }) {
         {prompts.map((p) => (
           <TableRow key={p.id}>
             <TableCell>
-              <Link href={`/prompts/${encodeURIComponent(p.id)}`} className="text-primary hover:underline">
+              <Link
+                href={`/prompts/${encodeURIComponent(p.id)}`}
+                className="text-primary hover:underline"
+              >
                 {p.id}
               </Link>
             </TableCell>

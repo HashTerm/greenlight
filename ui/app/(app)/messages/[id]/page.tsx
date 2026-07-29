@@ -6,11 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-export default async function MessageDetailPage({
-  params,
-}: {
-  params: Promise<{ id: string }>
-}) {
+export default async function MessageDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const message = await fetchMessage(id).catch(() => null)
   if (!message) notFound()
