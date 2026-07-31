@@ -59,7 +59,7 @@ const timeoutMs = Number(process.env.POSTGRES_WAIT_TIMEOUT_MS ?? 60_000)
 const intervalMs = 500
 const deadline = Date.now() + timeoutMs
 
-function tryConnect(): Promise<boolean> {
+function tryConnect() {
   return new Promise((resolve) => {
     const socket = net.connect({ host, port }, () => {
       socket.end()
