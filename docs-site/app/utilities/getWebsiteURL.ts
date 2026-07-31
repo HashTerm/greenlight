@@ -3,7 +3,7 @@ export const getWebsiteURL = () => {
 }
 
 const getGithubRepo = () => {
-  return process.env.NEXT_PUBLIC_GITHUB_REPO || 'markokosticdev/greenlight'
+  return process.env.NEXT_PUBLIC_GITHUB_REPO || 'HashTerm/greenlight'
 }
 
 export const getGithubRepoURL = () => {

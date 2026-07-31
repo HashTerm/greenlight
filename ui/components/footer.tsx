@@ -5,7 +5,7 @@ import { ThemeSelector } from '@/components/theme-selector'
 
 const footerLinks = [
   { label: 'Docs', href: 'https://docs.greenlight.dev' },
-  { label: 'GitHub', href: 'https://github.com/markokosticdev/greenlight' },
+  { label: 'GitHub', href: 'https://github.com/HashTerm/greenlight' },
   { label: 'Website', href: 'https://greenlight.dev' },
 ]
 

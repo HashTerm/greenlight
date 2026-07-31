@@ -6,7 +6,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/markokosticdev/greenlight.git",
+    "url": "git+https://github.com/HashTerm/greenlight.git",
     "directory": "packages/theme"
   },
   "exports": {

@@ -16,7 +16,7 @@ concurrency:
 
 env:
   REGISTRY: ghcr.io
-  PLATFORM_REPO: markokosticdev/greenlight-platform
+  PLATFORM_REPO: HashTerm/greenlight-platform
 
 jobs:
   greenlight-core:

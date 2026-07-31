@@ -86,7 +86,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             <Navbar
               logo={logo}
               logoLink={false}
-              projectLink="https://github.com/greenlight/greenlight"
+              projectLink="https://github.com/HashTerm/greenlight"
             >
               <Link className="docs-nav-website-link" href={getWebsiteURL()}>
                 Website
@@ -94,7 +94,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
             </Navbar>
           }
           pageMap={pageMap}
-          docsRepositoryBase="https://github.com/greenlight/greenlight/tree/main/docs-site"
+          docsRepositoryBase="https://github.com/HashTerm/greenlight/tree/main/docs-site"
           footer={<SiteFooter />}
           // The sidebar's own collapse-toggle + footer bar is replaced by our
           // `<SidebarToggle>` next to the navbar logo (see `logo` above and

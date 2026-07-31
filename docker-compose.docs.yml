@@ -8,7 +8,7 @@
 
 services:
   greenlight-docs:
-    image: ${GREENLIGHT_DOCS_IMAGE:-ghcr.io/markokosticdev/greenlight-docs:latest}
+    image: ${GREENLIGHT_DOCS_IMAGE:-ghcr.io/HashTerm/greenlight-docs:latest}
     restart: unless-stopped
     expose:
       - '3003'
