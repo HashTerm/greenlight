@@ -4,31 +4,41 @@ Deploy Greenlight with Compose or Swarm using published GHCR images.
 
 ## Compose files
 
-| File                                 | Role                                                  |
-| ------------------------------------ | ----------------------------------------------------- |
-| `docker-compose.self-host.yml`       | API + UI + Postgres (GHCR images)                     |
-| `docker-compose.self-host.stack.yml` | Swarm — standalone stack (API + UI + docs + Postgres) |
-| `docker-compose.docs.yml`            | Docs overlay on self-host (GHCR image)                |
-| `docker-compose.docs.build.yml`      | Standalone docs — build on server                     |
+| File                                 | Role                                       |
+| ------------------------------------ | ------------------------------------------ |
+| `docker-compose.self-host.yml`       | API + UI + Postgres (GHCR images)          |
+| `docker-compose.self-host.stack.yml` | Swarm — API + UI + Postgres                |
+| `docker-compose.docs.yml`            | Standalone docs (GHCR image)               |
+| `docker-compose.docs.build.yml`      | Standalone docs — build on server          |
+| `docker-compose.docs.stack.yml`      | Swarm — standalone docs (GHCR image)       |
 
 ## Docs site
 
-**Alongside gateway** (pull GHCR docs image):
+Deploy the docs site separately from the gateway stack.
+
+**GHCR image** (Dokploy compose file `docker-compose.docs.yml`):
 
 ```bash
-docker compose -f docker-compose.self-host.yml -f docker-compose.docs.yml \
-  --env-file .env.self-host --env-file .env.docs up -d
+docker compose -f docker-compose.docs.yml --env-file .env.docs up -d
 ```
 
 Ingress → `greenlight-docs:3003`.
 
-**Docs only** (build on server — Dokploy compose file `docker-compose.docs.build.yml`):
+**Build on server** (Dokploy compose file `docker-compose.docs.build.yml`):
 
 ```bash
 docker compose -f docker-compose.docs.build.yml --env-file .env.docs up -d --build
 ```
 
 Set `NEXT_PUBLIC_DOCS_URL` in `.env.docs` (see `.env.docs.example`).
+
+**Swarm** — Dokploy compose file `docker-compose.docs.stack.yml`:
+
+```bash
+docker stack deploy \
+  -c docker-compose.docs.stack.yml \
+  greenlight-docs
+```
 
 ## Environment
 

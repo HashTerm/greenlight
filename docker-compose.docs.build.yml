@@ -5,8 +5,7 @@
 #
 # Ingress: route public docs URL → greenlight-docs:3003
 #
-# For pre-built GHCR docs image alongside the gateway stack, use docker-compose.docs.yml
-# merged with docker-compose.self-host.yml instead.
+# For pre-built GHCR docs image: docker-compose.docs.yml or docker-compose.docs.stack.yml
 
 services:
   greenlight-docs:

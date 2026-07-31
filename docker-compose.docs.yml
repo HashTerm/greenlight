@@ -1,8 +1,8 @@
-# Optional docs overlay — merge with docker-compose.self-host.yml:
-#   docker compose -f docker-compose.self-host.yml -f docker-compose.docs.yml \
-#     --env-file .env.self-host --env-file .env.docs up -d
+# Standalone docs — GHCR image (Dokploy / Coolify).
 #
-# Swarm: use docker-compose.self-host.stack.yml (includes greenlight-docs)
+#   docker compose -f docker-compose.docs.yml --env-file .env.docs up -d
+#
+# Swarm: docker-compose.docs.stack.yml
 #
 # Ingress: route public docs URL → greenlight-docs:3003
 
