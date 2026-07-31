@@ -1,14 +1,14 @@
+<h1 align="center">Greenlight</h1>
+
 <p align="center">
   <img src="ui/public/logo/greenlight-icon-trans-dark.svg" width="256" alt="Greenlight" />
 </p>
-
-<h1 align="center">Greenlight</h1>
 
 <p align="center">
   <a href="https://github.com/markokosticdev/greenlight/actions/workflows/ci.yml"><img src="https://img.shields.io/github/actions/workflow/status/markokosticdev/greenlight/ci.yml?branch=main" alt="CI status" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-BUSL--1.1-blue" alt="License: BUSL-1.1" /></a>
   <a href="https://nodejs.org/"><img src="https://img.shields.io/badge/node-%3E%3D22-green?logo=node.js&logoColor=white" alt="Node >= 22" /></a>
-  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-5-blue?logo=typescript&logoColor=white" alt="TypeScript 5" /></a>
+  <a href="https://www.typescriptlang.org/"><img src="https://img.shields.io/badge/TypeScript-6-blue?logo=typescript&logoColor=white" alt="TypeScript 6" /></a>
   <a href="https://hono.dev/"><img src="https://img.shields.io/badge/Hono-4-orange" alt="Hono 4" /></a>
 </p>
 
