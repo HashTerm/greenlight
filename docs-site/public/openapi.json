@@ -1230,6 +1230,15 @@
         "security": [],
         "parameters": [
           {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "description": "Tenant organization id (self-host: `default`)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "platform",
             "in": "path",
             "required": true,
@@ -1260,6 +1269,15 @@
         "summary": "Platform webhook handler",
         "security": [],
         "parameters": [
+          {
+            "name": "organization_id",
+            "in": "path",
+            "required": true,
+            "description": "Tenant organization id (self-host: `default`)",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "platform",
             "in": "path",

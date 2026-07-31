@@ -47,7 +47,7 @@ export function createAdapterForChannel(channel: ChannelRow): Adapter {
     case 'gchat': {
       const config = loadConfig()
       const endpointUrl = config.PUBLIC_WEBHOOK_URL?.trim()
-        ? buildWebhookUrl('gchat', channel.channel_id)
+        ? buildWebhookUrl(channel.organization_id, 'gchat', channel.channel_id)
         : undefined
       return createGoogleChatAdapter({
         credentials: JSON.parse(creds.service_account_json) as {
