@@ -1,5 +1,6 @@
 import type { Chat } from 'chat'
 import type { Platform } from '../core/platform.js'
+import { channelRegistryKey } from '../core/org.js'
 
 export interface ManagedBot {
   bot: Chat
@@ -16,8 +17,8 @@ export function getBotByKey(key: string): ManagedBot | undefined {
   return botsByKey.get(key)
 }
 
-export function getBotForChannel(channelId: string): ManagedBot | undefined {
-  const key = channelToKey.get(channelId)
+export function getBotForChannel(organizationId: string, channelId: string): ManagedBot | undefined {
+  const key = channelToKey.get(channelRegistryKey(organizationId, channelId))
   if (!key) return undefined
   return botsByKey.get(key)
 }
@@ -30,18 +31,19 @@ export function deleteManagedBot(key: string): void {
   botsByKey.delete(key)
 }
 
-export function bindChannelToKey(channelId: string, key: string): void {
-  channelToKey.set(channelId, key)
+export function bindChannelToKey(organizationId: string, channelId: string, key: string): void {
+  channelToKey.set(channelRegistryKey(organizationId, channelId), key)
 }
 
-export function unbindChannel(channelId: string): string | undefined {
-  const key = channelToKey.get(channelId)
-  channelToKey.delete(channelId)
+export function unbindChannel(organizationId: string, channelId: string): string | undefined {
+  const registryKey = channelRegistryKey(organizationId, channelId)
+  const key = channelToKey.get(registryKey)
+  channelToKey.delete(registryKey)
   return key
 }
 
-export function getChannelKey(channelId: string): string | undefined {
-  return channelToKey.get(channelId)
+export function getChannelKey(organizationId: string, channelId: string): string | undefined {
+  return channelToKey.get(channelRegistryKey(organizationId, channelId))
 }
 
 export function allManagedBots(): IterableIterator<ManagedBot> {

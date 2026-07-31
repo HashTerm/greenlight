@@ -8,7 +8,7 @@ import { messageRoutes } from './routes/messages.js'
 import { statusRoutes } from './routes/status.js'
 import { settingsRoutes } from './routes/settings.js'
 import { keyRoutes } from './routes/keys.js'
-import { registerEnterpriseRoutes } from '../extensions/register.js'
+import { registerEnterpriseRoutes, registerEnterpriseMiddleware } from '../extensions/register.js'
 import { loadConfig } from '../core/config.js'
 import { getOpenApiDocument } from './openapi.js'
 
@@ -20,6 +20,7 @@ export function createApp(): Hono {
   app.route('/', webhookRoutes)
 
   app.use('/v1/*', authMiddleware)
+  registerEnterpriseMiddleware(app)
   app.route('/v1', promptRoutes)
   app.route('/v1', channelRoutes)
   app.route('/v1', messageRoutes)

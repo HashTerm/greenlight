@@ -6,6 +6,7 @@ import { credentialFingerprint, parseThreadChannelId, type Platform } from '../c
 import * as promptModels from '../services/prompts/models.js'
 import * as channelModels from '../services/channels/models.js'
 import { recordInboundMessage } from '../services/messages/service.js'
+import { recordAuditEvent } from '../extensions/audit.js'
 import { getBotByKey } from './bot-registry.js'
 import { instanceKey } from '../core/platform.js'
 
@@ -18,11 +19,12 @@ async function resolveChannelForMessage(
 ): Promise<channelModels.ChannelRow | null> {
   const fingerprint = credentialFingerprint(platform, credentials)
   return withClient((client) =>
-    channelModels.findChannelByTarget(client, platform, targetChatId, fingerprint),
+    channelModels.findChannelByTargetAndFingerprint(client, platform, targetChatId, fingerprint),
   )
 }
 
 async function handlePromptAnswer(
+  organizationId: string,
   promptId: string,
   answer: {
     type: string
@@ -33,7 +35,7 @@ async function handlePromptAnswer(
   thread: { post: (msg: string) => Promise<unknown> } | null,
 ): Promise<void> {
   const callbackInfo = await withClient((client) =>
-    promptModels.markAnswered(client, promptId, {
+    promptModels.markAnswered(client, organizationId, promptId, {
       type: answer.type,
       value: answer.value,
       userId: answer.userId,
@@ -44,6 +46,19 @@ async function handlePromptAnswer(
   if (callbackInfo) {
     scheduleCallback(callbackInfo.callbackUrl, callbackInfo.payload)
   }
+
+  await recordAuditEvent({
+    actor_type: 'system',
+    action: 'prompt.answered',
+    resource_type: 'prompt',
+    resource_id: promptId,
+    metadata: {
+      organization_id: organizationId,
+      answer_type: answer.type,
+      answered_by_id: answer.userId,
+      answered_by_username: answer.username,
+    },
+  })
 
   if (thread) {
     await thread.post(`Recorded answer for ID:${promptId}`)
@@ -58,17 +73,30 @@ export function wireHandlers(
   const botKey = instanceKey(platform, credentials)
 
   bot.onAction(async (event) => {
+    const channel = await resolveChannelForMessage(
+      platform,
+      parseThreadChannelId(event.thread.id)?.targetChatId ?? '',
+      credentials,
+    )
+    if (!channel) return
+
     const parsed = await withClient((client) =>
-      promptModels.getPromptByActionKey(client, event.actionId),
+      promptModels.getPromptByActionKey(client, channel.organization_id, event.actionId),
     )
     if (!parsed) return
 
     const label = await withClient((client) =>
-      promptModels.resolveOptionLabel(client, parsed.promptId, parsed.optionId),
+      promptModels.resolveOptionLabel(
+        client,
+        channel.organization_id,
+        parsed.promptId,
+        parsed.optionId,
+      ),
     )
     if (!label) return
 
     await handlePromptAnswer(
+      channel.organization_id,
       parsed.promptId,
       {
         type: 'option',
@@ -98,10 +126,13 @@ export function wireHandlers(
       const promptId = idMatch[1]
       const replyText = idMatch[2]
 
-      const prompt = await withClient((client) => promptModels.getPrompt(client, promptId))
+      const prompt = await withClient((client) =>
+        promptModels.getPrompt(client, channel.organization_id, promptId),
+      )
       if (!promptModels.canAcceptTextReply(prompt)) return
 
       await handlePromptAnswer(
+        channel.organization_id,
         promptId,
         {
           type: 'text',
@@ -118,7 +149,7 @@ export function wireHandlers(
       const from =
         user?.userName ?? user?.fullName ?? (user?.userId ? `user_${user.userId}` : 'unknown')
 
-      await recordInboundMessage(channel, trimmed, from).catch((err) =>
+      await recordInboundMessage(channel.organization_id, channel, trimmed, from).catch((err) =>
         console.error('record inbound message error:', err),
       )
 

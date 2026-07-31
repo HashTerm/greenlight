@@ -5,7 +5,7 @@
 Rotate and store securely:
 
 - API keys (database-backed, scoped) — create via Settings or `POST /v1/keys/new`
-- `API_KEY` — bootstrap-only env var for first boot when `api_keys` is empty
+- `GREENLIGHT_API_KEY` — seeds the first admin key when `api_keys` is empty; UI sends it as `X-API-Key`
 - `AUTH_SECRET` — UI sessions
 - `CALLBACK_SIGNING_SECRET` — prompt callback HMAC
 - `WEBHOOK_SECRET` — platform webhook verification

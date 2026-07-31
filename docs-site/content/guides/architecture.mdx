@@ -40,5 +40,5 @@ flowchart LR
 
 - Agents and the Admin UI use scoped `X-API-Key` headers
 - Operators use Admin UI browser sessions (`AUTH_SECRET`)
-- Chat platforms call `/webhooks/{platform}/{channel_id}`
+- Chat platforms call `/webhooks/{organization_id}/{platform}/{channel_id}`
 - Agents receive callbacks on URLs they registered (validated against SSRF rules)

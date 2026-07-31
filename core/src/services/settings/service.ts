@@ -3,9 +3,6 @@ import * as promptModels from '../prompts/models.js'
 import { purgeOldMessagesByDirection } from '../messages/service.js'
 import * as settingsModels from './models.js'
 
-const MIN_RETENTION_DAYS = 1
-const MAX_RETENTION_DAYS = 3650
-
 export type RetentionSettings = {
   prompts_retention_enabled: boolean
   prompts_retention_days: number
@@ -48,28 +45,31 @@ function toSettings(row: settingsModels.AppSettingsRow): RetentionSettings {
 }
 
 function validateRetentionDays(days: number): void {
-  if (!Number.isInteger(days) || days < MIN_RETENTION_DAYS || days > MAX_RETENTION_DAYS) {
-    throw new Error(
-      `Retention days must be an integer between ${MIN_RETENTION_DAYS} and ${MAX_RETENTION_DAYS}`,
-    )
+  const MIN = 1
+  const MAX = 3650
+  if (!Number.isInteger(days) || days < MIN || days > MAX) {
+    throw new Error(`Retention days must be an integer between ${MIN} and ${MAX}`)
   }
 }
 
-export async function getRetentionSettings(): Promise<RetentionSettings> {
-  const row = await withClient((client) => settingsModels.getSettings(client))
+export async function getRetentionSettings(organizationId: string): Promise<RetentionSettings> {
+  const row = await withClient((client) => settingsModels.getSettings(client, organizationId))
   return toSettings(row)
 }
 
-export async function updateRetentionSettings(input: {
-  promptsRetentionEnabled: boolean
-  promptsRetentionDays: number
-  messagesInboundRetentionEnabled: boolean
-  messagesOutboundRetentionEnabled: boolean
-  messagesInboundRetentionDays: number
-  messagesOutboundRetentionDays: number
-  messagesInboundZeroRetention: boolean
-  messagesOutboundZeroRetention: boolean
-}): Promise<RetentionSettings> {
+export async function updateRetentionSettings(
+  organizationId: string,
+  input: {
+    promptsRetentionEnabled: boolean
+    promptsRetentionDays: number
+    messagesInboundRetentionEnabled: boolean
+    messagesOutboundRetentionEnabled: boolean
+    messagesInboundRetentionDays: number
+    messagesOutboundRetentionDays: number
+    messagesInboundZeroRetention: boolean
+    messagesOutboundZeroRetention: boolean
+  },
+): Promise<RetentionSettings> {
   if (input.promptsRetentionEnabled) {
     validateRetentionDays(input.promptsRetentionDays)
   }
@@ -80,24 +80,37 @@ export async function updateRetentionSettings(input: {
     validateRetentionDays(input.messagesOutboundRetentionDays)
   }
 
-  const row = await withClient((client) => settingsModels.updateSettings(client, input))
+  const row = await withClient((client) =>
+    settingsModels.updateSettings(client, organizationId, input),
+  )
   return toSettings(row)
 }
 
 export async function runRetention(): Promise<void> {
-  const settings = await getRetentionSettings()
+  const orgIds = await withClient((client) => settingsModels.listOrganizationIds(client))
+  for (const organizationId of orgIds) {
+    const settings = await getRetentionSettings(organizationId)
 
-  if (settings.prompts_retention_enabled) {
-    await withClient((client) =>
-      promptModels.deleteOlderThan(client, settings.prompts_retention_days),
-    )
-  }
+    if (settings.prompts_retention_enabled) {
+      await withClient((client) =>
+        promptModels.deleteOlderThan(client, organizationId, settings.prompts_retention_days),
+      )
+    }
 
-  if (settings.messages_inbound_retention_enabled) {
-    await purgeOldMessagesByDirection('inbound', settings.messages_inbound_retention_days)
-  }
+    if (settings.messages_inbound_retention_enabled) {
+      await purgeOldMessagesByDirection(
+        organizationId,
+        'inbound',
+        settings.messages_inbound_retention_days,
+      )
+    }
 
-  if (settings.messages_outbound_retention_enabled) {
-    await purgeOldMessagesByDirection('outbound', settings.messages_outbound_retention_days)
+    if (settings.messages_outbound_retention_enabled) {
+      await purgeOldMessagesByDirection(
+        organizationId,
+        'outbound',
+        settings.messages_outbound_retention_days,
+      )
+    }
   }
 }

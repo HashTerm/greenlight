@@ -8,7 +8,7 @@ X-API-Key: <your-api-key>
 ```
 
 When `USE_AUTH=true` and the `api_keys` table is empty on first boot, core
-bootstraps an `admin` key from the `API_KEY` environment variable. Create
+bootstraps an `admin` key from the `GREENLIGHT_API_KEY` environment variable. Create
 replacement keys via `POST /v1/keys/new` and revoke the bootstrap key.
 
 ## Path verbs

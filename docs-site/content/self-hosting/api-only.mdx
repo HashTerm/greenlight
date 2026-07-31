@@ -20,7 +20,7 @@ For production, set:
 
 ```env
 USE_AUTH=true
-API_KEY=replace-with-a-strong-random-api-key
+GREENLIGHT_API_KEY=replace-with-a-strong-random-api-key
 CALLBACK_SIGNING_SECRET=replace-with-a-strong-random-string
 WEBHOOK_SECRET=replace-with-a-strong-random-string
 PUBLIC_WEBHOOK_URL=https://api.example.com
@@ -32,12 +32,12 @@ All agent routes then require `X-API-Key`.
 
 ```bash
 curl -X POST https://api.example.com/v1/channels/new \
-  -H "X-API-Key: $API_KEY" \
+  -H "X-API-Key: $GREENLIGHT_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{ ... }'
 
 curl https://api.example.com/v1/channels \
-  -H "X-API-Key: $API_KEY"
+  -H "X-API-Key: $GREENLIGHT_API_KEY"
 ```
 
 See [Agent API](/api-reference/agent-api) for the full surface.

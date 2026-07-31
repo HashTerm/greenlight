@@ -3,8 +3,10 @@
 Inbound platform traffic hits:
 
 ```
-{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}
+{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/{platform}/{channel_id}
 ```
+
+Self-host deployments use `organization_id` = `default`. Cloud tenants use the org UUID from the control plane.
 
 | Method | Platforms               | Purpose                      |
 | ------ | ----------------------- | ---------------------------- |

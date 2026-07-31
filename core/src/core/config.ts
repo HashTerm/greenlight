@@ -18,7 +18,7 @@ const envSchema = z
       .string()
       .optional()
       .transform((v) => v === 'true'),
-    API_KEY: z.string().optional(),
+    GREENLIGHT_API_KEY: z.string().optional(),
     MEDIA_ALLOWED_DIR: z.string().optional(),
     MAX_MEDIA_SIZE_MB: z
       .string()
@@ -60,13 +60,6 @@ const envSchema = z
         message:
           'WEBHOOK_SECRET is still set to the default value. Set a strong unique secret when using PUBLIC_WEBHOOK_URL.',
         path: ['WEBHOOK_SECRET'],
-      })
-    }
-    if (data.USE_AUTH && !data.API_KEY) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'API_KEY must be set when USE_AUTH=true',
-        path: ['API_KEY'],
       })
     }
   })

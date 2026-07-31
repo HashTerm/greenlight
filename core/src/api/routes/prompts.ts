@@ -10,6 +10,9 @@ import {
 import { formatPromptId } from '../../services/prompts/models.js'
 import { ValueError } from '../../core/security.js'
 import { requireScope } from '../middleware/require-scope.js'
+import { recordAuditEvent } from '../../extensions/audit.js'
+import { getAuditEventContext } from '../middleware/audit-actor.js'
+import { getOrganizationId } from '../middleware/org-context.js'
 
 const promptInSchema = z.object({
   channel_id: z.string().optional().nullable(),
@@ -40,7 +43,17 @@ type CreatePromptInput = Parameters<typeof createAndPostPrompt>[0]
 
 async function respondCreatePrompt(c: Context, input: CreatePromptInput) {
   try {
-    const result = await createAndPostPrompt(input)
+    const result = await createAndPostPrompt({
+      ...input,
+      organizationId: getOrganizationId(c),
+    })
+    await recordAuditEvent({
+      ...getAuditEventContext(c),
+      action: 'prompt.created',
+      resource_type: 'prompt',
+      resource_id: result.promptId,
+      metadata: { channel_id: result.channelId },
+    })
     return c.json({
       prompt_id: result.promptId,
       channel_id: result.channelId,
@@ -146,7 +159,7 @@ promptRoutes.get(
   zValidator('query', listQuerySchema),
   async (c) => {
     const { state, limit } = c.req.valid('query')
-    const rows = await listPrompts(state, limit)
+    const rows = await listPrompts(getOrganizationId(c), state, limit)
     return c.json(
       rows.map((row) => ({
         id: formatPromptId(row.prompt_num),
@@ -176,7 +189,7 @@ promptRoutes.get('/prompts/:id', requireScope('prompts:read'), async (c) => {
   if (promptId === 'pending' || promptId === 'new') {
     return c.json({ detail: 'not found' }, 404)
   }
-  const row = await getPrompt(promptId ?? '')
+  const row = await getPrompt(getOrganizationId(c), promptId ?? '')
   if (!row) return c.json({ detail: 'not found' }, 404)
 
   return c.json({

@@ -18,7 +18,7 @@ channel** via `POST /v1/channels/new`.
 ## Webhook URL pattern
 
 ```
-{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}
+{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/{platform}/{channel_id}
 ```
 
 Set `PUBLIC_WEBHOOK_URL` to your public HTTPS base with **no trailing slash**.
@@ -53,6 +53,6 @@ Set `PUBLIC_WEBHOOK_URL` to your public HTTPS base with **no trailing slash**.
 ```
 
 Also configure the platform to send events to
-`{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}` (see platform guides).
+`{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/{platform}/{channel_id}` (see platform guides).
 
 Pick a platform guide above for credentials and portal setup steps.

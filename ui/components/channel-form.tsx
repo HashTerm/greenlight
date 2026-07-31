@@ -41,10 +41,14 @@ export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
 
   const fields = PLATFORM_FIELDS[platform]
   const webhookBase = process.env.NEXT_PUBLIC_WEBHOOK_URL ?? 'http://localhost:8100'
+  const organizationId = process.env.NEXT_PUBLIC_GREENLIGHT_ORG_ID ?? 'default'
   const guideSteps = useMemo(() => {
     const channelId = initial?.channel_id ?? '{channel_id}'
-    return formatGuideSteps(platform, `${webhookBase}/webhooks/${platform}/${channelId}`)
-  }, [platform, initial?.channel_id, webhookBase])
+    return formatGuideSteps(
+      platform,
+      `${webhookBase}/webhooks/${encodeURIComponent(organizationId)}/${platform}/${channelId}`,
+    )
+  }, [platform, initial?.channel_id, webhookBase, organizationId])
 
   return (
     <div className="grid gap-6 lg:grid-cols-3">

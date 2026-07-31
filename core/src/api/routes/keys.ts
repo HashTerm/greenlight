@@ -11,6 +11,9 @@ import {
 import { type ScopePreset } from '../../services/api-keys/scopes.js'
 import { getApiKeyId } from '../middleware/auth.js'
 import { requireScope } from '../middleware/require-scope.js'
+import { recordAuditEvent } from '../../extensions/audit.js'
+import { getAuditEventContext } from '../middleware/audit-actor.js'
+import { getOrganizationId } from '../middleware/org-context.js'
 
 const createSchema = z.object({
   name: z.string().min(1).max(128),
@@ -21,7 +24,7 @@ const createSchema = z.object({
 export const keyRoutes = new Hono()
 
 keyRoutes.get('/keys', requireScope('keys:read'), async (c) => {
-  const keys = await listKeys()
+  const keys = await listKeys(getOrganizationId(c))
   return c.json(keys)
 })
 
@@ -30,7 +33,7 @@ keyRoutes.get('/keys/:id', requireScope('keys:read'), async (c) => {
   if (id === 'new') {
     return c.json({ detail: 'not found' }, 404)
   }
-  const key = await getKey(id ?? '')
+  const key = await getKey(getOrganizationId(c), id ?? '')
   if (!key) return c.json({ detail: 'not found' }, 404)
   return c.json(key)
 })
@@ -46,9 +49,17 @@ keyRoutes.post(
     }
     try {
       const result = await createKey({
+        organizationId: getOrganizationId(c),
         name: body.name,
         preset: body.preset as ScopePreset | undefined,
         scopes: body.scopes,
+      })
+      await recordAuditEvent({
+        ...getAuditEventContext(c),
+        action: 'api_key.created',
+        resource_type: 'api_key',
+        resource_id: result.key.id,
+        metadata: { name: body.name },
       })
       return c.json({
         ...result.key,
@@ -66,7 +77,13 @@ keyRoutes.delete('/keys/:id', requireScope('keys:write'), async (c) => {
     return c.json({ detail: 'not found' }, 404)
   }
   try {
-    await revokeKey(id ?? '', getApiKeyId(c) ?? undefined)
+    await revokeKey(getOrganizationId(c), id ?? '', getApiKeyId(c) ?? undefined)
+    await recordAuditEvent({
+      ...getAuditEventContext(c),
+      action: 'api_key.revoked',
+      resource_type: 'api_key',
+      resource_id: id ?? undefined,
+    })
     return c.json({ status: 'revoked' })
   } catch (err) {
     if (err instanceof LastKeyError) {

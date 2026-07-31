@@ -50,7 +50,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
           in: 'header',
           name: 'X-API-Key',
           description:
-            'Database-backed API key with scoped permissions. Bootstrap from API_KEY env on first boot when api_keys is empty.',
+            'Database-backed API key with scoped permissions. Bootstrap from GREENLIGHT_API_KEY env on first boot when api_keys is empty.',
         },
       },
       schemas: {
@@ -790,12 +790,19 @@ export function getOpenApiDocument(): Record<string, unknown> {
           },
         },
       },
-      '/webhooks/{platform}/{channel_id}': {
+      '/webhooks/{organization_id}/{platform}/{channel_id}': {
         get: {
           tags: ['Webhooks'],
           summary: 'Platform webhook verification (WhatsApp, Messenger)',
           security: [],
           parameters: [
+            {
+              name: 'organization_id',
+              in: 'path',
+              required: true,
+              description: 'Tenant organization id (self-host: `default`)',
+              schema: { type: 'string' },
+            },
             {
               name: 'platform',
               in: 'path',
@@ -819,6 +826,13 @@ export function getOpenApiDocument(): Record<string, unknown> {
           summary: 'Platform webhook handler',
           security: [],
           parameters: [
+            {
+              name: 'organization_id',
+              in: 'path',
+              required: true,
+              description: 'Tenant organization id (self-host: `default`)',
+              schema: { type: 'string' },
+            },
             {
               name: 'platform',
               in: 'path',

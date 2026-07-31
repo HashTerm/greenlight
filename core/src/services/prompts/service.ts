@@ -11,6 +11,7 @@ import { loadConfig } from '../../core/config.js'
 import { maxPromptOptionsForPlatform } from '../../core/platform.js'
 
 export interface CreatePromptInput {
+  organizationId: string
   channelId?: string | null
   text: string
   mediaPath?: string | null
@@ -63,7 +64,11 @@ export async function createAndPostPrompt(
   const resolvedChannelId = resolveChannelId(input.channelId)
 
   return withClient(async (client) => {
-    const channel = await channelModels.getChannel(client, resolvedChannelId)
+    const channel = await channelModels.getChannel(
+      client,
+      input.organizationId,
+      resolvedChannelId,
+    )
     if (!channel) {
       throw new ValueError(`Channel ${resolvedChannelId} not found`)
     }
@@ -77,6 +82,7 @@ export async function createAndPostPrompt(
     const ttlSec = input.ttlSec ?? 3600
 
     const { promptId, row } = await promptModels.createPrompt(client, {
+      organizationId: input.organizationId,
       chatId: channel.target_chat_id,
       text: input.text,
       mediaUrl: input.mediaUrl ?? input.mediaPath ?? null,
@@ -92,7 +98,7 @@ export async function createAndPostPrompt(
       const optId = String(i + 1)
       const label = options[i]
       const actionKey = `${promptId}:${optId}`
-      await promptModels.addOptionMap(client, promptId, optId, label)
+      await promptModels.addOptionMap(client, input.organizationId, promptId, optId, label)
       cardOptions.push({ optionId: optId, label, actionKey })
     }
 
@@ -143,7 +149,7 @@ export async function createAndPostPrompt(
 
     const messageId = sent.messageId ? Number(sent.messageId) : 0
     if (messageId) {
-      await promptModels.setMessageId(client, promptId, messageId)
+      await promptModels.setMessageId(client, input.organizationId, promptId, messageId)
     }
 
     return {
@@ -154,12 +160,12 @@ export async function createAndPostPrompt(
   })
 }
 
-export async function getPrompt(promptId: string) {
-  return withClient((client) => promptModels.getPrompt(client, promptId))
+export async function getPrompt(organizationId: string, promptId: string) {
+  return withClient((client) => promptModels.getPrompt(client, organizationId, promptId))
 }
 
-export async function listPrompts(state: PromptListState, limit: number) {
-  return withClient((client) => promptModels.listPrompts(client, state, limit))
+export async function listPrompts(organizationId: string, state: PromptListState, limit: number) {
+  return withClient((client) => promptModels.listPrompts(client, organizationId, state, limit))
 }
 
 export async function expirePrompts(): Promise<number> {

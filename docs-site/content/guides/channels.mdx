@@ -43,7 +43,7 @@ Two different URLs are involved for MESSAGE channels on webhook-based platforms:
 
 | URL | Direction | Purpose |
 | --- | --------- | ------- |
-| `{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}` | Platform → Greenlight | Chat platform delivers inbound events to Greenlight |
+| `{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/{platform}/{channel_id}` | Platform → Greenlight | Chat platform delivers inbound events to Greenlight |
 | `callback_url` on the channel | Greenlight → your agent/automation | Greenlight forwards inbound chat as `message.created` |
 
 PROMPT channels usually only need the Agent API (`POST /v1/prompts/new`). Telegram

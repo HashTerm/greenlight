@@ -66,10 +66,10 @@ npm run docker:full    # docker compose --profile full up -d --build
 Register a channel, then send a prompt:
 
 ```bash
-export API_KEY="$(grep '^API_KEY=' .env | cut -d= -f2)"
+export GREENLIGHT_API_KEY="$(grep '^GREENLIGHT_API_KEY=' .env | cut -d= -f2-)"
 
 curl -X POST http://localhost:8100/v1/channels/new \
-  -H "X-API-Key: $API_KEY" \
+  -H "X-API-Key: $GREENLIGHT_API_KEY" \
   -H 'Content-Type: application/json' \
   -d '{
     "channel_id": "my-telegram-prompts",
@@ -80,7 +80,7 @@ curl -X POST http://localhost:8100/v1/channels/new \
   }'
 
 curl -X POST http://localhost:8100/v1/prompts/new \
-  -H "X-API-Key: $API_KEY" \
+  -H "X-API-Key: $GREENLIGHT_API_KEY" \
   -H 'Content-Type: application/json' \
   -d '{
     "channel_id": "my-telegram-prompts",
@@ -180,9 +180,9 @@ Greenlight is **source-available** under the [Business Source License 1.1](LICEN
 
 |                                       | Community (`core/`, `ui/`, `docs-site/`) | Enterprise                                              |
 | ------------------------------------- | ---------------------------------------- | ------------------------------------------------------- |
-| Location                              | This repository                          | Commercial license from the Licensor (not in this repo) |
+| Location                              | This repository                          | Commercial license (contact Licensor) |
 | License                               | BUSL-1.1                                 | Proprietary                                             |
-| Self-host                             | Yes                                      | Paid license only (when available)                      |
+| Self-host                             | Yes                                      | Paid enterprise license                                 |
 | Sell as competing hosted subscription | **No**                                   | **No**                                                  |
 
 Details: [docs/LICENSING.md](docs/LICENSING.md) and [docs-site Legal](docs-site/content/legal/licensing.mdx).

@@ -15,7 +15,7 @@ Deploy Greenlight as a Docker Compose app in [Coolify](https://coolify.io/).
    - `AUTH_SECRET`
    - `CALLBACK_SIGNING_SECRET`
    - `WEBHOOK_SECRET`
-   - `API_KEY` (bootstraps admin key when `USE_AUTH=true` and `api_keys` is empty)
+   - `GREENLIGHT_API_KEY` (bootstraps admin key when `USE_AUTH=true` and `api_keys` is empty)
 5. Set `PUBLIC_WEBHOOK_URL` to your public HTTPS API host (**no trailing slash**).
 6. Assign domains in Coolify (services use `expose`, not host ports):
    - `greenlight` → API + platform webhooks (container port `8100`)
@@ -32,7 +32,7 @@ with `.env.docs` — see [Docker](/self-hosting/docker#docs-site).
 Each channel uses:
 
 ```
-{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}
+{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/{platform}/{channel_id}
 ```
 
 Configure that URL in Slack Event Subscriptions, Azure Bot messaging endpoint,

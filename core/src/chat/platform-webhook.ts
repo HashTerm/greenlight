@@ -6,13 +6,17 @@ function telegramApiUrl(botToken: string, method: string): string {
   return `https://api.telegram.org/bot${botToken}/${method}`
 }
 
-export function buildWebhookUrl(platform: Platform, channelId: string): string {
+export function buildWebhookUrl(
+  organizationId: string,
+  platform: Platform,
+  channelId: string,
+): string {
   const config = loadConfig()
   if (!config.PUBLIC_WEBHOOK_URL?.trim()) {
     throw new Error('PUBLIC_WEBHOOK_URL is required for webhook registration')
   }
   const base = config.PUBLIC_WEBHOOK_URL.replace(/\/$/, '')
-  return `${base}/webhooks/${platform}/${encodeURIComponent(channelId)}`
+  return `${base}/webhooks/${encodeURIComponent(organizationId)}/${platform}/${encodeURIComponent(channelId)}`
 }
 
 export async function registerPlatformWebhook(channel: ChannelRow): Promise<void> {
@@ -29,7 +33,7 @@ export async function registerPlatformWebhook(channel: ChannelRow): Promise<void
     case 'gchat':
     case 'whatsapp':
     case 'messenger':
-      // Platform console must point to buildWebhookUrl(platform, channelId).
+      // Platform console must point to buildWebhookUrl(organizationId, platform, channelId).
       // gchat: Google Chat App URL + optional Pub/Sub push endpoint
       // whatsapp/messenger: Meta Callback URL; verify_token must match credentials.verify_token
       // discord: Interactions Endpoint URL in developer portal
@@ -42,7 +46,7 @@ export async function registerPlatformWebhook(channel: ChannelRow): Promise<void
 async function registerTelegramWebhook(channel: ChannelRow): Promise<void> {
   const config = loadConfig()
   const botToken = channel.credentials.bot_token
-  const url = buildWebhookUrl('telegram', channel.channel_id)
+  const url = buildWebhookUrl(channel.organization_id, 'telegram', channel.channel_id)
 
   const res = await fetch(telegramApiUrl(botToken, 'setWebhook'), {
     method: 'POST',

@@ -12,6 +12,9 @@ import {
 } from '../../services/channels/service.js'
 import { createChannelSchema, updateChannelSchema } from '../../services/channels/schemas.js'
 import { requireScope } from '../middleware/require-scope.js'
+import { recordAuditEvent } from '../../extensions/audit.js'
+import { getAuditEventContext } from '../middleware/audit-actor.js'
+import { getOrganizationId } from '../middleware/org-context.js'
 
 const listQuerySchema = z.object({
   platform: z.enum(PLATFORMS).optional(),
@@ -32,14 +35,24 @@ channelRoutes.post(
       return c.json({ detail: 'MESSAGE channels require callback_url' }, 400)
     }
 
+    const organizationId = getOrganizationId(c)
+
     try {
       await createChannel({
+        organizationId,
         channelId: body.channel_id,
         platform: body.platform,
         targetChatId: body.target_chat_id,
         credentials: body.credentials,
         callbackUrl: body.callback_url ?? null,
         channelType: body.channel_type,
+      })
+      await recordAuditEvent({
+        ...getAuditEventContext(c),
+        action: 'channel.created',
+        resource_type: 'channel',
+        resource_id: body.channel_id,
+        metadata: { platform: body.platform, channel_type: body.channel_type },
       })
       return c.json({ status: `Channel ${body.channel_id} registered.` }, 201)
     } catch (err) {
@@ -57,7 +70,9 @@ channelRoutes.get(
   zValidator('query', listQuerySchema),
   async (c) => {
     const { platform, channel_type: channelType, limit } = c.req.valid('query')
+    const organizationId = getOrganizationId(c)
     const channels = await listChannels({
+      organizationId,
       limit,
       ...(platform ? { platform } : {}),
       ...(channelType ? { channelType } : {}),
@@ -76,12 +91,19 @@ channelRoutes.patch(
   async (c) => {
     const channelId = decodeURIComponent(c.req.param('id'))
     const body = c.req.valid('json')
+    const organizationId = getOrganizationId(c)
 
     try {
-      await updateChannel(channelId, {
+      await updateChannel(organizationId, channelId, {
         targetChatId: body.target_chat_id,
         credentials: body.credentials,
         callbackUrl: body.callback_url,
+      })
+      await recordAuditEvent({
+        ...getAuditEventContext(c),
+        action: 'channel.updated',
+        resource_type: 'channel',
+        resource_id: channelId,
       })
       return c.json({ status: `Channel ${channelId} updated.` })
     } catch (err) {
@@ -98,8 +120,15 @@ channelRoutes.patch(
 
 channelRoutes.delete('/channels/:id', requireScope('channels:write'), async (c) => {
   const channelId = decodeURIComponent(c.req.param('id') ?? '')
+  const organizationId = getOrganizationId(c)
   try {
-    await unregisterChannel(channelId)
+    await unregisterChannel(organizationId, channelId)
+    await recordAuditEvent({
+      ...getAuditEventContext(c),
+      action: 'channel.deleted',
+      resource_type: 'channel',
+      resource_id: channelId,
+    })
     return c.json({ status: `Channel ${channelId} unregistered.` })
   } catch (err) {
     if (err instanceof ChannelNotFoundError) {

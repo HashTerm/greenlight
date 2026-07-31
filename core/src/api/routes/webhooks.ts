@@ -5,11 +5,12 @@ import { getBotForChannel } from '../../chat/bot-manager.js'
 export const webhookRoutes = new Hono()
 
 async function handlePlatformWebhook(
+  organizationId: string,
   platform: Platform,
   channelId: string,
   request: Request,
 ): Promise<Response> {
-  const managed = getBotForChannel(channelId)
+  const managed = getBotForChannel(organizationId, channelId)
   if (!managed || managed.platform !== platform) {
     return new Response(JSON.stringify({ detail: 'unknown channel' }), {
       status: 404,
@@ -30,14 +31,16 @@ async function handlePlatformWebhook(
 
 function registerWebhookRoute(platform: Platform, methods: ('get' | 'post')[]) {
   const handler = async (c: { req: { param: (k: string) => string; raw: Request } }) => {
-    return handlePlatformWebhook(platform, c.req.param('channel_id'), c.req.raw)
+    const organizationId = decodeURIComponent(c.req.param('orgId'))
+    const channelId = decodeURIComponent(c.req.param('channel_id'))
+    return handlePlatformWebhook(organizationId, platform, channelId, c.req.raw)
   }
 
   if (methods.includes('get')) {
-    webhookRoutes.get(`/webhooks/${platform}/:channel_id`, handler)
+    webhookRoutes.get(`/webhooks/:orgId/${platform}/:channel_id`, handler)
   }
   if (methods.includes('post')) {
-    webhookRoutes.post(`/webhooks/${platform}/:channel_id`, handler)
+    webhookRoutes.post(`/webhooks/:orgId/${platform}/:channel_id`, handler)
   }
 }
 

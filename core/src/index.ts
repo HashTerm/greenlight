@@ -6,7 +6,7 @@ import * as promptModels from './services/prompts/models.js'
 import { shutdownAllBots } from './chat/bot-manager.js'
 import { restoreChannelsOnStartup } from './services/channels/service.js'
 import { expirePrompts } from './services/prompts/service.js'
-import { bootstrapApiKeyFromEnv } from './services/api-keys/bootstrap.js'
+import { bootstrapApiKeyFromEnv, countActiveApiKeys } from './services/api-keys/bootstrap.js'
 import { onEnterpriseBoot } from './extensions/register.js'
 import { runRetention } from './services/settings/service.js'
 
@@ -15,6 +15,16 @@ async function bootstrap(): Promise<void> {
 
   await migrate()
   await bootstrapApiKeyFromEnv()
+
+  if (config.USE_AUTH) {
+    const active = await countActiveApiKeys()
+    if (active === 0 && !config.GREENLIGHT_API_KEY?.trim()) {
+      throw new Error(
+        'USE_AUTH=true but api_keys is empty and GREENLIGHT_API_KEY is not set',
+      )
+    }
+  }
+
   await onEnterpriseBoot()
 
   if (config.CLEAN_ON_BOOT) {

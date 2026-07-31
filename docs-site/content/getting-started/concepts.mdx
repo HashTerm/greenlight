@@ -102,7 +102,7 @@ Greenlight has three independent auth surfaces:
 | Webhooks  | Platform signing                   | Telegram, Slack, etc.    |
 
 Issue separate API keys per integration with the minimum scopes required. The
-`API_KEY` environment variable bootstraps a full-admin key only when the
+`GREENLIGHT_API_KEY` environment variable bootstraps a full-admin key only when the
 `api_keys` table is empty on first boot.
 
 **Deployment editions:** community self-host has a single super admin and one

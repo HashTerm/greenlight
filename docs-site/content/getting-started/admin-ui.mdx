@@ -48,7 +48,7 @@ Then visit `/setup` again.
 Webhook pattern:
 
 ```
-{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}
+{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/{platform}/{channel_id}
 ```
 
 ## Create a prompt in the UI
@@ -89,8 +89,7 @@ deletion on for 30 days; zero retention off for both directions.
 | `GREENLIGHT_API_KEY`     | Calls core API (`X-API-Key`) — admin-scoped key (bootstrap or from Settings) |
 | `AUTH_SECRET`            | NextAuth sessions                                                     |
 
-For hybrid `npm run dev`, set `GREENLIGHT_API_KEY` in the root `.env`. Docker Compose
-maps it from `API_KEY` for the bootstrap key.
+For hybrid `npm run dev`, set `GREENLIGHT_API_KEY` in the root `.env`. Core and UI use the same value.
 
 See [Configuration](/self-hosting/configuration) for the full list.
 

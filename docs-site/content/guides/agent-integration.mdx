@@ -7,7 +7,7 @@ Wire your AI agent to Greenlight over HTTP.
 When `USE_AUTH=true`, every agent route requires:
 
 ```http
-X-API-Key: <API_KEY>
+X-API-Key: <GREENLIGHT_API_KEY>
 ```
 
 Protected paths include `/v1/*`.
@@ -36,7 +36,7 @@ sequenceDiagram
 
 ```bash
 curl -X POST http://localhost:8100/v1/prompts/new \
-  -H "X-API-Key: $API_KEY" \
+  -H "X-API-Key: $GREENLIGHT_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "channel_id": "my-telegram-prompts",

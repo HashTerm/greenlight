@@ -25,7 +25,7 @@ Confirm at least these are set:
 - `WEBHOOK_SECRET`
 - `CALLBACK_SIGNING_SECRET`
 - `AUTH_SECRET`
-- `API_KEY` (bootstraps admin key when `api_keys` is empty and `USE_AUTH=true`)
+- `GREENLIGHT_API_KEY` (bootstraps admin key when `api_keys` is empty and `USE_AUTH=true`)
 
 ### 2. Start the stack
 
@@ -59,11 +59,11 @@ copy the chat ID (negative for groups). Then (replace `$API_BASE` with your
 public API URL):
 
 ```bash
-export API_KEY="$(grep '^API_KEY=' .env.self-host | cut -d= -f2)"
+export GREENLIGHT_API_KEY="$(grep '^GREENLIGHT_API_KEY=' .env.self-host | cut -d= -f2-)"
 export API_BASE="https://greenlight.example.com"
 
 curl -X POST "$API_BASE/v1/channels/new" \
-  -H "X-API-Key: $API_KEY" \
+  -H "X-API-Key: $GREENLIGHT_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "channel_id": "my-telegram-prompts",
@@ -79,14 +79,14 @@ Or use **Admin UI → Channels → Add channel**.
 For webhook-based platforms (Slack, Teams, Discord, and others), configure:
 
 ```
-{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}
+{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/{platform}/{channel_id}
 ```
 
 ### 6. Send a test prompt
 
 ```bash
 curl -X POST "$API_BASE/v1/prompts/new" \
-  -H "X-API-Key: $API_KEY" \
+  -H "X-API-Key: $GREENLIGHT_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "channel_id": "my-telegram-prompts",
@@ -157,10 +157,10 @@ Create a bot with [@BotFather](https://t.me/BotFather), add it to a group, and
 copy the chat ID (negative for groups). Then:
 
 ```bash
-export API_KEY="$(grep '^API_KEY=' .env | cut -d= -f2)"
+export GREENLIGHT_API_KEY="$(grep '^GREENLIGHT_API_KEY=' .env | cut -d= -f2-)"
 
 curl -X POST http://localhost:8100/v1/channels/new \
-  -H "X-API-Key: $API_KEY" \
+  -H "X-API-Key: $GREENLIGHT_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "channel_id": "my-telegram-prompts",
@@ -177,7 +177,7 @@ Or use **Admin UI → Channels → Add channel**.
 
 ```bash
 curl -X POST http://localhost:8100/v1/prompts/new \
-  -H "X-API-Key: $API_KEY" \
+  -H "X-API-Key: $GREENLIGHT_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "channel_id": "my-telegram-prompts",

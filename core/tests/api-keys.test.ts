@@ -1,6 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, beforeEach } from 'vitest'
 import { generateApiKeyMaterial, hashApiKey } from '../src/services/api-keys/models.js'
 import { bootstrapApiKeyFromEnv } from '../src/services/api-keys/bootstrap.js'
+import { loadConfig, resetConfigForTests } from '../src/core/config.js'
 
 describe('api key material', () => {
   it('hashes keys deterministically', () => {
@@ -19,7 +20,22 @@ describe('api key material', () => {
 })
 
 describe('bootstrapApiKeyFromEnv', () => {
+  beforeEach(() => {
+    resetConfigForTests()
+    delete process.env.GREENLIGHT_API_KEY
+    process.env.DATABASE_URL = 'postgresql://greenlight:greenlight@localhost:5432/greenlight'
+    process.env.CALLBACK_SIGNING_SECRET = 'test-secret-value'
+    process.env.WEBHOOK_SECRET = 'webhook-secret-value'
+  })
+
   it('is exported and callable', async () => {
     await expect(bootstrapApiKeyFromEnv()).resolves.toBeUndefined()
+  })
+
+  it('reads GREENLIGHT_API_KEY from config when USE_AUTH is false', () => {
+    process.env.USE_AUTH = 'false'
+    process.env.GREENLIGHT_API_KEY = 'gl_test_bootstrap'
+    const config = loadConfig()
+    expect(config.GREENLIGHT_API_KEY).toBe('gl_test_bootstrap')
   })
 })

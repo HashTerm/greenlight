@@ -57,7 +57,7 @@
         "type": "apiKey",
         "in": "header",
         "name": "X-API-Key",
-        "description": "Database-backed API key with scoped permissions. Bootstrap from API_KEY env on first boot when api_keys is empty."
+        "description": "Database-backed API key with scoped permissions. Bootstrap from GREENLIGHT_API_KEY env on first boot when api_keys is empty."
       }
     },
     "schemas": {
@@ -1221,7 +1221,7 @@
         }
       }
     },
-    "/webhooks/{platform}/{channel_id}": {
+    "/webhooks/{organization_id}/{platform}/{channel_id}": {
       "get": {
         "tags": [
           "Webhooks"

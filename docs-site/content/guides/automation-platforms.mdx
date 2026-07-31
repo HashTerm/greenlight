@@ -88,7 +88,7 @@ sequenceDiagram
    automation tool's webhook URL as `callback_url` (where Greenlight forwards
    inbound chat as unsigned `message.created` events).
 2. **Configure the platform** — point the chat platform at Greenlight's inbound
-   webhook: `{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}` (see
+   webhook: `{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/{platform}/{channel_id}` (see
    [Platforms](/platforms)). This is **not** the same URL as `callback_url`.
 3. **On message** — Handle `message.created` at your `callback_url`; call an LLM API, lookup a runbook, or update a ticket.
 4. **Reply** — `POST /v1/messages/send` back through Greenlight to the same chat.
@@ -100,7 +100,7 @@ See [Concepts](/getting-started/concepts) for PROMPT vs MESSAGE diagrams.
 | Step              | PROMPT channel                                                                 | MESSAGE channel                                                                 |
 | ----------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
 | Create channel    | `POST /v1/channels/new` with `channel_type: "PROMPT"`                              | `POST /v1/channels/new` with `channel_type: "MESSAGE"` + `callback_url`             |
-| Platform setup    | Usually none (Telegram polls by default)                                         | Set `{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}` in the platform app |
+| Platform setup    | Usually none (Telegram polls by default)                                         | Set `{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/{platform}/{channel_id}` in the platform app |
 | Start interaction | `POST /v1/prompts/new` (+ per-prompt `callback_url`)                         | Human sends chat message                                                        |
 | Receive event     | Signed `POST` to the prompt's `callback_url`                                   | Unsigned `message.created` to the channel's `callback_url`                      |
 | Verify            | HMAC-SHA256 `X-Signature` header                                               | Optional; not signed by Greenlight                                            |
@@ -134,7 +134,7 @@ Prefix paths with your API origin (`http://localhost:8100` locally, or your
 
 ```http
 POST /v1/channels/new
-X-API-Key: <API_KEY>
+X-API-Key: <GREENLIGHT_API_KEY>
 Content-Type: application/json
 
 {
@@ -156,7 +156,7 @@ Response `201`:
 
 ```http
 POST /v1/prompts/new
-X-API-Key: <API_KEY>
+X-API-Key: <GREENLIGHT_API_KEY>
 Content-Type: application/json
 
 {
@@ -172,12 +172,12 @@ Content-Type: application/json
 
 `callback_url` is where Greenlight forwards inbound chat to your automation.
 Configure the chat platform separately to post events **into** Greenlight at
-`{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}` — see
+`{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/{platform}/{channel_id}` — see
 [Platforms](/platforms).
 
 ```http
 POST /v1/channels/new
-X-API-Key: <API_KEY>
+X-API-Key: <GREENLIGHT_API_KEY>
 Content-Type: application/json
 
 {
@@ -194,7 +194,7 @@ Content-Type: application/json
 
 ```http
 POST /v1/messages/send
-X-API-Key: <API_KEY>
+X-API-Key: <GREENLIGHT_API_KEY>
 Content-Type: application/json
 
 {

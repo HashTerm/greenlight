@@ -2,6 +2,7 @@ export const SCOPES = [
   'status:read',
   'settings:read',
   'settings:write',
+  'audit:read',
   'keys:read',
   'keys:write',
   'channels:read',

@@ -15,7 +15,7 @@ what is reserved for enterprise, and what uses are not allowed.
 
 ```bash
 cp .env.example .env
-# Set CALLBACK_SIGNING_SECRET, WEBHOOK_SECRET, API_KEY, AUTH_SECRET
+# Set CALLBACK_SIGNING_SECRET, WEBHOOK_SECRET, GREENLIGHT_API_KEY, AUTH_SECRET
 
 npm run setup       # install + Postgres + migrate
 npm run dev         # core :8100, ui :3001, docs :3003

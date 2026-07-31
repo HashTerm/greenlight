@@ -118,7 +118,7 @@ sequenceDiagram
 - **No agent registry** — Greenlight does not store workflow or agent IDs; you
   manage ownership and routing in your own stack via `channel_id`,
   `correlation_id`, and callback URLs.
-- **Shared Agent API key** — one `API_KEY` for the Agent API today (no per-agent
+- **Shared Agent API key** — one `GREENLIGHT_API_KEY` for the Agent API today (no per-agent
   keys).
 - **One binding per chat recommended** — if two active channels share the same
   platform, target chat, and credentials, inbound routing is nondeterministic.

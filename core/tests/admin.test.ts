@@ -7,7 +7,7 @@ function baseEnv(): void {
   process.env.CALLBACK_SIGNING_SECRET = 'test-secret-value'
   process.env.WEBHOOK_SECRET = 'webhook-secret-value'
   process.env.USE_AUTH = 'true'
-  process.env.API_KEY = 'agent-api-key'
+  process.env.GREENLIGHT_API_KEY = 'agent-api-key'
   resetConfigForTests()
 }
 

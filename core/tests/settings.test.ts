@@ -4,7 +4,7 @@ import { updateRetentionSettings } from '../src/services/settings/service.js'
 describe('retention settings', () => {
   it('rejects invalid retention days when enabled', async () => {
     await expect(
-      updateRetentionSettings({
+      updateRetentionSettings('default', {
         promptsRetentionEnabled: true,
         promptsRetentionDays: 0,
         messagesInboundRetentionEnabled: false,
@@ -19,7 +19,7 @@ describe('retention settings', () => {
 
   it('rejects invalid inbound retention days when enabled', async () => {
     await expect(
-      updateRetentionSettings({
+      updateRetentionSettings('default', {
         promptsRetentionEnabled: false,
         promptsRetentionDays: 30,
         messagesInboundRetentionEnabled: true,

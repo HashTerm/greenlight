@@ -23,6 +23,10 @@ export async function authMiddleware(c: Context, next: Next): Promise<Response |
     return c.json({ detail: 'Invalid or missing API key' }, 401)
   }
 
+  if (!apiKey.organizationId) {
+    return c.json({ detail: 'API key missing organization scope' }, 403)
+  }
+
   c.set('apiKey', apiKey)
   touchApiKeyLastUsed(apiKey.id)
   return next()

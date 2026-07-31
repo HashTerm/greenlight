@@ -36,6 +36,7 @@ function mergeCredentials(
 }
 
 export async function createChannel(data: {
+  organizationId: string
   channelId: string
   platform: Platform
   targetChatId: string
@@ -44,14 +45,14 @@ export async function createChannel(data: {
   channelType: string
 }): Promise<void> {
   return withClient(async (client) => {
-    const existing = await channelModels.getChannel(client, data.channelId)
+    const existing = await channelModels.getChannel(client, data.organizationId, data.channelId)
     if (existing) {
       throw new ChannelAlreadyExistsError(data.channelId)
     }
 
     await channelModels.insertChannel(client, data)
 
-    const row = await channelModels.getChannel(client, data.channelId)
+    const row = await channelModels.getChannel(client, data.organizationId, data.channelId)
     if (!row) throw new Error('Failed to create channel')
 
     await ensureBotForChannel(row)
@@ -59,6 +60,7 @@ export async function createChannel(data: {
 }
 
 export async function updateChannel(
+  organizationId: string,
   channelId: string,
   patch: {
     targetChatId?: string
@@ -67,7 +69,7 @@ export async function updateChannel(
   },
 ): Promise<void> {
   return withClient(async (client) => {
-    const existing = await channelModels.getChannel(client, channelId)
+    const existing = await channelModels.getChannel(client, organizationId, channelId)
     if (!existing) {
       throw new ChannelNotFoundError(channelId)
     }
@@ -88,13 +90,13 @@ export async function updateChannel(
       throw new Error('MESSAGE channels require callback_url')
     }
 
-    await channelModels.updateChannel(client, channelId, {
+    await channelModels.updateChannel(client, organizationId, channelId, {
       targetChatId,
       credentials,
       callbackUrl,
     })
 
-    const row = await channelModels.getChannel(client, channelId)
+    const row = await channelModels.getChannel(client, organizationId, channelId)
     if (!row) throw new Error('Failed to update channel')
 
     await ensureBotForChannel(row)
@@ -102,12 +104,13 @@ export async function updateChannel(
 }
 
 export async function sendToChannel(
+  organizationId: string,
   channelId: string,
   text: string,
   apiKeyId: string | null = null,
 ): Promise<{ messageId?: string }> {
   return withClient(async (client) => {
-    const channel = await channelModels.getChannel(client, channelId)
+    const channel = await channelModels.getChannel(client, organizationId, channelId)
     if (!channel || !channel.is_active) {
       throw new Error(`Channel ${channelId} not registered`)
     }
@@ -119,12 +122,13 @@ export async function sendToChannel(
     await ensureBotForChannel(channel)
     const { messageId: platformMessageId } = await postToChat(channel, text)
 
-    const settings = await settingsModels.getSettings(client)
+    const settings = await settingsModels.getSettings(client, organizationId)
     if (settings.messages_outbound_zero_retention) {
       return {}
     }
 
     const row = await messageModels.createMessage(client, {
+      organizationId,
       channelId: channel.channel_id,
       direction: 'outbound',
       text,
@@ -136,11 +140,14 @@ export async function sendToChannel(
   })
 }
 
-export async function listChannels(options?: {
-  platform?: Platform
-  channelType?: string
-  limit?: number
-}): Promise<
+export async function listChannels(
+  organizationId: string,
+  options?: {
+    platform?: Platform
+    channelType?: string
+    limit?: number
+  },
+): Promise<
   {
     channel_id: string
     platform: Platform
@@ -152,7 +159,7 @@ export async function listChannels(options?: {
   }[]
 > {
   return withClient(async (client) => {
-    const channels = await channelModels.listChannelsFiltered(client, {
+    const channels = await channelModels.listChannelsFiltered(client, organizationId, {
       platform: options?.platform,
       channelType: options?.channelType,
       limit: options?.limit ?? 50,
@@ -169,13 +176,16 @@ export async function listChannels(options?: {
   })
 }
 
-export async function unregisterChannel(channelId: string): Promise<void> {
+export async function unregisterChannel(
+  organizationId: string,
+  channelId: string,
+): Promise<void> {
   await withClient(async (client) => {
-    const channel = await channelModels.getChannel(client, channelId)
+    const channel = await channelModels.getChannel(client, organizationId, channelId)
     if (!channel) {
       throw new ChannelNotFoundError(channelId)
     }
-    await channelModels.deactivateChannel(client, channelId)
+    await channelModels.deactivateChannel(client, organizationId, channelId)
     await stopBotForChannelWithRow(channel)
   })
 }

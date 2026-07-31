@@ -36,7 +36,7 @@ Keep the token out of git — paste it only into Greenlight.
 
 ```bash
 curl -X POST http://localhost:8100/v1/channels/new \
-  -H "X-API-Key: $API_KEY" \
+  -H "X-API-Key: $GREENLIGHT_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "channel_id": "my-telegram-prompts",
@@ -56,7 +56,7 @@ curl -X POST http://localhost:8100/v1/channels/new \
 ## 5. Webhook URL
 
 ```
-{PUBLIC_WEBHOOK_URL}/webhooks/telegram/{channel_id}
+{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/telegram/{channel_id}
 ```
 
 Local `.env` with `PUBLIC_WEBHOOK_URL=http://localhost:8100` is fine for polling.

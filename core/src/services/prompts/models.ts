@@ -13,6 +13,7 @@ export function canAcceptTextReply(prompt: PromptRow | null): boolean {
 
 export interface PromptRow {
   id: string
+  organization_id: string
   prompt_num: number
   chat_id: string
   message_id: number | null
@@ -47,6 +48,7 @@ export function formatPromptId(promptNum: number): string {
 export async function createPrompt(
   client: pg.PoolClient,
   input: {
+    organizationId: string
     chatId: string
     text: string
     mediaUrl: string | null
@@ -61,12 +63,13 @@ export async function createPrompt(
   const expiresAt = input.ttlSec > 0 ? new Date(Date.now() + input.ttlSec * 1000) : null
 
   const result = await client.query<PromptRow>(
-    `INSERT INTO prompts (id, chat_id, text, media_url, options, allow_text, callback_url,
+    `INSERT INTO prompts (id, organization_id, chat_id, text, media_url, options, allow_text, callback_url,
       correlation_id, state, expires_at)
-     VALUES ($1, $2, $3, $4, $5::jsonb, $6, $7, $8, $9, $10)
+     VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10, $11)
      RETURNING *`,
     [
       tempId,
+      input.organizationId,
       input.chatId,
       input.text,
       input.mediaUrl,
@@ -85,6 +88,7 @@ export async function createPrompt(
 
 export async function addOptionMap(
   client: pg.PoolClient,
+  organizationId: string,
   promptId: string,
   optionId: string,
   label: string,
@@ -93,8 +97,8 @@ export async function addOptionMap(
   if (!promptNum) throw new Error(`Invalid prompt id: ${promptId}`)
 
   const prompt = await client.query<{ id: string }>(
-    'SELECT id FROM prompts WHERE prompt_num = $1',
-    [promptNum],
+    'SELECT id FROM prompts WHERE organization_id = $1 AND prompt_num = $2',
+    [organizationId, promptNum],
   )
   if (!prompt.rows[0]) throw new Error(`Prompt not found: ${promptId}`)
 
@@ -106,36 +110,30 @@ export async function addOptionMap(
 
 export async function setMessageId(
   client: pg.PoolClient,
+  organizationId: string,
   promptId: string,
   messageId: number,
 ): Promise<void> {
   const promptNum = parsePromptId(promptId)
   if (!promptNum) return
-  await client.query('UPDATE prompts SET message_id = $1 WHERE prompt_num = $2', [
-    messageId,
-    promptNum,
-  ])
-}
-
-export async function listPending(client: pg.PoolClient): Promise<PromptRow[]> {
-  const result = await client.query<PromptRow>(
-    'SELECT * FROM prompts WHERE state = $1 ORDER BY created_at DESC',
-    [PENDING],
+  await client.query(
+    'UPDATE prompts SET message_id = $1 WHERE organization_id = $2 AND prompt_num = $3',
+    [messageId, organizationId, promptNum],
   )
-  return result.rows
 }
 
 export type PromptListState = 'pending' | 'answered' | 'expired' | 'all'
 
 export async function listPrompts(
   client: pg.PoolClient,
+  organizationId: string,
   state: PromptListState,
   limit: number,
 ): Promise<PromptRow[]> {
   if (state === 'all') {
     const result = await client.query<PromptRow>(
-      'SELECT * FROM prompts ORDER BY created_at DESC LIMIT $1',
-      [limit],
+      'SELECT * FROM prompts WHERE organization_id = $1 ORDER BY created_at DESC LIMIT $2',
+      [organizationId, limit],
     )
     return result.rows
   }
@@ -147,26 +145,29 @@ export async function listPrompts(
   } as const
 
   const result = await client.query<PromptRow>(
-    'SELECT * FROM prompts WHERE state = $1 ORDER BY created_at DESC LIMIT $2',
-    [stateMap[state], limit],
+    'SELECT * FROM prompts WHERE organization_id = $1 AND state = $2 ORDER BY created_at DESC LIMIT $3',
+    [organizationId, stateMap[state], limit],
   )
   return result.rows
 }
 
 export async function getPrompt(
   client: pg.PoolClient,
+  organizationId: string,
   promptId: string,
 ): Promise<PromptRow | null> {
   const promptNum = parsePromptId(promptId)
   if (!promptNum) return null
-  const result = await client.query<PromptRow>('SELECT * FROM prompts WHERE prompt_num = $1', [
-    promptNum,
-  ])
+  const result = await client.query<PromptRow>(
+    'SELECT * FROM prompts WHERE organization_id = $1 AND prompt_num = $2',
+    [organizationId, promptNum],
+  )
   return result.rows[0] ?? null
 }
 
 export async function resolveOptionLabel(
   client: pg.PoolClient,
+  organizationId: string,
   promptId: string,
   optionId: string,
 ): Promise<string | null> {
@@ -174,8 +175,8 @@ export async function resolveOptionLabel(
   if (!promptNum) return null
 
   const prompt = await client.query<{ id: string }>(
-    'SELECT id FROM prompts WHERE prompt_num = $1',
-    [promptNum],
+    'SELECT id FROM prompts WHERE organization_id = $1 AND prompt_num = $2',
+    [organizationId, promptNum],
   )
   if (!prompt.rows[0]) return null
 
@@ -193,6 +194,7 @@ export interface CallbackInfo {
 
 export async function markAnswered(
   client: pg.PoolClient,
+  organizationId: string,
   promptId: string,
   answer: {
     type: string
@@ -211,11 +213,20 @@ export async function markAnswered(
          answered_by_id = $4,
          answered_by_username = $5,
          answered_at = now()
-     WHERE prompt_num = $6 AND state = $7`,
-    [ANSWERED, answer.type, answer.value, answer.userId, answer.username, promptNum, PENDING],
+     WHERE organization_id = $6 AND prompt_num = $7 AND state = $8`,
+    [
+      ANSWERED,
+      answer.type,
+      answer.value,
+      answer.userId,
+      answer.username,
+      organizationId,
+      promptNum,
+      PENDING,
+    ],
   )
 
-  const prompt = await getPrompt(client, promptId)
+  const prompt = await getPrompt(client, organizationId, promptId)
   if (!prompt?.callback_url) return null
 
   return {
@@ -251,26 +262,33 @@ export async function cleanOnBoot(client: pg.PoolClient): Promise<void> {
   await client.query('DELETE FROM prompts WHERE state = $1 AND message_id IS NULL', [PENDING])
 }
 
-export async function deleteOlderThan(client: pg.PoolClient, days: number): Promise<number> {
+export async function deleteOlderThan(
+  client: pg.PoolClient,
+  organizationId: string,
+  days: number,
+): Promise<number> {
   const result = await client.query<{ c: string }>(
     `WITH del AS (
        DELETE FROM prompts
-       WHERE created_at < now() - ($1::int * interval '1 day')
+       WHERE organization_id = $2
+         AND created_at < now() - ($1::int * interval '1 day')
        RETURNING 1
      ) SELECT count(*)::text AS c FROM del`,
-    [days],
+    [days, organizationId],
   )
   return Number(result.rows[0]?.c ?? 0)
 }
 
 export async function getPromptByActionKey(
   client: pg.PoolClient,
+  organizationId: string,
   actionKey: string,
 ): Promise<{ promptId: string; optionId: string } | null> {
   const idx = actionKey.indexOf(':')
   if (idx === -1) return null
-  return {
-    promptId: actionKey.slice(0, idx),
-    optionId: actionKey.slice(idx + 1),
-  }
+  const promptId = actionKey.slice(0, idx)
+  const optionId = actionKey.slice(idx + 1)
+  const prompt = await getPrompt(client, organizationId, promptId)
+  if (!prompt) return null
+  return { promptId, optionId }
 }

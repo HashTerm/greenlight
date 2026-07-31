@@ -1,1 +1,1 @@
-export { bootstrapApiKeyFromEnv } from './service.js'
+export { bootstrapApiKeyFromEnv, countActiveApiKeys } from './service.js'

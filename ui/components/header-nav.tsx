@@ -13,6 +13,7 @@ import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
 import { logoutAction } from '@/lib/actions'
+import type { EnterpriseNavItem } from '@/lib/extensions/register'
 import { registerEnterpriseNav } from '@/lib/extensions/register'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -26,16 +27,19 @@ const baseLinks = [
   { href: '/settings', label: 'Settings', icon: Settings },
 ] as const
 
-const links = [...baseLinks, ...registerEnterpriseNav()]
+type HeaderNavProps = {
+  enterpriseLinks?: EnterpriseNavItem[]
+}
 
 function isNavLinkActive(pathname: string, href: string) {
   if (href === '/dashboard') return pathname === '/dashboard'
   return pathname === href || pathname.startsWith(`${href}/`)
 }
 
-export function HeaderNav() {
+export function HeaderNav({ enterpriseLinks = registerEnterpriseNav() }: HeaderNavProps) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const links = [...baseLinks, ...enterpriseLinks]
 
   return (
     <div className="flex items-center gap-1">

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 export const dynamic = 'force-dynamic'
 
 import { fetchChannels, sendMessageAction } from '@/lib/actions'
-import { getPublicWebhookUrl } from '@/lib/greenlight-client'
+import { getActiveOrganizationId, getPublicWebhookUrl } from '@/lib/greenlight-client'
 import { formatGuideSteps } from '@/lib/platform-guides'
 import type { Platform } from '@/lib/platform-fields'
 import { DeleteChannelButton } from '@/components/delete-channel-button'
@@ -19,7 +19,7 @@ export default async function ChannelDetailPage({ params }: { params: Promise<{ 
   const channel = channels.find((c) => c.channel_id === id)
   if (!channel) notFound()
 
-  const webhookUrl = `${getPublicWebhookUrl()}/webhooks/${channel.platform}/${channel.channel_id}`
+  const webhookUrl = `${getPublicWebhookUrl()}/webhooks/${encodeURIComponent(getActiveOrganizationId())}/${channel.platform}/${channel.channel_id}`
   const registerJson = JSON.stringify(
     {
       channel_id: channel.channel_id,

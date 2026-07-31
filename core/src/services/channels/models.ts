@@ -3,6 +3,7 @@ import type { Platform } from '../../core/platform.js'
 import { credentialFingerprint, instanceKey } from '../../core/platform.js'
 
 export interface ChannelRow {
+  organization_id: string
   channel_id: string
   platform: Platform
   target_chat_id: string
@@ -13,6 +14,16 @@ export interface ChannelRow {
   channel_type: string
 }
 
+function parseCredentials(row: ChannelRow): ChannelRow {
+  return {
+    ...row,
+    credentials:
+      typeof row.credentials === 'string'
+        ? (JSON.parse(row.credentials) as Record<string, string>)
+        : row.credentials,
+  }
+}
+
 export function channelInstanceKey(channel: ChannelRow): string {
   return instanceKey(channel.platform, channel.credentials)
 }
@@ -20,6 +31,7 @@ export function channelInstanceKey(channel: ChannelRow): string {
 export async function insertChannel(
   client: pg.PoolClient,
   data: {
+    organizationId: string
     channelId: string
     platform: Platform
     targetChatId: string
@@ -29,9 +41,10 @@ export async function insertChannel(
   },
 ): Promise<void> {
   await client.query(
-    `INSERT INTO channels (channel_id, platform, target_chat_id, credentials, callback_url, channel_type)
-     VALUES ($1, $2, $3, $4, $5, $6)`,
+    `INSERT INTO channels (organization_id, channel_id, platform, target_chat_id, credentials, callback_url, channel_type)
+     VALUES ($1, $2, $3, $4, $5, $6, $7)`,
     [
+      data.organizationId,
       data.channelId,
       data.platform,
       data.targetChatId,
@@ -44,6 +57,7 @@ export async function insertChannel(
 
 export async function updateChannel(
   client: pg.PoolClient,
+  organizationId: string,
   channelId: string,
   data: {
     targetChatId: string
@@ -53,51 +67,47 @@ export async function updateChannel(
 ): Promise<void> {
   await client.query(
     `UPDATE channels
-     SET target_chat_id = $2,
-         credentials = $3,
-         callback_url = $4,
+     SET target_chat_id = $3,
+         credentials = $4,
+         callback_url = $5,
          is_active = true
-     WHERE channel_id = $1`,
-    [channelId, data.targetChatId, JSON.stringify(data.credentials), data.callbackUrl],
+     WHERE organization_id = $1 AND channel_id = $2`,
+    [
+      organizationId,
+      channelId,
+      data.targetChatId,
+      JSON.stringify(data.credentials),
+      data.callbackUrl,
+    ],
   )
 }
 
 export async function getChannel(
   client: pg.PoolClient,
+  organizationId: string,
   channelId: string,
 ): Promise<ChannelRow | null> {
-  const result = await client.query<ChannelRow>('SELECT * FROM channels WHERE channel_id = $1', [
-    channelId,
-  ])
+  const result = await client.query<ChannelRow>(
+    'SELECT * FROM channels WHERE organization_id = $1 AND channel_id = $2',
+    [organizationId, channelId],
+  )
   const row = result.rows[0]
-  if (!row) return null
-  return {
-    ...row,
-    credentials:
-      typeof row.credentials === 'string'
-        ? (JSON.parse(row.credentials) as Record<string, string>)
-        : row.credentials,
-  }
+  return row ? parseCredentials(row) : null
 }
 
 export async function listActiveChannels(client: pg.PoolClient): Promise<ChannelRow[]> {
   const result = await client.query<ChannelRow>('SELECT * FROM channels WHERE is_active = true')
-  return result.rows.map((row) => ({
-    ...row,
-    credentials:
-      typeof row.credentials === 'string'
-        ? (JSON.parse(row.credentials) as Record<string, string>)
-        : row.credentials,
-  }))
+  return result.rows.map(parseCredentials)
 }
 
 export async function listChannelsFiltered(
   client: pg.PoolClient,
+  organizationId: string,
   filters: { platform?: Platform; channelType?: string; limit: number },
 ): Promise<ChannelRow[]> {
-  const conditions: string[] = []
-  const params: unknown[] = []
-  let paramIndex = 1
+  const conditions: string[] = ['organization_id = $1']
+  const params: unknown[] = [organizationId]
+  let paramIndex = 2
 
   if (filters.platform) {
     conditions.push(`platform = $${paramIndex++}`)
@@ -108,39 +118,52 @@ export async function listChannelsFiltered(
     params.push(filters.channelType)
   }
 
-  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''
   params.push(filters.limit)
   const result = await client.query<ChannelRow>(
-    `SELECT * FROM channels ${where} ORDER BY registered_at DESC LIMIT $${paramIndex}`,
+    `SELECT * FROM channels WHERE ${conditions.join(' AND ')} ORDER BY registered_at DESC LIMIT $${paramIndex}`,
     params,
   )
-  return result.rows.map((row) => ({
-    ...row,
-    credentials:
-      typeof row.credentials === 'string'
-        ? (JSON.parse(row.credentials) as Record<string, string>)
-        : row.credentials,
-  }))
+  return result.rows.map(parseCredentials)
 }
 
-export async function listAllChannels(client: pg.PoolClient): Promise<ChannelRow[]> {
-  const result = await client.query<ChannelRow>(
-    'SELECT * FROM channels ORDER BY registered_at DESC',
+export async function deactivateChannel(
+  client: pg.PoolClient,
+  organizationId: string,
+  channelId: string,
+): Promise<void> {
+  await client.query(
+    'UPDATE channels SET is_active = false WHERE organization_id = $1 AND channel_id = $2',
+    [organizationId, channelId],
   )
-  return result.rows.map((row) => ({
-    ...row,
-    credentials:
-      typeof row.credentials === 'string'
-        ? (JSON.parse(row.credentials) as Record<string, string>)
-        : row.credentials,
-  }))
-}
-
-export async function deactivateChannel(client: pg.PoolClient, channelId: string): Promise<void> {
-  await client.query('UPDATE channels SET is_active = false WHERE channel_id = $1', [channelId])
 }
 
 export async function findChannelByTarget(
+  client: pg.PoolClient,
+  organizationId: string,
+  platform: Platform,
+  targetChatId: string,
+  credFingerprint: string,
+): Promise<ChannelRow | null> {
+  const result = await client.query<ChannelRow>(
+    `SELECT * FROM channels
+     WHERE organization_id = $1
+       AND platform = $2
+       AND target_chat_id = $3
+       AND is_active = true`,
+    [organizationId, platform, targetChatId],
+  )
+
+  for (const row of result.rows) {
+    const parsed = parseCredentials(row)
+    if (credentialFingerprint(platform, parsed.credentials) === credFingerprint) {
+      return parsed
+    }
+  }
+  return null
+}
+
+/** Resolve inbound chat traffic when organization_id is not in the thread id. */
+export async function findChannelByTargetAndFingerprint(
   client: pg.PoolClient,
   platform: Platform,
   targetChatId: string,
@@ -155,12 +178,9 @@ export async function findChannelByTarget(
   )
 
   for (const row of result.rows) {
-    const credentials =
-      typeof row.credentials === 'string'
-        ? (JSON.parse(row.credentials) as Record<string, string>)
-        : row.credentials
-    if (credentialFingerprint(platform, credentials) === credFingerprint) {
-      return { ...row, credentials }
+    const parsed = parseCredentials(row)
+    if (credentialFingerprint(platform, parsed.credentials) === credFingerprint) {
+      return parsed
     }
   }
   return null

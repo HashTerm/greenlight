@@ -1,6 +1,8 @@
 import { Archive, KeyRound, Server, Settings } from 'lucide-react'
+import Link from 'next/link'
 import { ApiKeysSection } from '@/components/api-keys-section'
 import { changePassword, fetchApiKeys, fetchRetentionSettings } from '@/lib/actions'
+import { registerEnterpriseSettingsSections } from '@/lib/extensions/register'
 import { CardSectionTitle } from '@/components/card-section-title'
 import { PageHeader } from '@/components/page-header'
 import { RetentionSettingsForm } from '@/components/retention-settings-form'
@@ -29,6 +31,7 @@ export default async function SettingsPage() {
 
   const { settings: retention, error: retentionError } = retentionResult
   const { keys: apiKeys, error: apiKeysError } = apiKeysResult
+  const enterpriseSections = registerEnterpriseSettingsSections()
 
   return (
     <div className="space-y-6">
@@ -81,6 +84,29 @@ export default async function SettingsPage() {
           <ApiKeysSection error={apiKeysError} initialKeys={apiKeys} />
         </CardContent>
       </Card>
+
+      {enterpriseSections.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardSectionTitle icon={Settings}>Enterprise</CardSectionTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {enterpriseSections.map((section) => (
+              <div key={section.id} className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="font-medium">{section.title}</p>
+                  {section.description && (
+                    <p className="text-sm text-muted-foreground">{section.description}</p>
+                  )}
+                </div>
+                <Link className="text-sm text-primary hover:underline" href={section.href}>
+                  Open
+                </Link>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardHeader>

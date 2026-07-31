@@ -26,14 +26,18 @@ function stateKeyPrefix(platform: Platform, credentials: Record<string, string>)
   return `greenlight:${instanceKey(platform, credentials)}`
 }
 
-async function startDiscordGateway(managed: ManagedBot, channelId: string): Promise<void> {
+async function startDiscordGateway(
+  managed: ManagedBot,
+  organizationId: string,
+  channelId: string,
+): Promise<void> {
   const config = loadConfig()
   if (!config.PUBLIC_WEBHOOK_URL?.trim()) return
 
   const adapter = managed.bot.getAdapter('discord')
   if (!adapter || !('startGatewayListener' in adapter)) return
 
-  const webhookUrl = `${config.PUBLIC_WEBHOOK_URL.replace(/\/$/, '')}/webhooks/discord/${encodeURIComponent(channelId)}`
+  const webhookUrl = `${config.PUBLIC_WEBHOOK_URL.replace(/\/$/, '')}/webhooks/${encodeURIComponent(organizationId)}/discord/${encodeURIComponent(channelId)}`
   const durationMs = 10 * 60 * 1000
 
   const runLoop = async (): Promise<void> => {
@@ -92,7 +96,7 @@ async function createBotInstance(channel: ChannelRow): Promise<ManagedBot> {
   await registerPlatformWebhook(channel)
 
   if (channel.platform === 'discord') {
-    await startDiscordGateway(managed, channel.channel_id)
+    await startDiscordGateway(managed, channel.organization_id, channel.channel_id)
   }
 
   return managed
@@ -103,25 +107,25 @@ export async function ensureBotForChannel(channel: ChannelRow): Promise<ManagedB
   const existing = getBotByKey(key)
   if (existing) {
     existing.channelIds.add(channel.channel_id)
-    bindChannelToKey(channel.channel_id, key)
+    bindChannelToKey(channel.organization_id, channel.channel_id, key)
     return existing
   }
 
   const managed = await createBotInstance(channel)
   managed.channelIds.add(channel.channel_id)
-  bindChannelToKey(channel.channel_id, key)
+  bindChannelToKey(channel.organization_id, channel.channel_id, key)
   return managed
 }
 
 export async function stopBotForChannelWithRow(channel: ChannelRow): Promise<void> {
-  const key = getChannelKey(channel.channel_id)
+  const key = getChannelKey(channel.organization_id, channel.channel_id)
   if (!key) return
 
   const managed = getBotByKey(key)
   if (!managed) return
 
   managed.channelIds.delete(channel.channel_id)
-  unbindChannel(channel.channel_id)
+  unbindChannel(channel.organization_id, channel.channel_id)
 
   if (managed.channelIds.size === 0) {
     await deletePlatformWebhook(channel)

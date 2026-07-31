@@ -45,7 +45,7 @@ request URL separately to the Greenlight inbound webhook below.
 ## Webhook URL (platform → Greenlight)
 
 ```
-{PUBLIC_WEBHOOK_URL}/webhooks/slack/{channel_id}
+{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/slack/{channel_id}
 ```
 
 Configure that URL as the Slack Events API request URL. Slack must be able to

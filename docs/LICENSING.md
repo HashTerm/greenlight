@@ -8,11 +8,11 @@ the [LICENSE](../LICENSE) before you rely on it commercially.
 
 ## Editions
 
-| Edition    | Location                                                  | License                | What you get                                          |
-| ---------- | --------------------------------------------------------- | ---------------------- | ----------------------------------------------------- |
-| Community  | `core/`, `ui/`, `docs-site/` (this repo)                  | [BUSL-1.1](../LICENSE) | Full self-host product for community features         |
-| Enterprise | Not distributed in this repository — contact the Licensor | Proprietary            | Future paid add-ons (SSO, audit, advanced RBAC, etc.) |
-| Cloud      | Not distributed in this repository — contact the Licensor | Proprietary            | Official hosted subscription (vendor only)            |
+| Edition    | Location | License     | What you get |
+| ---------- | -------- | ----------- | ------------ |
+| Community  | `core/`, `ui/`, `docs-site/` (this repo) | [BUSL-1.1](../LICENSE) | Full self-host product for community features |
+| Enterprise | Commercial license (contact Licensor) | Proprietary | Audit log, multi-user admin, RBAC, SSO (OIDC) |
+| Cloud      | Commercial license (contact Licensor) | Proprietary | Official hosted subscription (vendor only) |
 
 ## What you may do (community / BUSL-1.1)
 
@@ -35,9 +35,9 @@ the [LICENSE](../LICENSE) before you rely on it commercially.
 | Licensor (Marko Kostic / official Greenlight cloud)           | Yes                                      |
 | Anyone else (with or without an enterprise self-host license) | **No** under BUSL / enterprise terms     |
 
-Paying for an **enterprise self-host license** (when available) lets a company
-run Greenlight with enterprise features **for themselves**. It does **not**
-allow them to resell Greenlight Cloud to others.
+Paying for an **enterprise self-host license** lets a company run Greenlight with
+enterprise features **for themselves**. It does **not** allow them to resell
+Greenlight Cloud to others.
 
 ## Change Date
 
@@ -66,18 +66,11 @@ No, not under BUSL-1.1 while the Additional Use Grant restrictions apply.
 enterprise or SaaS work to be merged into this repository.
 
 **Where is enterprise / cloud code?**  
-In the private **greenlight-platform** monorepo (not part of this repository or
-the BUSL community grant):
+Not in this repository. Enterprise and Cloud are proprietary commercial offerings.
+Self-hosters use the same `greenlight` / `greenlight-ui` images with a license to
+unlock enterprise features. Contact the Licensor for access.
 
-- **Enterprise** — proprietary **source** in `enterprise/`, injected into the
-  **same** `greenlight` Docker image at build (there is **no** separate
-  `greenlight-enterprise` image). Self-hosters add a **license** at runtime to
-  unlock features.
-- **Cloud** — separate SaaS control plane (billing, subscriptions,
-  organisations, provisioning), not a duplicate of `core/`.
-
-Public [Editions & admin identity](/getting-started/editions) summarizes
-behavior; platform architecture is documented for internal use in
-`greenlight-platform/ARCHITECTURE.md`.
+See [Editions & admin identity](docs-site/content/getting-started/editions.mdx) and
+[Community scope](COMMUNITY-SCOPE.md) for what is in this repo.
 
 Contact the Licensor for commercial licensing.

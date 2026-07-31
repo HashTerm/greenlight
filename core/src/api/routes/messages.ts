@@ -6,6 +6,9 @@ import { getMessage, listMessages } from '../../services/messages/service.js'
 import { sendMessageSchema } from '../../services/messages/schemas.js'
 import { getApiKeyId } from '../middleware/auth.js'
 import { requireScope } from '../middleware/require-scope.js'
+import { recordAuditEvent } from '../../extensions/audit.js'
+import { getAuditEventContext } from '../middleware/audit-actor.js'
+import { getOrganizationId } from '../middleware/org-context.js'
 
 const listQuerySchema = z.object({
   direction: z.enum(['inbound', 'outbound', 'all']).default('all'),
@@ -21,8 +24,9 @@ messageRoutes.post(
   zValidator('json', sendMessageSchema),
   async (c) => {
     const body = c.req.valid('json')
+    const organizationId = getOrganizationId(c)
     try {
-      const result = await sendToChannel(body.channel_id, body.text, getApiKeyId(c))
+      const result = await sendToChannel(organizationId, body.channel_id, body.text, getApiKeyId(c))
       if (!result.messageId) {
         return c.json(
           {
@@ -35,10 +39,17 @@ messageRoutes.post(
           201,
         )
       }
-      const message = await getMessage(result.messageId)
+      const message = await getMessage(organizationId, result.messageId)
       if (!message) {
         return c.json({ detail: 'Message not found after send' }, 500)
       }
+      await recordAuditEvent({
+        ...getAuditEventContext(c),
+        action: 'message.sent',
+        resource_type: 'message',
+        resource_id: message.id,
+        metadata: { channel_id: body.channel_id },
+      })
       return c.json(message, 201)
     } catch (err) {
       const message = String(err)
@@ -60,6 +71,7 @@ messageRoutes.get(
   async (c) => {
     const { direction, channel_id: channelId, limit } = c.req.valid('query')
     const rows = await listMessages({
+      organizationId: getOrganizationId(c),
       limit,
       channelId,
       direction,
@@ -73,7 +85,7 @@ messageRoutes.get('/messages/:id', requireScope('messages:read'), async (c) => {
   if (id === 'send') {
     return c.json({ detail: 'Message not found' }, 404)
   }
-  const message = await getMessage(id ?? '')
+  const message = await getMessage(getOrganizationId(c), id ?? '')
   if (!message) {
     return c.json({ detail: 'Message not found' }, 404)
   }

@@ -6,6 +6,7 @@ export const TEST_API_KEYS: Record<string, AuthenticatedApiKey> = {
     id: 'test-admin-key',
     name: 'test-admin',
     scopes: ['admin'],
+    organizationId: 'default',
   },
   'agent-only-key': {
     id: 'test-agent-key',
@@ -18,6 +19,7 @@ export const TEST_API_KEYS: Record<string, AuthenticatedApiKey> = {
       'messages:read',
       'messages:send',
     ],
+    organizationId: 'default',
   },
   'readonly-key': {
     id: 'test-readonly-key',
@@ -30,6 +32,13 @@ export const TEST_API_KEYS: Record<string, AuthenticatedApiKey> = {
       'prompts:read',
       'messages:read',
     ],
+    organizationId: 'default',
+  },
+  'org-b-key': {
+    id: 'test-org-b-key',
+    name: 'test-org-b',
+    scopes: ['admin'],
+    organizationId: 'org-b',
   },
 }
 

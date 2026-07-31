@@ -338,7 +338,11 @@ export async function createPromptAction(formData: FormData) {
     if (correlationId) upload.append('correlation_id', correlationId)
 
     const key = process.env.GREENLIGHT_API_KEY
-    if (!key) throw new Error('GREENLIGHT_API_KEY is not configured')
+    if (!key) {
+      throw new Error(
+        'GREENLIGHT_API_KEY is not configured. Set it in env or create a key in Settings and update the env value.',
+      )
+    }
     const base = process.env.GREENLIGHT_API_URL ?? 'http://localhost:8100'
 
     const res = await fetch(`${base}/v1/prompts/new`, {

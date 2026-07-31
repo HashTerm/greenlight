@@ -12,33 +12,30 @@ Environment variables for `core` and `ui`. Copy `.env.example` as a starting poi
 
 | Variable                    | Used by  | Purpose                                                                                                      |
 | --------------------------- | -------- | ------------------------------------------------------------------------------------------------------------ |
-| `PUBLIC_WEBHOOK_URL`        | core, ui | Public HTTPS base (no trailing slash). Platforms use `{PUBLIC_WEBHOOK_URL}/webhooks/{platform}/{channel_id}` |
+| `PUBLIC_WEBHOOK_URL`        | core, ui | Public HTTPS base (no trailing slash). Platforms use `{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/{platform}/{channel_id}` |
 | `WEBHOOK_SECRET`            | core     | Platform webhook verification secret                                                                         |
 | `DEFAULT_PROMPT_CHANNEL_ID` | core     | Optional default when prompts omit `channel_id`                                                              |
 
-## Security (core)
+## Security and API key
 
-| Variable                  | Used by | Default / notes                                                    |
-| ------------------------- | ------- | ------------------------------------------------------------------ |
-| `CALLBACK_SIGNING_SECRET` | core    | HMAC secret for prompt answer callbacks                            |
-| `USE_AUTH`                | core    | Set `true` to require `X-API-Key`. Dev Compose often forces `true` |
-| `API_KEY`                 | core    | Bootstrap-only: seeds admin key when `api_keys` is empty on first boot |
+| Variable                  | Used by   | Default / notes                                                                 |
+| ------------------------- | --------- | ------------------------------------------------------------------------------- |
+| `CALLBACK_SIGNING_SECRET` | core      | HMAC secret for prompt answer callbacks                                         |
+| `USE_AUTH`                | core      | Set `true` to require `X-API-Key`                                               |
+| `GREENLIGHT_API_KEY`      | core, ui  | Seeds first admin key when `api_keys` is empty; UI sends it as `X-API-Key`     |
 
 ## Admin UI
-
-The UI talks to core with **`GREENLIGHT_*`** names.
 
 | Variable                 | Purpose                                                          |
 | ------------------------ | ---------------------------------------------------------------- |
 | `GREENLIGHT_API_URL`     | Core base URL (default `http://localhost:8100`)                  |
-| `GREENLIGHT_API_KEY`     | Sent as `X-API-Key` — must be a valid database key with required scopes |
 | `AUTH_SECRET`            | NextAuth session secret                                          |
 | `DATABASE_URL`           | Same Postgres as core (admin users table)                        |
 | `PUBLIC_WEBHOOK_URL`     | Shown on channel detail pages                                    |
 
-**Hybrid `npm run dev`:** set `GREENLIGHT_API_KEY` in the root `.env` (see `.env.example`). Match a key with admin scopes (bootstrap `API_KEY` or one created in Settings).
+**Hybrid `npm run dev`:** set `GREENLIGHT_API_KEY` in the root `.env` (see `.env.example`). After creating a new key in Settings, update `GREENLIGHT_API_KEY` and restart the UI.
 
-**Docker / self-host Compose:** injects `GREENLIGHT_API_KEY` from `API_KEY` for the initial bootstrap key.
+**Docker / self-host Compose:** pass the same `GREENLIGHT_API_KEY` to core and ui services.
 
 ## Media
 

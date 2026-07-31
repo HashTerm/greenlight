@@ -1,15 +1,41 @@
 const baseUrl = () => process.env.GREENLIGHT_API_URL ?? 'http://localhost:8100'
 
-function apiHeaders(): HeadersInit {
-  const key = process.env.GREENLIGHT_API_KEY
-  if (!key) throw new Error('GREENLIGHT_API_KEY is not configured')
-  return { 'X-API-Key': key, 'Content-Type': 'application/json' }
+/** Self-host default org; cloud UI sets GREENLIGHT_ORG_ID to the active org UUID. */
+export const DEFAULT_ORGANIZATION_ID = process.env.GREENLIGHT_ORG_ID ?? 'default'
+
+export function getActiveOrganizationId(): string {
+  return DEFAULT_ORGANIZATION_ID
 }
 
-export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+function apiHeaders(userId?: string): HeadersInit {
+  const key = process.env.GREENLIGHT_API_KEY
+  if (!key) {
+    throw new Error(
+      'GREENLIGHT_API_KEY is not configured. Set it in env or create a key in Settings and update the env value.',
+    )
+  }
+  const headers: Record<string, string> = {
+    'X-API-Key': key,
+    'X-Greenlight-Org-Id': getActiveOrganizationId(),
+    'Content-Type': 'application/json',
+  }
+  if (userId) {
+    headers['X-Greenlight-User-Id'] = userId
+  }
+  return headers
+}
+
+export type ApiFetchOptions = RequestInit & { userId?: string; userEmail?: string }
+
+export async function apiFetch<T>(path: string, init?: ApiFetchOptions): Promise<T> {
+  const { userId, userEmail, ...rest } = init ?? {}
+  const baseHeaders = apiHeaders(userId)
+  if (userEmail) {
+    ;(baseHeaders as Record<string, string>)['X-Greenlight-User-Email'] = userEmail
+  }
   const res = await fetch(`${baseUrl()}${path}`, {
-    ...init,
-    headers: { ...apiHeaders(), ...init?.headers },
+    ...rest,
+    headers: { ...baseHeaders, ...rest.headers },
     cache: 'no-store',
   })
   if (!res.ok) {

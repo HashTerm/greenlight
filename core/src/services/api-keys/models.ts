@@ -1,5 +1,6 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import type pg from 'pg'
+import { DEFAULT_ORG_ID } from '../../core/org.js'
 
 export interface ApiKeyRow {
   id: string
@@ -7,7 +8,7 @@ export interface ApiKeyRow {
   key_prefix: string
   key_hash: string
   scopes: string[]
-  organization_id: string | null
+  organization_id: string
   created_at: Date
   revoked_at: Date | null
   last_used_at: Date | null
@@ -18,7 +19,7 @@ export interface ApiKeyPublic {
   name: string
   key_prefix: string
   scopes: string[]
-  organization_id: string | null
+  organization_id: string
   created_at: string
   revoked_at: string | null
   last_used_at: string | null
@@ -48,32 +49,54 @@ export function toPublic(row: ApiKeyRow): ApiKeyPublic {
   }
 }
 
-export async function countActiveKeys(client: pg.PoolClient): Promise<number> {
+export async function countActiveKeys(
+  client: pg.PoolClient,
+  organizationId?: string,
+): Promise<number> {
+  if (organizationId) {
+    const result = await client.query<{ c: string }>(
+      'SELECT count(*)::text AS c FROM api_keys WHERE revoked_at IS NULL AND organization_id = $1',
+      [organizationId],
+    )
+    return Number(result.rows[0]?.c ?? 0)
+  }
   const result = await client.query<{ c: string }>(
     'SELECT count(*)::text AS c FROM api_keys WHERE revoked_at IS NULL',
   )
   return Number(result.rows[0]?.c ?? 0)
 }
 
-export async function countActiveKeyManagers(client: pg.PoolClient): Promise<number> {
+export async function countActiveKeyManagers(
+  client: pg.PoolClient,
+  organizationId: string,
+): Promise<number> {
   const result = await client.query<{ c: string }>(
     `SELECT count(*)::text AS c FROM api_keys
      WHERE revoked_at IS NULL
+       AND organization_id = $1
        AND ('admin' = ANY(scopes) OR 'keys:write' = ANY(scopes))`,
+    [organizationId],
   )
   return Number(result.rows[0]?.c ?? 0)
 }
 
 export async function insertApiKey(
   client: pg.PoolClient,
-  input: { name: string; prefix: string; hash: string; scopes: string[] },
+  input: {
+    name: string
+    prefix: string
+    hash: string
+    scopes: string[]
+    organizationId?: string
+  },
 ): Promise<ApiKeyRow> {
   const id = randomUUID()
+  const organizationId = input.organizationId ?? DEFAULT_ORG_ID
   const result = await client.query<ApiKeyRow>(
-    `INSERT INTO api_keys (id, name, key_prefix, key_hash, scopes)
-     VALUES ($1, $2, $3, $4, $5)
+    `INSERT INTO api_keys (id, name, key_prefix, key_hash, scopes, organization_id)
+     VALUES ($1, $2, $3, $4, $5, $6)
      RETURNING *`,
-    [id, input.name, input.prefix, input.hash, input.scopes],
+    [id, input.name, input.prefix, input.hash, input.scopes, organizationId],
   )
   return result.rows[0]!
 }
@@ -86,22 +109,37 @@ export async function findByHash(client: pg.PoolClient, hash: string): Promise<A
   return result.rows[0] ?? null
 }
 
-export async function listApiKeys(client: pg.PoolClient): Promise<ApiKeyRow[]> {
+export async function listApiKeys(
+  client: pg.PoolClient,
+  organizationId: string,
+): Promise<ApiKeyRow[]> {
   const result = await client.query<ApiKeyRow>(
-    'SELECT * FROM api_keys ORDER BY created_at DESC',
+    'SELECT * FROM api_keys WHERE organization_id = $1 ORDER BY created_at DESC',
+    [organizationId],
   )
   return result.rows
 }
 
-export async function getApiKey(client: pg.PoolClient, id: string): Promise<ApiKeyRow | null> {
-  const result = await client.query<ApiKeyRow>('SELECT * FROM api_keys WHERE id = $1', [id])
+export async function getApiKey(
+  client: pg.PoolClient,
+  organizationId: string,
+  id: string,
+): Promise<ApiKeyRow | null> {
+  const result = await client.query<ApiKeyRow>(
+    'SELECT * FROM api_keys WHERE organization_id = $1 AND id = $2',
+    [organizationId, id],
+  )
   return result.rows[0] ?? null
 }
 
-export async function revokeApiKey(client: pg.PoolClient, id: string): Promise<boolean> {
+export async function revokeApiKey(
+  client: pg.PoolClient,
+  organizationId: string,
+  id: string,
+): Promise<boolean> {
   const result = await client.query(
-    'UPDATE api_keys SET revoked_at = now() WHERE id = $1 AND revoked_at IS NULL',
-    [id],
+    'UPDATE api_keys SET revoked_at = now() WHERE organization_id = $1 AND id = $2 AND revoked_at IS NULL',
+    [organizationId, id],
   )
   return (result.rowCount ?? 0) > 0
 }
