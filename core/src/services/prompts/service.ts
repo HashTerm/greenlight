@@ -64,11 +64,7 @@ export async function createAndPostPrompt(
   const resolvedChannelId = resolveChannelId(input.channelId)
 
   return withClient(async (client) => {
-    const channel = await channelModels.getChannel(
-      client,
-      input.organizationId,
-      resolvedChannelId,
-    )
+    const channel = await channelModels.getChannel(client, input.organizationId, resolvedChannelId)
     if (!channel) {
       throw new ValueError(`Channel ${resolvedChannelId} not found`)
     }

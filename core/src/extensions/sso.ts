@@ -47,7 +47,9 @@ export async function getSsoConfig(): Promise<SsoConfigPublic | null> {
   return row ? toPublic(row) : null
 }
 
-export async function getSsoConfigWithSecret(): Promise<(SsoConfigRow & { client_secret: string }) | null> {
+export async function getSsoConfigWithSecret(): Promise<
+  (SsoConfigRow & { client_secret: string }) | null
+> {
   const result = await withClient((client) =>
     client.query<SsoConfigRow>(
       `SELECT id, provider, issuer, client_id, client_secret_encrypted, enabled, updated_at

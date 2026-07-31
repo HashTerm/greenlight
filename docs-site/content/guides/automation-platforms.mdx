@@ -97,14 +97,14 @@ See [Concepts](/getting-started/concepts) for PROMPT vs MESSAGE diagrams.
 
 ## Wiring checklist
 
-| Step              | PROMPT channel                                                                 | MESSAGE channel                                                                 |
-| ----------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
-| Create channel    | `POST /v1/channels/new` with `channel_type: "PROMPT"`                              | `POST /v1/channels/new` with `channel_type: "MESSAGE"` + `callback_url`             |
-| Platform setup    | Usually none (Telegram polls by default)                                         | Set `{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/{platform}/{channel_id}` in the platform app |
-| Start interaction | `POST /v1/prompts/new` (+ per-prompt `callback_url`)                         | Human sends chat message                                                        |
-| Receive event     | Signed `POST` to the prompt's `callback_url`                                   | Unsigned `message.created` to the channel's `callback_url`                      |
-| Verify            | HMAC-SHA256 `X-Signature` header                                               | Optional; not signed by Greenlight                                            |
-| Respond in chat   | Usually not needed (human already answered)                                    | `POST /v1/messages/send`                                       |
+| Step              | PROMPT channel                                        | MESSAGE channel                                                                                   |
+| ----------------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Create channel    | `POST /v1/channels/new` with `channel_type: "PROMPT"` | `POST /v1/channels/new` with `channel_type: "MESSAGE"` + `callback_url`                           |
+| Platform setup    | Usually none (Telegram polls by default)              | Set `{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/{platform}/{channel_id}` in the platform app |
+| Start interaction | `POST /v1/prompts/new` (+ per-prompt `callback_url`)  | Human sends chat message                                                                          |
+| Receive event     | Signed `POST` to the prompt's `callback_url`          | Unsigned `message.created` to the channel's `callback_url`                                        |
+| Verify            | HMAC-SHA256 `X-Signature` header                      | Optional; not signed by Greenlight                                                                |
+| Respond in chat   | Usually not needed (human already answered)           | `POST /v1/messages/send`                                                                          |
 
 Base URL: `http://localhost:8100` locally, or your `PUBLIC_WEBHOOK_URL` origin in
 production. Full endpoint list: [Agent API](/api-reference/agent-api).

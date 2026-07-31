@@ -75,8 +75,7 @@ export async function updateChannel(
     }
 
     const targetChatId = patch.targetChatId ?? existing.target_chat_id
-    const callbackUrl =
-      patch.callbackUrl !== undefined ? patch.callbackUrl : existing.callback_url
+    const callbackUrl = patch.callbackUrl !== undefined ? patch.callbackUrl : existing.callback_url
     const credentials = patch.credentials
       ? mergeCredentials(existing.credentials, patch.credentials)
       : existing.credentials
@@ -176,10 +175,7 @@ export async function listChannels(
   })
 }
 
-export async function unregisterChannel(
-  organizationId: string,
-  channelId: string,
-): Promise<void> {
+export async function unregisterChannel(organizationId: string, channelId: string): Promise<void> {
   await withClient(async (client) => {
     const channel = await channelModels.getChannel(client, organizationId, channelId)
     if (!channel) {

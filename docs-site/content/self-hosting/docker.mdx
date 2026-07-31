@@ -4,12 +4,12 @@ Deploy Greenlight with Compose or Swarm using published GHCR images.
 
 ## Compose files
 
-| File                                 | Role                                      |
-| ------------------------------------ | ----------------------------------------- |
-| `docker-compose.self-host.yml`       | API + UI + Postgres (GHCR images)         |
-| `docker-compose.self-host.stack.yml` | Swarm overlay — deploy policies + network |
-| `docker-compose.docs.yml`            | Docs overlay on self-host (GHCR image)    |
-| `docker-compose.docs.build.yml`      | Standalone docs — build on server         |
+| File                                 | Role                                                  |
+| ------------------------------------ | ----------------------------------------------------- |
+| `docker-compose.self-host.yml`       | API + UI + Postgres (GHCR images)                     |
+| `docker-compose.self-host.stack.yml` | Swarm — standalone stack (API + UI + docs + Postgres) |
+| `docker-compose.docs.yml`            | Docs overlay on self-host (GHCR image)                |
+| `docker-compose.docs.build.yml`      | Standalone docs — build on server                     |
 
 ## Docs site
 
@@ -51,7 +51,6 @@ docker compose -f docker-compose.self-host.yml --env-file .env.self-host up -d
 
 ```bash
 docker stack deploy \
-  -c docker-compose.self-host.yml \
   -c docker-compose.self-host.stack.yml \
   greenlight
 ```

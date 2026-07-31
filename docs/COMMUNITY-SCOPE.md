@@ -4,11 +4,11 @@ What this repository contains and what belongs elsewhere.
 
 ## In this repository
 
-| Package | Role |
-| ------- | ---- |
-| `core/` | Gateway API, webhooks, Postgres schema for community features |
-| `ui/` | Admin UI for single-tenant self-host |
-| `docs-site/` | Public product documentation |
+| Package      | Role                                                          |
+| ------------ | ------------------------------------------------------------- |
+| `core/`      | Gateway API, webhooks, Postgres schema for community features |
+| `ui/`        | Admin UI for single-tenant self-host                          |
+| `docs-site/` | Public product documentation                                  |
 
 **In scope:** BUSL community edition, extension hooks in `core/src/extensions/`,
 single implicit tenant, scoped API keys.
@@ -17,11 +17,11 @@ single implicit tenant, scoped API keys.
 
 Community ships **no-op stubs** that licensed builds replace at image build time:
 
-| Module | Community behavior |
-| ------ | ------------------ |
-| `license-gate.ts` | `licenseGate.isEnabled()` always `false` |
-| `audit.ts` | `recordAuditEvent(event)` — no-op in community |
-| `register.ts` | `registerEnterpriseRoutes`, `onEnterpriseBoot` no-ops |
+| Module            | Community behavior                                    |
+| ----------------- | ----------------------------------------------------- |
+| `license-gate.ts` | `licenseGate.isEnabled()` always `false`              |
+| `audit.ts`        | `recordAuditEvent(event)` — no-op in community        |
+| `register.ts`     | `registerEnterpriseRoutes`, `onEnterpriseBoot` no-ops |
 
 Optional headers (community accepts; licensed editions may use them):
 

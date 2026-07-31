@@ -10,28 +10,28 @@ Environment variables for `core` and `ui`. Copy `.env.example` as a starting poi
 
 ## Webhooks
 
-| Variable                    | Used by  | Purpose                                                                                                      |
-| --------------------------- | -------- | ------------------------------------------------------------------------------------------------------------ |
+| Variable                    | Used by  | Purpose                                                                                                                        |
+| --------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `PUBLIC_WEBHOOK_URL`        | core, ui | Public HTTPS base (no trailing slash). Platforms use `{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/{platform}/{channel_id}` |
-| `WEBHOOK_SECRET`            | core     | Platform webhook verification secret                                                                         |
-| `DEFAULT_PROMPT_CHANNEL_ID` | core     | Optional default when prompts omit `channel_id`                                                              |
+| `WEBHOOK_SECRET`            | core     | Platform webhook verification secret                                                                                           |
+| `DEFAULT_PROMPT_CHANNEL_ID` | core     | Optional default when prompts omit `channel_id`                                                                                |
 
 ## Security and API key
 
-| Variable                  | Used by   | Default / notes                                                                 |
-| ------------------------- | --------- | ------------------------------------------------------------------------------- |
-| `CALLBACK_SIGNING_SECRET` | core      | HMAC secret for prompt answer callbacks                                         |
-| `USE_AUTH`                | core      | Set `true` to require `X-API-Key`                                               |
-| `GREENLIGHT_API_KEY`      | core, ui  | Seeds first admin key when `api_keys` is empty; UI sends it as `X-API-Key`     |
+| Variable                  | Used by  | Default / notes                                                            |
+| ------------------------- | -------- | -------------------------------------------------------------------------- |
+| `CALLBACK_SIGNING_SECRET` | core     | HMAC secret for prompt answer callbacks                                    |
+| `USE_AUTH`                | core     | Set `true` to require `X-API-Key`                                          |
+| `GREENLIGHT_API_KEY`      | core, ui | Seeds first admin key when `api_keys` is empty; UI sends it as `X-API-Key` |
 
 ## Admin UI
 
-| Variable                 | Purpose                                                          |
-| ------------------------ | ---------------------------------------------------------------- |
-| `GREENLIGHT_API_URL`     | Core base URL (default `http://localhost:8100`)                  |
-| `AUTH_SECRET`            | NextAuth session secret                                          |
-| `DATABASE_URL`           | Same Postgres as core (admin users table)                        |
-| `PUBLIC_WEBHOOK_URL`     | Shown on channel detail pages                                    |
+| Variable             | Purpose                                         |
+| -------------------- | ----------------------------------------------- |
+| `GREENLIGHT_API_URL` | Core base URL (default `http://localhost:8100`) |
+| `AUTH_SECRET`        | NextAuth session secret                         |
+| `DATABASE_URL`       | Same Postgres as core (admin users table)       |
+| `PUBLIC_WEBHOOK_URL` | Shown on channel detail pages                   |
 
 **Hybrid `npm run dev`:** set `GREENLIGHT_API_KEY` in the root `.env` (see `.env.example`). After creating a new key in Settings, update `GREENLIGHT_API_KEY` and restart the UI.
 

@@ -180,9 +180,9 @@ export async function createMessageAction(formData: FormData) {
   const text = String(formData.get('text'))
 
   const result = await apiFetch<AdminSendMessageResponse>('/v1/messages/send', {
-      method: 'POST',
-      body: JSON.stringify({ channel_id: channelId, text }),
-    })
+    method: 'POST',
+    body: JSON.stringify({ channel_id: channelId, text }),
+  })
 
   revalidatePath('/messages')
   if ('id' in result && result.id) {
@@ -297,9 +297,9 @@ export async function sendMessageAction(formData: FormData) {
   const channelId = String(formData.get('channel_id'))
   const text = String(formData.get('text'))
   await apiFetch<Message>('/v1/messages/send', {
-      method: 'POST',
-      body: JSON.stringify({ channel_id: channelId, text }),
-    })
+    method: 'POST',
+    body: JSON.stringify({ channel_id: channelId, text }),
+  })
   revalidatePath(`/channels/${encodeURIComponent(channelId)}`)
   revalidatePath('/messages')
 }

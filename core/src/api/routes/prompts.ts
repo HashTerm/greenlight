@@ -2,11 +2,7 @@ import type { Context } from 'hono'
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
-import {
-  createAndPostPrompt,
-  getPrompt,
-  listPrompts,
-} from '../../services/prompts/service.js'
+import { createAndPostPrompt, getPrompt, listPrompts } from '../../services/prompts/service.js'
 import { formatPromptId } from '../../services/prompts/models.js'
 import { ValueError } from '../../core/security.js'
 import { requireScope } from '../middleware/require-scope.js'

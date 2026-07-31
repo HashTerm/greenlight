@@ -82,12 +82,12 @@ deletion on for 30 days; zero retention off for both directions.
 
 ## Required env vars for the UI
 
-| Variable                 | Purpose                                                               |
-| ------------------------ | --------------------------------------------------------------------- |
-| `DATABASE_URL`           | Same Postgres as core (admin users table)                             |
-| `GREENLIGHT_API_URL`     | Core base URL (default `http://localhost:8100`)                       |
-| `GREENLIGHT_API_KEY`     | Calls core API (`X-API-Key`) — admin-scoped key (bootstrap or from Settings) |
-| `AUTH_SECRET`            | NextAuth sessions                                                     |
+| Variable             | Purpose                                                                      |
+| -------------------- | ---------------------------------------------------------------------------- |
+| `DATABASE_URL`       | Same Postgres as core (admin users table)                                    |
+| `GREENLIGHT_API_URL` | Core base URL (default `http://localhost:8100`)                              |
+| `GREENLIGHT_API_KEY` | Calls core API (`X-API-Key`) — admin-scoped key (bootstrap or from Settings) |
+| `AUTH_SECRET`        | NextAuth sessions                                                            |
 
 For hybrid `npm run dev`, set `GREENLIGHT_API_KEY` in the root `.env`. Core and UI use the same value.
 

@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import {
-  createChannelSchema,
-  updateChannelSchema,
-} from '../src/services/channels/schemas.js'
+import { createChannelSchema, updateChannelSchema } from '../src/services/channels/schemas.js'
 import {
   credentialFingerprint,
   platformChannelId,
@@ -135,9 +132,7 @@ describe('channel schemas', () => {
 
   it('requires at least one field on update', () => {
     expect(() => updateChannelSchema.parse({})).toThrow()
-    expect(updateChannelSchema.parse({ target_chat_id: '-100999' }).target_chat_id).toBe(
-      '-100999',
-    )
+    expect(updateChannelSchema.parse({ target_chat_id: '-100999' }).target_chat_id).toBe('-100999')
   })
 })
 

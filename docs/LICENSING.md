@@ -8,11 +8,11 @@ the [LICENSE](../LICENSE) before you rely on it commercially.
 
 ## Editions
 
-| Edition    | Location | License     | What you get |
-| ---------- | -------- | ----------- | ------------ |
+| Edition    | Location                                 | License                | What you get                                  |
+| ---------- | ---------------------------------------- | ---------------------- | --------------------------------------------- |
 | Community  | `core/`, `ui/`, `docs-site/` (this repo) | [BUSL-1.1](../LICENSE) | Full self-host product for community features |
-| Enterprise | Commercial license (contact Licensor) | Proprietary | Audit log, multi-user admin, RBAC, SSO (OIDC) |
-| Cloud      | Commercial license (contact Licensor) | Proprietary | Official hosted subscription (vendor only) |
+| Enterprise | Commercial license (contact Licensor)    | Proprietary            | Audit log, multi-user admin, RBAC, SSO (OIDC) |
+| Cloud      | Commercial license (contact Licensor)    | Proprietary            | Official hosted subscription (vendor only)    |
 
 ## What you may do (community / BUSL-1.1)
 

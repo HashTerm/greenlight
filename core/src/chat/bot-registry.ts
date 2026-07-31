@@ -17,7 +17,10 @@ export function getBotByKey(key: string): ManagedBot | undefined {
   return botsByKey.get(key)
 }
 
-export function getBotForChannel(organizationId: string, channelId: string): ManagedBot | undefined {
+export function getBotForChannel(
+  organizationId: string,
+  channelId: string,
+): ManagedBot | undefined {
   const key = channelToKey.get(channelRegistryKey(organizationId, channelId))
   if (!key) return undefined
   return botsByKey.get(key)

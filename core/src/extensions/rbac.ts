@@ -1,6 +1,11 @@
 import type { Context } from 'hono'
 import { licenseGate } from './license-gate.js'
-import { getMemberByEmail, countMembers, ensureBootstrapMember, type OrgMemberRow } from './members.js'
+import {
+  getMemberByEmail,
+  countMembers,
+  ensureBootstrapMember,
+  type OrgMemberRow,
+} from './members.js'
 import { getRoleScopes, roleHasScope } from './roles.js'
 
 export async function assertMemberRole(

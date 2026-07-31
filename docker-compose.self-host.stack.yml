@@ -1,24 +1,46 @@
-# Swarm / stack overrides — merge with docker-compose.self-host.yml:
-#   docker stack deploy -c docker-compose.self-host.yml -c docker-compose.self-host.stack.yml greenlight
+# Greenlight self-host — Dokploy prod (Swarm).
+# Requires GREENLIGHT_IMAGE, GREENLIGHT_UI_IMAGE, GREENLIGHT_DOCS_IMAGE (GHCR).
 #
-# With docs:
-#   docker stack deploy -c docker-compose.self-host.yml -c docker-compose.docs.yml -c docker-compose.self-host.stack.yml greenlight
+# Dokploy deploy command:
+#   stack deploy -c ./docker-compose.self-host.stack.yml "${COMPOSE_PROJECT_NAME}" --with-registry-auth --prune
 #
 # App services use start-first + healthchecks for rolling (near zero-downtime) updates.
 # Postgres stays stop-first (single volume / single writer).
 #
 # Label a node for Postgres data (recommended):
 #   docker node update --label-add greenlight.db=true <node-id>
-
-networks:
-  greenlight:
-    driver: overlay
-    attachable: true
+#
+# Ingress: greenlight:8100 (API), greenlight-ui:3000 (Admin), greenlight-docs:3003 (Docs)
+#
+# No custom networks — services use the stack default network (Dokploy-friendly).
 
 services:
   greenlight:
-    networks:
-      - greenlight
+    image: ${GREENLIGHT_IMAGE:-ghcr.io/markokosticdev/greenlight:latest}
+    expose:
+      - '8100'
+    environment:
+      NODE_ENV: production
+      PORT: ${PORT:-8100}
+      HOST: 0.0.0.0
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      PUBLIC_WEBHOOK_URL: ${PUBLIC_WEBHOOK_URL}
+      WEBHOOK_SECRET: ${WEBHOOK_SECRET}
+      DEFAULT_PROMPT_CHANNEL_ID: ${DEFAULT_PROMPT_CHANNEL_ID:-}
+      CALLBACK_SIGNING_SECRET: ${CALLBACK_SIGNING_SECRET}
+      USE_AUTH: ${USE_AUTH:-true}
+      GREENLIGHT_API_KEY: ${GREENLIGHT_API_KEY}
+      CLEAN_ON_BOOT: ${CLEAN_ON_BOOT:-true}
+      ENABLE_DOCS: ${ENABLE_DOCS:-false}
+      CHANNEL_CALLBACK_MAX_RETRIES: ${CHANNEL_CALLBACK_MAX_RETRIES:-3}
+      CHANNEL_CALLBACK_RETRY_DELAY: ${CHANNEL_CALLBACK_RETRY_DELAY:-5}
+      CHANNEL_OFFLINE_NOTIFICATION: ${CHANNEL_OFFLINE_NOTIFICATION:-Assistant offline, could not deliver message.}
+    healthcheck:
+      test: ['CMD', 'wget', '-qO-', 'http://localhost:8100/healthz']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     stop_grace_period: 30s
     deploy:
       replicas: 1
@@ -36,8 +58,32 @@ services:
         order: start-first
 
   greenlight-ui:
-    networks:
-      - greenlight
+    image: ${GREENLIGHT_UI_IMAGE:-ghcr.io/markokosticdev/greenlight-ui:latest}
+    expose:
+      - '3000'
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+      HOSTNAME: '0.0.0.0'
+      GREENLIGHT_API_URL: http://greenlight:8100
+      GREENLIGHT_API_KEY: ${GREENLIGHT_API_KEY}
+      PUBLIC_WEBHOOK_URL: ${PUBLIC_WEBHOOK_URL}
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_URL: ${AUTH_URL:-}
+      AUTH_TRUST_HOST: ${AUTH_TRUST_HOST:-true}
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/api/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     stop_grace_period: 30s
     deploy:
       replicas: 1
@@ -55,8 +101,25 @@ services:
         order: start-first
 
   greenlight-docs:
-    networks:
-      - greenlight
+    image: ${GREENLIGHT_DOCS_IMAGE:-ghcr.io/markokosticdev/greenlight-docs:latest}
+    expose:
+      - '3003'
+    environment:
+      PORT: '3003'
+      HOSTNAME: '0.0.0.0'
+      NEXT_PUBLIC_DOCS_URL: ${NEXT_PUBLIC_DOCS_URL}
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3003/').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     stop_grace_period: 30s
     deploy:
       replicas: 1
@@ -74,8 +137,21 @@ services:
         order: start-first
 
   postgres:
-    networks:
-      - greenlight
+    image: postgres:16-alpine
+    expose:
+      - '5432'
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     deploy:
       replicas: 1
       restart_policy:
@@ -88,3 +164,7 @@ services:
         delay: 10s
         failure_action: rollback
         order: stop-first
+
+volumes:
+  postgres_data:
+    name: greenlight_postgres_data

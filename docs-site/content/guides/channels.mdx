@@ -24,14 +24,14 @@ resource). Outbound chat on MESSAGE channels uses `POST /v1/messages/send`, not
 }
 ```
 
-| Field            | Type   | Notes                                                                                 |
-| ---------------- | ------ | ------------------------------------------------------------------------------------- |
-| `channel_id`     | string | Required, stable slug                                                                 |
-| `platform`       | enum   | `telegram` \| `slack` \| … — **immutable after creation**                             |
-| `target_chat_id` | string | Platform-specific chat / channel / space / PSID                                       |
-| `credentials`    | object | Platform-specific strings                                                             |
-| `callback_url`   | string | Required for `MESSAGE`                                                                |
-| `channel_type`   | enum   | `MESSAGE` (default) or `PROMPT` — **immutable after creation**                        |
+| Field            | Type   | Notes                                                          |
+| ---------------- | ------ | -------------------------------------------------------------- |
+| `channel_id`     | string | Required, stable slug                                          |
+| `platform`       | enum   | `telegram` \| `slack` \| … — **immutable after creation**      |
+| `target_chat_id` | string | Platform-specific chat / channel / space / PSID                |
+| `credentials`    | object | Platform-specific strings                                      |
+| `callback_url`   | string | Required for `MESSAGE`                                         |
+| `channel_type`   | enum   | `MESSAGE` (default) or `PROMPT` — **immutable after creation** |
 
 Returns `409` if `channel_id` already exists. To reuse an id after
 `DELETE /v1/channels/{id}`, call `PATCH /v1/channels/{id}` (not
@@ -41,10 +41,10 @@ Returns `409` if `channel_id` already exists. To reuse an id after
 
 Two different URLs are involved for MESSAGE channels on webhook-based platforms:
 
-| URL | Direction | Purpose |
-| --- | --------- | ------- |
-| `{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/{platform}/{channel_id}` | Platform → Greenlight | Chat platform delivers inbound events to Greenlight |
-| `callback_url` on the channel | Greenlight → your agent/automation | Greenlight forwards inbound chat as `message.created` |
+| URL                                                                       | Direction                          | Purpose                                               |
+| ------------------------------------------------------------------------- | ---------------------------------- | ----------------------------------------------------- |
+| `{PUBLIC_WEBHOOK_URL}/webhooks/{organization_id}/{platform}/{channel_id}` | Platform → Greenlight              | Chat platform delivers inbound events to Greenlight   |
+| `callback_url` on the channel                                             | Greenlight → your agent/automation | Greenlight forwards inbound chat as `message.created` |
 
 PROMPT channels usually only need the Agent API (`POST /v1/prompts/new`). Telegram
 can use long polling locally without a public platform webhook.

@@ -19,9 +19,7 @@ async function bootstrap(): Promise<void> {
   if (config.USE_AUTH) {
     const active = await countActiveApiKeys()
     if (active === 0 && !config.GREENLIGHT_API_KEY?.trim()) {
-      throw new Error(
-        'USE_AUTH=true but api_keys is empty and GREENLIGHT_API_KEY is not set',
-      )
+      throw new Error('USE_AUTH=true but api_keys is empty and GREENLIGHT_API_KEY is not set')
     }
   }
 

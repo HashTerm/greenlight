@@ -2,8 +2,7 @@
 #   docker compose -f docker-compose.self-host.yml -f docker-compose.docs.yml \
 #     --env-file .env.self-host --env-file .env.docs up -d
 #
-# Swarm:
-#   docker stack deploy -c docker-compose.self-host.yml -c docker-compose.docs.yml -c docker-compose.self-host.stack.yml greenlight
+# Swarm: use docker-compose.self-host.stack.yml (includes greenlight-docs)
 #
 # Ingress: route public docs URL → greenlight-docs:3003
 

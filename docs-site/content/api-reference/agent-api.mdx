@@ -13,30 +13,30 @@ replacement keys via `POST /v1/keys/new` and revoke the bootstrap key.
 
 ## Path verbs
 
-| Verb | Paths | Meaning |
-| ---- | ----- | ------- |
-| **`new`** | `POST /v1/channels/new`, `POST /v1/prompts/new`, `POST /v1/keys/new` | Create a **durable resource** |
-| **`send`** | `POST /v1/messages/send` | Deliver **chat text** on a MESSAGE channel |
+| Verb       | Paths                                                                | Meaning                                    |
+| ---------- | -------------------------------------------------------------------- | ------------------------------------------ |
+| **`new`**  | `POST /v1/channels/new`, `POST /v1/prompts/new`, `POST /v1/keys/new` | Create a **durable resource**              |
+| **`send`** | `POST /v1/messages/send`                                             | Deliver **chat text** on a MESSAGE channel |
 
 ## Scopes
 
 Middleware checks **any-of** required scopes per route. The `admin` scope grants
 all permissions.
 
-| Scope | Routes |
-| ----- | ------ |
-| `status:read` | `GET /v1/status` |
-| `settings:read` | `GET /v1/settings` |
-| `settings:write` | `PATCH /v1/settings` |
-| `keys:read` | `GET /v1/keys`, `GET /v1/keys/{id}` |
-| `keys:write` | `POST /v1/keys/new`, `DELETE /v1/keys/{id}` |
-| `channels:read` | `GET /v1/channels` |
+| Scope            | Routes                                                    |
+| ---------------- | --------------------------------------------------------- |
+| `status:read`    | `GET /v1/status`                                          |
+| `settings:read`  | `GET /v1/settings`                                        |
+| `settings:write` | `PATCH /v1/settings`                                      |
+| `keys:read`      | `GET /v1/keys`, `GET /v1/keys/{id}`                       |
+| `keys:write`     | `POST /v1/keys/new`, `DELETE /v1/keys/{id}`               |
+| `channels:read`  | `GET /v1/channels`                                        |
 | `channels:write` | `POST /v1/channels/new`, `PATCH/DELETE /v1/channels/{id}` |
-| `prompts:read` | `GET /v1/prompts`, `GET /v1/prompts/{id}` |
-| `prompts:write` | `POST /v1/prompts/new` |
-| `messages:read` | `GET /v1/messages`, `GET /v1/messages/{id}` |
-| `messages:send` | `POST /v1/messages/send` |
-| `admin` | All of the above |
+| `prompts:read`   | `GET /v1/prompts`, `GET /v1/prompts/{id}`                 |
+| `prompts:write`  | `POST /v1/prompts/new`                                    |
+| `messages:read`  | `GET /v1/messages`, `GET /v1/messages/{id}`               |
+| `messages:send`  | `POST /v1/messages/send`                                  |
+| `admin`          | All of the above                                          |
 
 **Presets** (for `POST /v1/keys/new`):
 
@@ -46,26 +46,26 @@ all permissions.
 
 ## Endpoints
 
-| Method   | Path                | Scope(s)              | Description                      |
-| -------- | ------------------- | --------------------- | -------------------------------- |
-| `GET`    | `/healthz`          | —                     | Health check (**no auth**)       |
-| `GET`    | `/v1/status`        | `status:read`         | Operator status / dashboard      |
-| `GET`    | `/v1/settings`      | `settings:read`       | Retention settings               |
-| `PATCH`  | `/v1/settings`      | `settings:write`      | Update retention settings        |
-| `GET`    | `/v1/keys`          | `keys:read`           | List API keys                    |
-| `GET`    | `/v1/keys/{id}`     | `keys:read`           | Get API key metadata             |
-| `POST`   | `/v1/keys/new`      | `keys:write`          | Create API key (plaintext once)  |
-| `DELETE` | `/v1/keys/{id}`     | `keys:write`          | Revoke API key                   |
-| `POST`   | `/v1/prompts/new`   | `prompts:write`       | Create a prompt (JSON or multipart) |
-| `GET`    | `/v1/prompts`       | `prompts:read`        | List prompts (`state` filter)    |
-| `GET`    | `/v1/prompts/{id}`  | `prompts:read`        | Get prompt (`%23123` for `#123`) |
-| `POST`   | `/v1/channels/new`  | `channels:write`      | Create a channel                 |
-| `GET`    | `/v1/channels`      | `channels:read`       | List channels (filters)          |
-| `PATCH`  | `/v1/channels/{id}` | `channels:write`      | Update a channel                 |
-| `DELETE` | `/v1/channels/{id}` | `channels:write`      | Unregister channel               |
-| `GET`    | `/v1/messages`      | `messages:read`       | List message history             |
-| `GET`    | `/v1/messages/{id}` | `messages:read`       | Get message by UUID              |
-| `POST`   | `/v1/messages/send` | `messages:send`       | Send chat text on MESSAGE channel |
+| Method   | Path                | Scope(s)         | Description                         |
+| -------- | ------------------- | ---------------- | ----------------------------------- |
+| `GET`    | `/healthz`          | —                | Health check (**no auth**)          |
+| `GET`    | `/v1/status`        | `status:read`    | Operator status / dashboard         |
+| `GET`    | `/v1/settings`      | `settings:read`  | Retention settings                  |
+| `PATCH`  | `/v1/settings`      | `settings:write` | Update retention settings           |
+| `GET`    | `/v1/keys`          | `keys:read`      | List API keys                       |
+| `GET`    | `/v1/keys/{id}`     | `keys:read`      | Get API key metadata                |
+| `POST`   | `/v1/keys/new`      | `keys:write`     | Create API key (plaintext once)     |
+| `DELETE` | `/v1/keys/{id}`     | `keys:write`     | Revoke API key                      |
+| `POST`   | `/v1/prompts/new`   | `prompts:write`  | Create a prompt (JSON or multipart) |
+| `GET`    | `/v1/prompts`       | `prompts:read`   | List prompts (`state` filter)       |
+| `GET`    | `/v1/prompts/{id}`  | `prompts:read`   | Get prompt (`%23123` for `#123`)    |
+| `POST`   | `/v1/channels/new`  | `channels:write` | Create a channel                    |
+| `GET`    | `/v1/channels`      | `channels:read`  | List channels (filters)             |
+| `PATCH`  | `/v1/channels/{id}` | `channels:write` | Update a channel                    |
+| `DELETE` | `/v1/channels/{id}` | `channels:write` | Unregister channel                  |
+| `GET`    | `/v1/messages`      | `messages:read`  | List message history                |
+| `GET`    | `/v1/messages/{id}` | `messages:read`  | Get message by UUID                 |
+| `POST`   | `/v1/messages/send` | `messages:send`  | Send chat text on MESSAGE channel   |
 
 Platforms: `telegram`, `slack`, `teams`, `discord`, `gchat`, `whatsapp`,
 `messenger`.
@@ -100,10 +100,10 @@ corresponding toggle is enabled.
 
 ### Request body
 
-| Field    | Type     | Required | Notes                                      |
-| -------- | -------- | -------- | ------------------------------------------ |
-| `name`   | string   | Yes      | Display name                               |
-| `preset` | string   | No       | `admin` \| `agent` \| `readonly`           |
+| Field    | Type     | Required | Notes                                        |
+| -------- | -------- | -------- | -------------------------------------------- |
+| `name`   | string   | Yes      | Display name                                 |
+| `preset` | string   | No       | `admin` \| `agent` \| `readonly`             |
 | `scopes` | string[] | No       | Custom scopes (required if `preset` omitted) |
 
 ### Response `200`
@@ -167,11 +167,11 @@ See [Channels](/guides/channels) for the full schema and
 
 ### Query
 
-| Param          | Type   | Default | Notes                          |
-| -------------- | ------ | ------- | ------------------------------ |
-| `platform`     | enum   | —       | Filter by platform             |
-| `channel_type` | enum   | —       | `MESSAGE` \| `PROMPT`          |
-| `limit`        | int    | `50`    | 1–200                          |
+| Param          | Type | Default | Notes                 |
+| -------------- | ---- | ------- | --------------------- |
+| `platform`     | enum | —       | Filter by platform    |
+| `channel_type` | enum | —       | `MESSAGE` \| `PROMPT` |
+| `limit`        | int  | `50`    | 1–200                 |
 
 ## `PATCH /v1/channels/{id}`
 

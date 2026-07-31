@@ -1,10 +1,7 @@
 import { Hono } from 'hono'
 import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
-import {
-  getRetentionSettings,
-  updateRetentionSettings,
-} from '../../services/settings/service.js'
+import { getRetentionSettings, updateRetentionSettings } from '../../services/settings/service.js'
 import { requireScope } from '../middleware/require-scope.js'
 import { getApiKeyId } from '../middleware/auth.js'
 import { recordAuditEvent } from '../../extensions/audit.js'

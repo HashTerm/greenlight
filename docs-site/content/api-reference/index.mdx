@@ -11,10 +11,10 @@ Greenlight exposes an HTTP API on the core service (default port **8100**).
 
 ## Auth summary
 
-| Surface                     | Header                 | When                 |
-| --------------------------- | ---------------------- | -------------------- |
-| `/v1/*`                     | `X-API-Key`            | When `USE_AUTH=true` |
-| Health / webhooks / OpenAPI | None                   | Public               |
+| Surface                     | Header      | When                 |
+| --------------------------- | ----------- | -------------------- |
+| `/v1/*`                     | `X-API-Key` | When `USE_AUTH=true` |
+| Health / webhooks / OpenAPI | None        | Public               |
 
 API keys are stored in Postgres with scoped permissions. On first boot, if
 `api_keys` is empty and `GREENLIGHT_API_KEY` is set, core bootstraps a full-admin key.

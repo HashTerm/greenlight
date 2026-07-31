@@ -44,9 +44,7 @@ export async function listMessages(options: {
 }
 
 export async function getMessage(organizationId: string, id: string) {
-  const row = await withClient((client) =>
-    messageModels.getMessage(client, organizationId, id),
-  )
+  const row = await withClient((client) => messageModels.getMessage(client, organizationId, id))
   return row
 }
 

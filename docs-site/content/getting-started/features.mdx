@@ -105,9 +105,9 @@ sequenceDiagram
 | Many workflows posting questions to one chat | **PROMPT**  |
 | Humans freely messaging an agent in chat     | **MESSAGE** |
 
-| Type        | Verb | Agent → human      | Human → agent                                   | Callback                                 |
-| ----------- | ---- | ------------------ | ----------------------------------------------- | ---------------------------------------- |
-| **PROMPT**  | `new` | `POST /v1/prompts/new` | Prompt answers only (buttons or `ID:#123` text) | Per-prompt `callback_url` (signed)       |
+| Type        | Verb   | Agent → human            | Human → agent                                   | Callback                                 |
+| ----------- | ------ | ------------------------ | ----------------------------------------------- | ---------------------------------------- |
+| **PROMPT**  | `new`  | `POST /v1/prompts/new`   | Prompt answers only (buttons or `ID:#123` text) | Per-prompt `callback_url` (signed)       |
 | **MESSAGE** | `send` | `POST /v1/messages/send` | Any chat text                                   | Single channel `callback_url` (unsigned) |
 
 ## Limitations

@@ -4,11 +4,7 @@ import { NextResponse } from 'next/server'
 const publicPaths = ['/login', '/setup', '/api/auth', '/api/health', '/logo']
 
 function isStaticPublicAsset(pathname: string): boolean {
-  return (
-    pathname.startsWith('/logo/') ||
-    pathname === '/favicon.svg' ||
-    pathname === '/favicon.ico'
-  )
+  return pathname.startsWith('/logo/') || pathname === '/favicon.svg' || pathname === '/favicon.ico'
 }
 
 export default auth((req) => {

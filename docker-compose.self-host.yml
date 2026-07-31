@@ -1,6 +1,6 @@
 # Self-host — Dokploy / Coolify / `docker compose -f docker-compose.self-host.yml up`.
 # Optional docs: -f docker-compose.docs.yml
-# Swarm: -c docker-compose.self-host.stack.yml (add -c docker-compose.docs.yml if hosting docs)
+# Swarm: docker-compose.self-host.stack.yml (standalone — includes docs service)
 #
 # No custom networks — services use the Compose default network (Dokploy-friendly).
 services:

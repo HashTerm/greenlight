@@ -35,7 +35,7 @@ export function ApiKeysSection({ initialKeys, error }: ApiKeysSectionProps) {
   const [actionError, setActionError] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
 
-  function handleCreate(event: React.FormEvent<HTMLFormElement>) {
+  function handleCreate(event: React.SubmitEvent<HTMLFormElement>) {
     event.preventDefault()
     const formData = new FormData(event.currentTarget)
     formData.set('preset', preset)
@@ -129,9 +129,7 @@ export function ApiKeysSection({ initialKeys, error }: ApiKeysSectionProps) {
               <TableRow key={key.id}>
                 <TableCell>{key.name}</TableCell>
                 <TableCell className="font-mono text-xs">{key.key_prefix}…</TableCell>
-                <TableCell className="max-w-xs truncate text-xs">
-                  {key.scopes.join(', ')}
-                </TableCell>
+                <TableCell className="max-w-xs truncate text-xs">{key.scopes.join(', ')}</TableCell>
                 <TableCell className="text-xs text-muted-foreground">
                   {new Date(key.created_at).toLocaleString()}
                 </TableCell>
@@ -163,9 +161,7 @@ export function ApiKeysSection({ initialKeys, error }: ApiKeysSectionProps) {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>API key created</DialogTitle>
-            <DialogDescription>
-              Copy this key now. It will not be shown again.
-            </DialogDescription>
+            <DialogDescription>Copy this key now. It will not be shown again.</DialogDescription>
           </DialogHeader>
           <pre className="overflow-x-auto rounded-md bg-muted p-3 text-xs">{createdKey}</pre>
           <DialogFooter>

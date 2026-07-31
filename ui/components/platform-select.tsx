@@ -19,13 +19,7 @@ type PlatformSelectProps = {
   disabled?: boolean
 }
 
-export function PlatformSelect({
-  id,
-  name,
-  value,
-  onValueChange,
-  disabled,
-}: PlatformSelectProps) {
+export function PlatformSelect({ id, name, value, onValueChange, disabled }: PlatformSelectProps) {
   return (
     <>
       <input type="hidden" name={name} value={value} />

@@ -7,11 +7,11 @@ across editions; who can sign in and what they can see differs.
 
 ## At a glance
 
-| Edition | Who runs it | Organizations | Human admins | API keys (today / target) |
-| ------- | ----------- | ------------- | ------------ | ------------------------- |
-| **Community self-host** | You | One implicit instance (no org UI) | One super admin via `/setup` | Instance-wide scoped keys |
-| **Enterprise self-host** | Your company | One logical org (not shown in UI) | Multiple users; some can be promoted to admin | Org-scoped keys + richer audit |
-| **Cloud** | Licensor (hosted) | Many orgs; users join several | Per-org roles: admin, member, … | Org-scoped keys; no cross-org access |
+| Edition                  | Who runs it       | Organizations                     | Human admins                                  | API keys (today / target)            |
+| ------------------------ | ----------------- | --------------------------------- | --------------------------------------------- | ------------------------------------ |
+| **Community self-host**  | You               | One implicit instance (no org UI) | One super admin via `/setup`                  | Instance-wide scoped keys            |
+| **Enterprise self-host** | Your company      | One logical org (not shown in UI) | Multiple users; some can be promoted to admin | Org-scoped keys + richer audit       |
+| **Cloud**                | Licensor (hosted) | Many orgs; users join several     | Per-org roles: admin, member, …               | Org-scoped keys; no cross-org access |
 
 See [Licensing](/legal/licensing) for what is in the community repo vs
 commercial editions.
@@ -76,15 +76,15 @@ actions, and a dedicated **audit log** — see [Security](/guides/security#editi
 
 ## Edition roadmap (identity & audit)
 
-| Capability | Community | Enterprise | Cloud |
-| ---------- | --------- | ---------- | ----- |
-| `/setup` super admin | Yes | First user + invite flow | Sign-up + org create / invite |
-| Multiple human users | No | Yes | Yes |
-| Org switcher | No | No (single invisible org) | Yes |
-| Scoped API keys | Yes (instance) | Yes (org) | Yes (org) |
-| `api_key_id` on outbound messages | Yes | Yes | Yes |
-| Full audit trail (who changed what) | Partial | Yes | Yes |
-| SSO | No | Yes (OIDC) | Yes |
-| RBAC | No | Yes | Yes |
+| Capability                          | Community      | Enterprise                | Cloud                         |
+| ----------------------------------- | -------------- | ------------------------- | ----------------------------- |
+| `/setup` super admin                | Yes            | First user + invite flow  | Sign-up + org create / invite |
+| Multiple human users                | No             | Yes                       | Yes                           |
+| Org switcher                        | No             | No (single invisible org) | Yes                           |
+| Scoped API keys                     | Yes (instance) | Yes (org)                 | Yes (org)                     |
+| `api_key_id` on outbound messages   | Yes            | Yes                       | Yes                           |
+| Full audit trail (who changed what) | Partial        | Yes                       | Yes                           |
+| SSO                                 | No             | Yes (OIDC)                | Yes                           |
+| RBAC                                | No             | Yes                       | Yes                           |
 
 For commercial editions, contact the Licensor — see [Licensing](/legal/licensing).

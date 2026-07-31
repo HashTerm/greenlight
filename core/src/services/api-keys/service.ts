@@ -46,9 +46,7 @@ export async function createKey(input: {
   scopes?: string[]
   preset?: ScopePreset
 }): Promise<{ key: models.ApiKeyPublic; plaintext: string }> {
-  const scopes = input.preset
-    ? expandPreset(input.preset)
-    : normalizeScopes(input.scopes ?? [])
+  const scopes = input.preset ? expandPreset(input.preset) : normalizeScopes(input.scopes ?? [])
   if (scopes.length === 0) {
     throw new Error('At least one scope is required')
   }
@@ -89,8 +87,7 @@ export async function revokeKey(
     }
 
     const managers = await models.countActiveKeyManagers(client, organizationId)
-    const isManager =
-      row.scopes.includes('admin') || row.scopes.includes('keys:write')
+    const isManager = row.scopes.includes('admin') || row.scopes.includes('keys:write')
     if (isManager && managers <= 1) {
       throw new LastKeyError('Cannot revoke the last active key with key management access')
     }

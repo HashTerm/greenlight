@@ -139,7 +139,7 @@ docs-site/  — Product documentation (Nextra, port 3003)
 
 ```bash
 # Self-host: docker-compose.self-host.yml
-# Swarm: add -c docker-compose.self-host.stack.yml — see docs-site Self-Hosting
+# Swarm: docker-compose.self-host.stack.yml — see docs-site Self-Hosting
 npm run env:ensure -- --profile self-host
 docker compose -f docker-compose.self-host.yml --env-file .env.self-host up -d
 ```
@@ -178,11 +178,11 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.
 Greenlight is **source-available** under the [Business Source License 1.1](LICENSE)
 (BUSL-1.1) — **not** an OSI-approved open source license.
 
-|                                       | Community (`core/`, `ui/`, `docs-site/`) | Enterprise                                              |
-| ------------------------------------- | ---------------------------------------- | ------------------------------------------------------- |
+|                                       | Community (`core/`, `ui/`, `docs-site/`) | Enterprise                            |
+| ------------------------------------- | ---------------------------------------- | ------------------------------------- |
 | Location                              | This repository                          | Commercial license (contact Licensor) |
-| License                               | BUSL-1.1                                 | Proprietary                                             |
-| Self-host                             | Yes                                      | Paid enterprise license                                 |
-| Sell as competing hosted subscription | **No**                                   | **No**                                                  |
+| License                               | BUSL-1.1                                 | Proprietary                           |
+| Self-host                             | Yes                                      | Paid enterprise license               |
+| Sell as competing hosted subscription | **No**                                   | **No**                                |
 
 Details: [docs/LICENSING.md](docs/LICENSING.md) and [docs-site Legal](docs-site/content/legal/licensing.mdx).

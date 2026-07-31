@@ -4,12 +4,12 @@ The former `/admin/v1` routes and `X-Admin-Token` authentication have been
 removed. Use the unified [API reference](/api-reference/agent-api) under `/v1`
 with scoped `X-API-Key` instead.
 
-| Former route | Replacement |
-| ------------ | ----------- |
-| `GET /admin/v1/status` | `GET /v1/status` (`status:read`) |
-| `GET/PATCH /admin/v1/settings` | `GET/PATCH /v1/settings` |
-| `GET /admin/v1/prompts` | `GET /v1/prompts?state=all` |
-| `GET /admin/v1/messages` | `GET /v1/messages` |
-| `POST /admin/v1/messages/send` | `POST /v1/messages/send` |
+| Former route                   | Replacement                      |
+| ------------------------------ | -------------------------------- |
+| `GET /admin/v1/status`         | `GET /v1/status` (`status:read`) |
+| `GET/PATCH /admin/v1/settings` | `GET/PATCH /v1/settings`         |
+| `GET /admin/v1/prompts`        | `GET /v1/prompts?state=all`      |
+| `GET /admin/v1/messages`       | `GET /v1/messages`               |
+| `POST /admin/v1/messages/send` | `POST /v1/messages/send`         |
 
 Manage keys in the Admin UI **Settings** page or via `POST /v1/keys/new`.
