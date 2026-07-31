@@ -18,7 +18,6 @@ services:
   greenlight:
     profiles: [full]
     build: ./core
-    container_name: greenlight-dev-core
     restart: unless-stopped
     ports:
       - '8100:8100'
@@ -45,7 +44,6 @@ services:
     build:
       context: .
       dockerfile: ui/Dockerfile
-    container_name: greenlight-dev-ui
     restart: unless-stopped
     ports:
       - '3001:3001'
@@ -69,7 +67,6 @@ services:
     build:
       context: .
       dockerfile: docs-site/Dockerfile
-    container_name: greenlight-dev-docs
     restart: unless-stopped
     ports:
       - '3003:3003'
@@ -80,7 +77,6 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: greenlight-dev-postgres
     restart: unless-stopped
     ports:
       - '${POSTGRES_PORT:-5431}:5432'
