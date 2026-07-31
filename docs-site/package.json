@@ -18,7 +18,7 @@
     "@greenlight/theme": "*",
     "@radix-ui/react-select": "^2.0.0",
     "geist": "^1.7.2",
-    "lucide-react": "0.563.0",
+    "lucide-react": "^1.27.0",
     "next": "16.2.12",
     "nextra": "^4.6.1",
     "nextra-theme-docs": "^4.6.1",
