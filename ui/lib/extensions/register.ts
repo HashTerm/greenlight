@@ -7,7 +7,8 @@ export type EnterpriseNavItem = {
   roles?: string[]
 }
 
-export function registerEnterpriseNav(_role?: string): EnterpriseNavItem[] {
+export function registerEnterpriseNav(role?: string): EnterpriseNavItem[] {
+  void role
   return []
 }
 
