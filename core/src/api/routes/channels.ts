@@ -71,8 +71,7 @@ channelRoutes.get(
   async (c) => {
     const { platform, channel_type: channelType, limit } = c.req.valid('query')
     const organizationId = getOrganizationId(c)
-    const channels = await listChannels({
-      organizationId,
+    const channels = await listChannels(organizationId, {
       limit,
       ...(platform ? { platform } : {}),
       ...(channelType ? { channelType } : {}),

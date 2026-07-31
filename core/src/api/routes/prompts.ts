@@ -40,8 +40,9 @@ const listQuerySchema = z.object({
 export const promptRoutes = new Hono()
 
 type CreatePromptInput = Parameters<typeof createAndPostPrompt>[0]
+type CreatePromptBody = Omit<CreatePromptInput, 'organizationId'>
 
-async function respondCreatePrompt(c: Context, input: CreatePromptInput) {
+async function respondCreatePrompt(c: Context, input: CreatePromptBody) {
   try {
     const result = await createAndPostPrompt({
       ...input,
@@ -68,7 +69,7 @@ async function respondCreatePrompt(c: Context, input: CreatePromptInput) {
   }
 }
 
-async function parseMultipartPrompt(c: Context): Promise<CreatePromptInput | Response> {
+async function parseMultipartPrompt(c: Context): Promise<CreatePromptBody | Response> {
   const form = await c.req.parseBody()
   const text = String(form.text ?? '')
   if (!text) return c.json({ detail: 'text is required' }, 400)

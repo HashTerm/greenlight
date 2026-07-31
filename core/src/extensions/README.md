@@ -11,6 +11,10 @@ output of this folder.
 | `license-gate.ts` | `licenseGate.isEnabled(feature)` — always `false` in community |
 | `audit.ts` | `recordAuditEvent(event)` — no-op in community |
 | `register.ts` | `registerEnterpriseRoutes(app)`, `onEnterpriseBoot()` — no-ops in community |
+| `core-host.ts` | Stable re-exports for injected enterprise (`requireScope`, `withClient`, org resolution) |
+
+Injected enterprise code must import core APIs from `./core-host.js` only — not `../core/` or `../api/`.
+Only `*.ts` files are overlaid at inject time so community `core-host.ts` is preserved.
 
 ## Optional headers
 

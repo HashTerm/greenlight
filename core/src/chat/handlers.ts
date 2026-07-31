@@ -73,6 +73,8 @@ export function wireHandlers(
   const botKey = instanceKey(platform, credentials)
 
   bot.onAction(async (event) => {
+    if (!event.thread) return
+
     const channel = await resolveChannelForMessage(
       platform,
       parseThreadChannelId(event.thread.id)?.targetChatId ?? '',
