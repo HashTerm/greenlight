@@ -12,11 +12,3 @@ export function getOrganizationId(c: Context): string {
   }
   return apiKey.organizationId
 }
-
-export function requireOrganizationId(c: Context): string | Response {
-  try {
-    return getOrganizationId(c)
-  } catch {
-    return c.json({ detail: 'forbidden' }, 403)
-  }
-}

@@ -45,7 +45,7 @@ const messengerCredentials = z.object({
   verify_token: z.string().min(1),
 })
 
-export function validatePlatformCredentials(
+function validatePlatformCredentials(
   platform: Platform,
   credentials: Record<string, string>,
   ctx: z.RefinementCtx,

@@ -2,6 +2,7 @@
   "$schema": "./node_modules/fallow/schema.json",
   "entry": [
     "core/src/index.ts",
+    "core/src/extensions/core-host.ts",
     "ui/app/**/page.tsx",
     "ui/app/**/layout.tsx",
     "ui/app/**/route.ts",
@@ -20,9 +21,40 @@
     "**/node_modules/**",
     "docs-site/public/openapi.json"
   ],
+  "ignoreExportsUsedInFile": true,
   "ignoreDependencies": [
     "nextra-theme-docs-layout-internals",
     "eslint-config-next"
+  ],
+  "ignoreExports": [
+    {
+      "file": "ui/components/ui/*.tsx",
+      "exports": ["*"]
+    },
+    {
+      "file": "core/src/services/messages/models.ts",
+      "exports": ["*"]
+    },
+    {
+      "file": "core/src/services/messages/service.ts",
+      "exports": ["*"]
+    },
+    {
+      "file": "core/src/services/prompts/models.ts",
+      "exports": ["*"]
+    },
+    {
+      "file": "core/src/services/prompts/service.ts",
+      "exports": ["*"]
+    },
+    {
+      "file": "core/src/services/channels/models.ts",
+      "exports": ["*"]
+    },
+    {
+      "file": "core/src/services/channels/service.ts",
+      "exports": ["*"]
+    }
   ],
   "workspaces": {
     "patterns": ["core", "ui", "docs-site"]

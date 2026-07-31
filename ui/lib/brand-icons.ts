@@ -8,7 +8,7 @@ import whatsapp from '@thesvg/icons/whatsapp'
 
 import type { Platform } from '@/lib/platform-fields'
 
-export const platformIcons = {
+const platformIcons = {
   telegram,
   slack,
   teams: microsoftTeams,
@@ -20,7 +20,7 @@ export const platformIcons = {
 
 export type PlatformIconSlug = keyof typeof platformIcons
 
-export const platformLabels: Record<PlatformIconSlug, string> = {
+const platformLabels: Record<PlatformIconSlug, string> = {
   telegram: 'Telegram',
   slack: 'Slack',
   teams: 'Microsoft Teams',

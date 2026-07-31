@@ -2,7 +2,7 @@ export const getWebsiteURL = () => {
   return process.env.NEXT_PUBLIC_WEBSITE_URL || 'http://localhost:3002'
 }
 
-export const getGithubRepo = () => {
+const getGithubRepo = () => {
   return process.env.NEXT_PUBLIC_GITHUB_REPO || 'markokosticdev/greenlight'
 }
 

@@ -1,6 +1,6 @@
 import { withClient } from '../../db/client.js'
 import * as promptModels from '../prompts/models.js'
-import { purgeOldMessagesByDirection } from '../messages/service.js'
+import * as messageModels from '../messages/models.js'
 import * as settingsModels from './models.js'
 
 export type RetentionSettings = {
@@ -13,21 +13,6 @@ export type RetentionSettings = {
   messages_inbound_zero_retention: boolean
   messages_outbound_zero_retention: boolean
   updated_at: string
-}
-
-export const DEFAULT_RETENTION_SETTINGS: Omit<RetentionSettings, 'updated_at'> = {
-  prompts_retention_enabled: settingsModels.DEFAULT_SETTINGS.prompts_retention_enabled,
-  prompts_retention_days: settingsModels.DEFAULT_SETTINGS.prompts_retention_days,
-  messages_inbound_retention_enabled:
-    settingsModels.DEFAULT_SETTINGS.messages_inbound_retention_enabled,
-  messages_outbound_retention_enabled:
-    settingsModels.DEFAULT_SETTINGS.messages_outbound_retention_enabled,
-  messages_inbound_retention_days: settingsModels.DEFAULT_SETTINGS.messages_inbound_retention_days,
-  messages_outbound_retention_days:
-    settingsModels.DEFAULT_SETTINGS.messages_outbound_retention_days,
-  messages_inbound_zero_retention: settingsModels.DEFAULT_SETTINGS.messages_inbound_zero_retention,
-  messages_outbound_zero_retention:
-    settingsModels.DEFAULT_SETTINGS.messages_outbound_zero_retention,
 }
 
 function toSettings(row: settingsModels.AppSettingsRow): RetentionSettings {
@@ -98,18 +83,24 @@ export async function runRetention(): Promise<void> {
     }
 
     if (settings.messages_inbound_retention_enabled) {
-      await purgeOldMessagesByDirection(
-        organizationId,
-        'inbound',
-        settings.messages_inbound_retention_days,
+      await withClient((client) =>
+        messageModels.deleteOlderThanByDirection(
+          client,
+          organizationId,
+          settings.messages_inbound_retention_days,
+          'inbound',
+        ),
       )
     }
 
     if (settings.messages_outbound_retention_enabled) {
-      await purgeOldMessagesByDirection(
-        organizationId,
-        'outbound',
-        settings.messages_outbound_retention_days,
+      await withClient((client) =>
+        messageModels.deleteOlderThanByDirection(
+          client,
+          organizationId,
+          settings.messages_outbound_retention_days,
+          'outbound',
+        ),
       )
     }
   }

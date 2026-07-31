@@ -14,17 +14,6 @@ export interface AppSettingsRow {
   updated_at: Date
 }
 
-export const DEFAULT_SETTINGS: Omit<AppSettingsRow, 'updated_at' | 'organization_id'> = {
-  prompts_retention_enabled: false,
-  prompts_retention_days: 30,
-  messages_inbound_retention_enabled: true,
-  messages_outbound_retention_enabled: true,
-  messages_inbound_retention_days: 30,
-  messages_outbound_retention_days: 30,
-  messages_inbound_zero_retention: false,
-  messages_outbound_zero_retention: false,
-}
-
 const SETTINGS_SELECT = `SELECT
   organization_id,
   prompts_retention_enabled,

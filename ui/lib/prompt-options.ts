@@ -2,7 +2,7 @@ import { getPlatformBrand } from '@/lib/brand-icons'
 import type { Platform } from '@/lib/platform-fields'
 
 export const DEFAULT_PROMPT_OPTION_LABELS = ['Yes', 'No'] as const
-export const DEFAULT_MAX_PROMPT_OPTIONS = 10
+const DEFAULT_MAX_PROMPT_OPTIONS = 10
 export const OPTION_LABEL_MAX_LENGTH = 64
 
 export function maxPromptOptionsForPlatform(platform: Platform | null): number | null {

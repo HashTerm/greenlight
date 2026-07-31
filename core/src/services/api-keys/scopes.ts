@@ -1,4 +1,4 @@
-export const SCOPES = [
+const SCOPES = [
   'status:read',
   'settings:read',
   'settings:write',
@@ -66,8 +66,4 @@ export function hasScope(keyScopes: readonly string[], required: Scope): boolean
 
 export function hasAnyScope(keyScopes: readonly string[], required: Scope[]): boolean {
   return required.some((s) => hasScope(keyScopes, s))
-}
-
-export function canManageKeys(scopes: readonly string[]): boolean {
-  return hasScope(scopes, 'admin') || hasScope(scopes, 'keys:write')
 }

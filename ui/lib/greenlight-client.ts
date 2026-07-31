@@ -1,7 +1,7 @@
 const baseUrl = () => process.env.GREENLIGHT_API_URL ?? 'http://localhost:8100'
 
 /** Self-host default org; cloud UI sets GREENLIGHT_ORG_ID to the active org UUID. */
-export const DEFAULT_ORGANIZATION_ID = process.env.GREENLIGHT_ORG_ID ?? 'default'
+const DEFAULT_ORGANIZATION_ID = process.env.GREENLIGHT_ORG_ID ?? 'default'
 
 export function getActiveOrganizationId(): string {
   return DEFAULT_ORGANIZATION_ID
@@ -44,10 +44,6 @@ export async function apiFetch<T>(path: string, init?: ApiFetchOptions): Promise
   }
   return res.json() as Promise<T>
 }
-
-/** @deprecated Use apiFetch */
-export const agentFetch = apiFetch
-
 export async function healthCheck(): Promise<{ status: string }> {
   const res = await fetch(`${baseUrl()}/healthz`, { cache: 'no-store' })
   return res.json()

@@ -3,10 +3,6 @@ import type { AuthenticatedApiKey } from '../../services/api-keys/service.js'
 import { authenticateApiKey, touchApiKeyLastUsed } from '../../services/api-keys/service.js'
 import { loadConfig } from '../../core/config.js'
 
-export type ApiKeyVariables = {
-  apiKey: AuthenticatedApiKey
-}
-
 export async function authMiddleware(c: Context, next: Next): Promise<Response | void> {
   const config = loadConfig()
   if (!config.USE_AUTH) {
