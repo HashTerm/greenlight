@@ -54,6 +54,25 @@ services:
         max_failure_ratio: 0
         order: start-first
 
+  greenlight-docs:
+    networks:
+      - greenlight
+    stop_grace_period: 30s
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 20
+        window: 120s
+      update_config:
+        parallelism: 1
+        delay: 10s
+        monitor: 60s
+        failure_action: rollback
+        max_failure_ratio: 0
+        order: start-first
+
   postgres:
     networks:
       - greenlight

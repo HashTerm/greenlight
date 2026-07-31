@@ -26,6 +26,7 @@ jobs:
       - run: npm run format:check
       - run: docker compose config --quiet
       - run: docker compose -f docker-compose.self-host.yml --env-file .env.self-host.example config --quiet
+      - run: docker compose -f docker-compose.self-host.yml -f docker-compose.docs.yml --env-file .env.self-host.example --env-file .env.docs.example config --quiet
       - run: docker compose -f docker-compose.docs.build.yml --env-file .env.docs.example config --quiet
       - run: npm test
       - run: npm run build
