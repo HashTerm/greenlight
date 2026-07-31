@@ -159,7 +159,7 @@ jobs:
       - uses: docker/build-push-action@v7
         with:
           context: ${{ matrix.inject && '.' || 'greenlight' }}
-          file: ${{ matrix.inject && 'greenlight-platform/enterprise/docker/Dockerfile.ui.inject' || 'docs-site/Dockerfile' }}
+          file: ${{ matrix.inject && 'greenlight-platform/enterprise/docker/Dockerfile.ui.inject' || 'greenlight/docs-site/Dockerfile' }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
