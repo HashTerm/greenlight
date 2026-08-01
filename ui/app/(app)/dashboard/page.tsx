@@ -8,7 +8,6 @@ import {
   MessageCircleQuestion,
   MessageSquare,
   PieChart,
-  Plus,
   Radio,
   TrendingUp,
 } from 'lucide-react'
@@ -78,7 +77,7 @@ export default async function DashboardPage() {
           <div className="flex gap-2">
             <Button asChild variant="outline">
               <Link href="/channels/add">
-                <Plus className="size-4" />
+                <Radio className="size-4" />
                 Add channel
               </Link>
             </Button>
