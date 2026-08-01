@@ -3,7 +3,14 @@
    <Head> renders its own inline <style> with the primary color values, which is
    injected later in the DOM than this stylesheet and would otherwise win the
    cascade and silently override any CSS-only attempt to set those variables here. */
+/* Dark tokens on :root.dark beat the light :root block (:where(.dark) has zero
+   specificity and loses). Descendant rules must repeat the dark prefix on both
+   sides of the comma — `:root.dark, :root[data-theme='dark'] .foo` would style
+   <html> with .foo's background. */
 :root {
+  --foreground: oklch(32% 0 0deg);
+  --muted-foreground: oklch(51% 0 0deg);
+  --hover-surface: rgb(0 0 0 / 5%);
   --x-font-sans: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
   --x-font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace;
   /* nextra-focus rings use primary-200/300; override to neutral gray so search,
@@ -12,12 +19,36 @@
   --x-color-primary-300: #d4d4d4;
 }
 
-:where(.dark, [data-theme='dark']) {
+:root.dark,
+:root[data-theme='dark'] {
+  --foreground: oklch(98% 0 0deg);
+  --muted-foreground: oklch(70% 0 0deg);
+  --hover-surface: rgb(255 255 255 / 10%);
   --x-color-primary-200: #525252;
   --x-color-primary-300: #404040;
   /* dark nextra-focus rings use primary-800/700 instead of 200/300 */
   --x-color-primary-700: #404040;
   --x-color-primary-800: #525252;
+}
+
+/* Neutralize Nextra's bluish gray scale for navbar chrome in dark mode. */
+:root.dark header.nextra-navbar,
+:root[data-theme='dark'] header.nextra-navbar {
+  --x-color-gray-400: var(--muted-foreground);
+  --x-color-gray-300: var(--muted-foreground);
+  --x-color-gray-600: var(--muted-foreground);
+}
+
+header.nextra-navbar .docs-navbar-wordmark {
+  color: var(--foreground);
+}
+
+header.nextra-navbar > nav > a[href*='github.com'] {
+  color: var(--foreground);
+}
+
+header.nextra-navbar > nav > a[href*='github.com']:hover {
+  opacity: 0.75;
 }
 
 /* Plus Jakarta Sans has a noticeably larger x-height than the system font Nextra
@@ -41,7 +72,8 @@ aside {
   --x-color-primary-800: #333333;
 }
 
-:where(.dark, [data-theme='dark']) aside {
+:root.dark aside,
+:root[data-theme='dark'] aside {
   /* dark:bg-primary-400/10 already applies a 10% opacity modifier on top of this,
      so setting the base color to near-white reproduces bg-gray-50/10 exactly. */
   --x-color-primary-400: #fafafa;
@@ -65,8 +97,8 @@ aside {
   height: 2rem;
   border: none;
   border-radius: var(--x-radius-md, 0.375rem);
-  background: rgb(0 0 0 / 5%);
-  color: #333333;
+  background: var(--hover-surface);
+  color: var(--foreground);
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
@@ -85,13 +117,15 @@ aside {
   background: rgb(0 0 0 / 10%);
 }
 
-:where(.dark, [data-theme='dark']) .docs-sidebar-toggle {
+:root.dark .docs-sidebar-toggle,
+:root[data-theme='dark'] .docs-sidebar-toggle {
   background: rgb(255 255 255 / 5%);
-  color: #fafafa;
+  color: var(--foreground);
 }
 
-:where(.dark, [data-theme='dark']) .docs-sidebar-toggle:hover {
-  background: rgb(255 255 255 / 10%);
+:root.dark .docs-sidebar-toggle:hover,
+:root[data-theme='dark'] .docs-sidebar-toggle:hover {
+  background: var(--hover-surface);
 }
 
 .docs-sidebar-toggle-icon {
@@ -122,7 +156,8 @@ html.docs-sidebar-collapsed .nextra-sidebar {
   margin-top: auto;
 }
 
-:where(.dark, [data-theme='dark']) .site-footer {
+:root.dark .site-footer,
+:root[data-theme='dark'] .site-footer {
   background: #1a1a1a;
   color: #fafafa;
 }
@@ -180,11 +215,13 @@ html.docs-sidebar-collapsed .nextra-sidebar {
   color: #333333;
 }
 
-:where(.dark, [data-theme='dark']) .site-footer-link {
+:root.dark .site-footer-link,
+:root[data-theme='dark'] .site-footer-link {
   color: rgb(255 255 255 / 70%);
 }
 
-:where(.dark, [data-theme='dark']) .site-footer-link:hover {
+:root.dark .site-footer-link:hover,
+:root[data-theme='dark'] .site-footer-link:hover {
   color: #fff;
 }
 
@@ -198,7 +235,8 @@ html.docs-sidebar-collapsed .nextra-sidebar {
   padding-top: 1.5rem;
 }
 
-:where(.dark, [data-theme='dark']) .site-footer-bar {
+:root.dark .site-footer-bar,
+:root[data-theme='dark'] .site-footer-bar {
   border-top-color: rgb(255 255 255 / 10%);
 }
 
@@ -224,7 +262,8 @@ html.docs-sidebar-collapsed .nextra-sidebar {
   margin: 0;
 }
 
-:where(.dark, [data-theme='dark']) .site-footer-copyright {
+:root.dark .site-footer-copyright,
+:root[data-theme='dark'] .site-footer-copyright {
   color: rgb(255 255 255 / 60%);
 }
 
@@ -256,7 +295,8 @@ html.docs-sidebar-collapsed .nextra-sidebar {
   outline-offset: 1px;
 }
 
-:where(.dark, [data-theme='dark']) .site-footer-theme-trigger {
+:root.dark .site-footer-theme-trigger,
+:root[data-theme='dark'] .site-footer-theme-trigger {
   border-color: rgb(255 255 255 / 20%);
 }
 
@@ -291,7 +331,8 @@ html.docs-sidebar-collapsed .nextra-sidebar {
     0 2px 4px -2px rgb(0 0 0 / 10%);
 }
 
-:where(.dark, [data-theme='dark']) .site-footer-theme-content {
+:root.dark .site-footer-theme-content,
+:root[data-theme='dark'] .site-footer-theme-content {
   border-color: rgb(255 255 255 / 20%);
   background: #1a1a1a;
   color: #fafafa;
@@ -319,7 +360,8 @@ html.docs-sidebar-collapsed .nextra-sidebar {
   background: #f2f2f2;
 }
 
-:where(.dark, [data-theme='dark']) .site-footer-theme-item[data-highlighted] {
+:root.dark .site-footer-theme-item[data-highlighted],
+:root[data-theme='dark'] .site-footer-theme-item[data-highlighted] {
   background: rgb(255 255 255 / 10%);
 }
 
@@ -336,7 +378,7 @@ html.docs-sidebar-collapsed .nextra-sidebar {
   font-size: 0.875rem;
   font-weight: 500;
   white-space: nowrap;
-  color: #666666;
+  color: var(--muted-foreground);
   text-decoration: none;
   transition: background-color 0.15s ease;
 }
@@ -354,15 +396,7 @@ header.nextra-navbar > nav > .nextra-hamburger {
 }
 
 .docs-nav-website-link:hover {
-  background: rgb(0 0 0 / 5%);
-}
-
-:where(.dark, [data-theme='dark']) .docs-nav-website-link {
-  color: rgb(255 255 255 / 70%);
-}
-
-:where(.dark, [data-theme='dark']) .docs-nav-website-link:hover {
-  background: rgb(255 255 255 / 10%);
+  background: var(--hover-surface);
 }
 
 .site-footer-theme-item-check {

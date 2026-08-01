@@ -61,7 +61,7 @@ const logo = (
         height={40}
         priority
       />
-      <b>Greenlight</b>
+      <b className="docs-navbar-wordmark">Greenlight Docs</b>
     </Link>
     <SidebarToggle />
   </span>
