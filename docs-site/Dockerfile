@@ -8,15 +8,17 @@ COPY docs-site/package.json ./docs-site/
 COPY core/package.json ./core/
 RUN npm install -w docs-site
 
-# OpenAPI sync reads core/src/api/openapi.ts during prebuild.
+# build:docker runs scripts/sync-openapi.mjs against this file.
 COPY core/src/api/openapi.ts ./core/src/api/openapi.ts
 COPY packages/theme ./packages/theme
 COPY docs-site ./docs-site
 
 WORKDIR /app/docs-site
 ENV NEXT_TELEMETRY_DISABLED=1
+# Placeholders baked into the client bundle at image build (override at runtime via compose).
 ENV NEXT_PUBLIC_DOCS_URL=http://localhost:3003
-RUN npm run build
+ENV NEXT_PUBLIC_WEBSITE_URL=http://localhost:3002
+RUN npm run build:docker
 
 FROM node:22-alpine
 

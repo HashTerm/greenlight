@@ -11,6 +11,7 @@
     "dev": "next dev --port 3003",
     "prebuild": "node scripts/sync-openapi.mjs",
     "build": "next build",
+    "build:docker": "node scripts/sync-openapi.mjs && next build --experimental-build-mode compile && next build --experimental-build-mode generate-env",
     "start": "next start --port 3003",
     "sync:openapi": "node scripts/sync-openapi.mjs"
   },

@@ -9,45 +9,47 @@ type FooterColumn = {
   links: { label: string; href: string; newTab?: boolean }[]
 }
 
-const websiteUrl = getWebsiteURL()
-
-const columns: FooterColumn[] = [
-  {
-    title: 'Documentation',
-    links: [
-      { label: 'Quickstart', href: '/getting-started/quickstart' },
-      { label: 'Concepts', href: '/getting-started/concepts' },
-      { label: 'API Reference', href: '/api-reference' },
-      { label: 'Self-Hosting', href: '/self-hosting/docker' },
-    ],
-  },
-  {
-    title: 'Platforms',
-    links: [
-      { label: 'Overview', href: '/platforms' },
-      { label: 'Telegram', href: '/platforms/telegram' },
-      { label: 'Slack', href: '/platforms/slack' },
-      { label: 'Discord', href: '/platforms/discord' },
-    ],
-  },
-  {
-    title: 'Community',
-    links: [
-      { label: 'GitHub', href: getGithubRepoURL(), newTab: true },
-      { label: 'Contributing', href: '/legal/contributing' },
-      { label: 'Website', href: websiteUrl, newTab: true },
-    ],
-  },
-  {
-    title: 'Legal',
-    links: [
-      { label: 'Licensing', href: '/legal/licensing' },
-      { label: 'Credits', href: '/legal/credits' },
-    ],
-  },
-]
+function getFooterColumns(websiteUrl: string): FooterColumn[] {
+  return [
+    {
+      title: 'Documentation',
+      links: [
+        { label: 'Quickstart', href: '/getting-started/quickstart' },
+        { label: 'Concepts', href: '/getting-started/concepts' },
+        { label: 'API Reference', href: '/api-reference' },
+        { label: 'Self-Hosting', href: '/self-hosting/docker' },
+      ],
+    },
+    {
+      title: 'Platforms',
+      links: [
+        { label: 'Overview', href: '/platforms' },
+        { label: 'Telegram', href: '/platforms/telegram' },
+        { label: 'Slack', href: '/platforms/slack' },
+        { label: 'Discord', href: '/platforms/discord' },
+      ],
+    },
+    {
+      title: 'Community',
+      links: [
+        { label: 'GitHub', href: getGithubRepoURL(), newTab: true },
+        { label: 'Contributing', href: '/legal/contributing' },
+        { label: 'Website', href: websiteUrl, newTab: true },
+      ],
+    },
+    {
+      title: 'Legal',
+      links: [
+        { label: 'Licensing', href: '/legal/licensing' },
+        { label: 'Credits', href: '/legal/credits' },
+      ],
+    },
+  ]
+}
 
 export function SiteFooter() {
+  const columns = getFooterColumns(getWebsiteURL())
+
   return (
     <footer className="site-footer">
       <div className="site-footer-container">
