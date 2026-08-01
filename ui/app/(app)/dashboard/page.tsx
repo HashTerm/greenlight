@@ -5,7 +5,10 @@ import {
   Database,
   LayoutDashboard,
   List,
+  MessageCircleQuestion,
+  MessageSquare,
   PieChart,
+  Plus,
   Radio,
   TrendingUp,
 } from 'lucide-react'
@@ -74,13 +77,22 @@ export default async function DashboardPage() {
         actions={
           <div className="flex gap-2">
             <Button asChild variant="outline">
-              <Link href="/channels/add">Add channel</Link>
+              <Link href="/channels/add">
+                <Plus className="size-4" />
+                Add channel
+              </Link>
             </Button>
             <Button asChild variant="outline">
-              <Link href="/messages/send">Send message</Link>
+              <Link href="/messages/send">
+                <MessageSquare className="size-4" />
+                Send message
+              </Link>
             </Button>
             <Button asChild>
-              <Link href="/prompts/new">New prompt</Link>
+              <Link href="/prompts/new">
+                <MessageCircleQuestion className="size-4" />
+                New prompt
+              </Link>
             </Button>
           </div>
         }
