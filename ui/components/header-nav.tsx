@@ -8,8 +8,6 @@ import {
   MessageSquare,
   Radio,
   Settings,
-  Shield,
-  Users,
   type LucideIcon,
 } from 'lucide-react'
 import Link from 'next/link'
@@ -23,18 +21,17 @@ import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 
-const baseLinks = [
+const primaryLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/channels', label: 'Channels', icon: Radio },
   { href: '/messages', label: 'Messages', icon: MessageSquare },
   { href: '/prompts', label: 'Prompts', icon: MessageCircleQuestion },
-  { href: '/settings', label: 'Settings', icon: Settings },
 ] as const
+
+const settingsLink = { href: '/settings', label: 'Settings', icon: Settings } as const
 
 const enterpriseIconMap: Record<EnterpriseNavIcon, LucideIcon> = {
   'clipboard-list': ClipboardList,
-  shield: Shield,
-  users: Users,
 }
 
 type NavLink = {
@@ -48,21 +45,34 @@ type HeaderNavProps = {
 }
 
 function resolveEnterpriseLinks(links: EnterpriseNavItem[]): NavLink[] {
-  return links.map(({ icon, ...link }) => ({
-    ...link,
-    icon: enterpriseIconMap[icon],
-  }))
+  return links
+    .filter((item) => !item.href.startsWith('/settings'))
+    .map(({ icon, ...link }) => ({
+      ...link,
+      icon: enterpriseIconMap[icon],
+    }))
 }
 
 function isNavLinkActive(pathname: string, href: string) {
   if (href === '/dashboard') return pathname === '/dashboard'
+  if (href === '/settings') {
+    return pathname === '/settings' || pathname.startsWith('/settings/')
+  }
   return pathname === href || pathname.startsWith(`${href}/`)
+}
+
+function buildNavLinks(enterpriseLinks: EnterpriseNavItem[]): NavLink[] {
+  return [
+    ...primaryLinks,
+    ...resolveEnterpriseLinks(enterpriseLinks),
+    settingsLink,
+  ]
 }
 
 export function HeaderNav({ enterpriseLinks = registerEnterpriseNav() }: HeaderNavProps) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const links: NavLink[] = [...baseLinks, ...resolveEnterpriseLinks(enterpriseLinks)]
+  const links: NavLink[] = buildNavLinks(enterpriseLinks)
 
   return (
     <div className="flex items-center gap-1">

@@ -1,5 +1,5 @@
 /** Serializable icon id — resolved to a Lucide component in client nav. */
-export const ENTERPRISE_NAV_ICONS = ['clipboard-list', 'shield', 'users'] as const
+export const ENTERPRISE_NAV_ICONS = ['clipboard-list'] as const
 export type EnterpriseNavIcon = (typeof ENTERPRISE_NAV_ICONS)[number]
 
 export type EnterpriseNavItem = {
