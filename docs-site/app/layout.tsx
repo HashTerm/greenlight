@@ -13,26 +13,28 @@ import './theme.css'
 import './logo.css'
 import { SiteFooter } from './components/site-footer'
 import { SidebarToggle } from './components/sidebar-toggle'
-import { getWebsiteURL } from './utilities/getWebsiteURL'
+import { getDocsURL, getWebsiteURL } from './utilities/getWebsiteURL'
+
+export const dynamic = 'force-dynamic'
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ['latin'],
   variable: '--font-plus-jakarta-sans',
 })
 
-const siteUrl = process.env.NEXT_PUBLIC_DOCS_URL || 'http://localhost:3003'
-
-export const metadata = {
-  metadataBase: new URL(siteUrl),
-  title: {
-    default: 'Greenlight Docs — Human approval for AI agents, over chat',
-    template: '%s | Greenlight Docs',
-  },
-  description:
-    'Self-host guides, agent integration, platform setup, and API reference for Greenlight.',
-  icons: {
-    icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
-  },
+export async function generateMetadata() {
+  return {
+    metadataBase: new URL(getDocsURL()),
+    title: {
+      default: 'Greenlight Docs — Human approval for AI agents, over chat',
+      template: '%s | Greenlight Docs',
+    },
+    description:
+      'Self-host guides, agent integration, platform setup, and API reference for Greenlight.',
+    icons: {
+      icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }],
+    },
+  }
 }
 
 // Rendered with `logoLink={false}` below and our own inner <Link> (instead of letting

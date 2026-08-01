@@ -15,7 +15,7 @@ COPY docs-site ./docs-site
 
 WORKDIR /app/docs-site
 ENV NEXT_TELEMETRY_DISABLED=1
-# Placeholders baked into the client bundle at image build (override at runtime via compose).
+# Local-dev defaults for build; production URLs come from DOCS_URL / WEBSITE_URL at runtime.
 ENV NEXT_PUBLIC_DOCS_URL=http://localhost:3003
 ENV NEXT_PUBLIC_WEBSITE_URL=http://localhost:3002
 RUN npm run build:docker
