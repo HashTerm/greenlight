@@ -81,7 +81,7 @@ export async function changePassword(formData: FormData) {
   const passwordHash = await bcrypt.hash(next, 12)
   await db.update(adminUsers).set({ passwordHash }).where(eq(adminUsers.id, user.id))
 
-  revalidatePath('/settings')
+  revalidatePath('/settings/account')
 }
 
 export async function fetchStatus(): Promise<AdminStatus> {
@@ -133,13 +133,13 @@ export async function createApiKeyAction(formData: FormData): Promise<CreatedApi
     body: JSON.stringify({ name, preset }),
   })
 
-  revalidatePath('/settings')
+  revalidatePath('/settings/api-keys')
   return result
 }
 
 export async function revokeApiKeyAction(id: string): Promise<void> {
   await apiFetch(`/v1/keys/${encodeURIComponent(id)}`, { method: 'DELETE' })
-  revalidatePath('/settings')
+  revalidatePath('/settings/api-keys')
 }
 
 export async function updateRetentionSettingsAction(formData: FormData) {
@@ -170,7 +170,7 @@ export async function updateRetentionSettingsAction(formData: FormData) {
     }),
   })
 
-  revalidatePath('/settings')
+  revalidatePath('/settings/retention')
 }
 
 type AdminSendMessageResponse = Message | { status: string; stored: false }

@@ -14,11 +14,45 @@ export function registerEnterpriseNav(role?: string): EnterpriseNavItem[] {
   return []
 }
 
+export type EnterpriseLicensedFeature = 'audit' | 'sso' | 'multi_user_admin' | 'rbac'
+
 export type EnterpriseSettingsSection = {
   id: string
   title: string
   href: string
   description?: string
+  requiredFeature?: EnterpriseLicensedFeature
+}
+
+export type CommunitySettingsSection = EnterpriseSettingsSection
+
+export function registerCommunitySettingsSections(): CommunitySettingsSection[] {
+  return [
+    {
+      id: 'general',
+      title: 'General',
+      href: '/settings',
+      description: 'API connectivity and instance configuration',
+    },
+    {
+      id: 'account',
+      title: 'Account',
+      href: '/settings/account',
+      description: 'Change your admin password',
+    },
+    {
+      id: 'api-keys',
+      title: 'API keys',
+      href: '/settings/api-keys',
+      description: 'Create and revoke API keys',
+    },
+    {
+      id: 'retention',
+      title: 'Retention',
+      href: '/settings/retention',
+      description: 'Data retention policies',
+    },
+  ]
 }
 
 export function registerEnterpriseSettingsSections(): EnterpriseSettingsSection[] {
