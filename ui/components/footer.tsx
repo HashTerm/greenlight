@@ -4,9 +4,9 @@ import { Logo } from '@/components/logo'
 import { ThemeSelector } from '@/components/theme-selector'
 
 const footerLinks = [
-  { label: 'Docs', href: 'https://docs.greenlight.dev' },
+  { label: 'Docs', href: 'https://docs.ongreenlight.com' },
   { label: 'GitHub', href: 'https://github.com/HashTerm/greenlight' },
-  { label: 'Website', href: 'https://greenlight.dev' },
+  { label: 'Website', href: 'https://ongreenlight.com' },
 ]
 
 export function Footer() {
