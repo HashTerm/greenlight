@@ -2,7 +2,7 @@ import { Settings } from 'lucide-react'
 import { Suspense } from 'react'
 
 import { PageHeader } from '@/components/page-header'
-import { SettingsTabsShell } from '@/components/settings-tabs'
+import { SettingsTabsShell, SettingsTabsSkeleton } from '@/components/settings-tabs'
 import { registerEnterpriseSettingsSections } from '@/lib/extensions/register'
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
@@ -15,7 +15,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
         icon={Settings}
         title="Settings"
       />
-      <Suspense fallback={children}>
+      <Suspense fallback={<SettingsTabsSkeleton />}>
         <SettingsTabsShell enterpriseSections={enterpriseSections}>{children}</SettingsTabsShell>
       </Suspense>
     </div>

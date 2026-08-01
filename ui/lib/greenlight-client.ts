@@ -46,6 +46,9 @@ export async function apiFetch<T>(path: string, init?: ApiFetchOptions): Promise
 }
 export async function healthCheck(): Promise<{ status: string }> {
   const res = await fetch(`${baseUrl()}/healthz`, { cache: 'no-store' })
+  if (!res.ok) {
+    throw new Error(`Health check failed (${res.status})`)
+  }
   return res.json()
 }
 

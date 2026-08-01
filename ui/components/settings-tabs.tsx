@@ -8,9 +8,9 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 const COMMUNITY_TABS = [
   { id: 'general', label: 'General', href: '/settings?tab=general' },
-  { id: 'retention', label: 'Retention', href: '/settings?tab=retention' },
-  { id: 'api-keys', label: 'API keys', href: '/settings?tab=api-keys' },
   { id: 'account', label: 'Account', href: '/settings?tab=account' },
+  { id: 'api-keys', label: 'API keys', href: '/settings?tab=api-keys' },
+  { id: 'retention', label: 'Retention', href: '/settings?tab=retention' },
 ] as const
 
 const COMMUNITY_TAB_IDS = new Set<string>(COMMUNITY_TABS.map((tab) => tab.id))
@@ -40,6 +40,18 @@ function resolveActiveTab(
 
   if (tabParam && COMMUNITY_TAB_IDS.has(tabParam)) return tabParam
   return 'general'
+}
+
+export function SettingsTabsSkeleton() {
+  return (
+    <div className="space-y-2">
+      <div className="inline-flex h-10 items-center gap-1 rounded-md bg-muted p-1">
+        {COMMUNITY_TABS.map((tab) => (
+          <div key={tab.id} className="h-8 w-20 animate-pulse rounded-sm bg-background/60" />
+        ))}
+      </div>
+    </div>
+  )
 }
 
 export function SettingsTabsShell({ enterpriseSections, children }: SettingsTabsShellProps) {
