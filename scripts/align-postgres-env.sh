@@ -80,7 +80,17 @@ elif role_exists "$superuser" "$target_user"; then
   source_user="$target_user"
 else
   echo "Renaming role $source_user -> $target_user"
-  psql_as "$superuser" postgres -c "ALTER ROLE \"$source_user\" RENAME TO \"$target_user\";"
+  bootstrap_role="align_tmp_$$"
+  psql_as "$superuser" postgres -c "
+    DO \$\$ BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '$bootstrap_role') THEN
+        CREATE ROLE \"$bootstrap_role\" WITH SUPERUSER LOGIN PASSWORD 'align_tmp_only';
+      END IF;
+    END \$\$;
+  "
+  psql_as "$bootstrap_role" postgres -c "ALTER ROLE \"$source_user\" RENAME TO \"$target_user\";"
+  psql_as "$bootstrap_role" postgres -c "DROP ROLE \"$bootstrap_role\";" || \
+    psql_as "$target_user" postgres -c "DROP ROLE IF EXISTS \"$bootstrap_role\";"
   superuser="$target_user"
   source_user="$target_user"
 fi
