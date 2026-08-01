@@ -6,7 +6,7 @@
 # No custom networks — services use the Compose default network (Dokploy-friendly).
 services:
   greenlight:
-    image: ${GREENLIGHT_IMAGE:-ghcr.io/HashTerm/greenlight:latest}
+    image: ${GREENLIGHT_IMAGE:-ghcr.io/hashterm/greenlight:latest}
     restart: unless-stopped
     expose:
       - '8100'
@@ -36,7 +36,7 @@ services:
       start_period: 30s
 
   greenlight-ui:
-    image: ${GREENLIGHT_UI_IMAGE:-ghcr.io/HashTerm/greenlight-ui:latest}
+    image: ${GREENLIGHT_UI_IMAGE:-ghcr.io/hashterm/greenlight-ui:latest}
     restart: unless-stopped
     expose:
       - '3000'

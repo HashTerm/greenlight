@@ -24,7 +24,7 @@ jobs:
       - uses: actions/delete-package-versions@v5
         continue-on-error: true
         with:
-          owner: ${{ github.repository_owner }}
+          owner: hashterm
           package-name: ${{ matrix.package }}
           package-type: container
           delete-only-untagged-versions: true

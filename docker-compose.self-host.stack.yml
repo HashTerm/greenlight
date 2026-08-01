@@ -15,7 +15,7 @@
 
 services:
   greenlight:
-    image: ${GREENLIGHT_IMAGE:-ghcr.io/HashTerm/greenlight:latest}
+    image: ${GREENLIGHT_IMAGE:-ghcr.io/hashterm/greenlight:latest}
     expose:
       - '8100'
     environment:
@@ -57,7 +57,7 @@ services:
         order: start-first
 
   greenlight-ui:
-    image: ${GREENLIGHT_UI_IMAGE:-ghcr.io/HashTerm/greenlight-ui:latest}
+    image: ${GREENLIGHT_UI_IMAGE:-ghcr.io/hashterm/greenlight-ui:latest}
     expose:
       - '3000'
     environment:
