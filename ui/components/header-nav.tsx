@@ -62,11 +62,7 @@ function isNavLinkActive(pathname: string, href: string) {
 }
 
 function buildNavLinks(enterpriseLinks: EnterpriseNavItem[]): NavLink[] {
-  return [
-    ...primaryLinks,
-    ...resolveEnterpriseLinks(enterpriseLinks),
-    settingsLink,
-  ]
+  return [...primaryLinks, ...resolveEnterpriseLinks(enterpriseLinks), settingsLink]
 }
 
 export function HeaderNav({ enterpriseLinks = registerEnterpriseNav() }: HeaderNavProps) {

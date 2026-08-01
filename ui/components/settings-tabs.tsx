@@ -57,9 +57,7 @@ export function SettingsTabsShell({ enterpriseSections, children }: SettingsTabs
         ))}
         {enterpriseSections.map((section) => (
           <TabsTrigger key={section.id} value={section.id} asChild>
-            <Link href={section.href}>
-              {ENTERPRISE_TAB_LABELS[section.id] ?? section.title}
-            </Link>
+            <Link href={section.href}>{ENTERPRISE_TAB_LABELS[section.id] ?? section.title}</Link>
           </TabsTrigger>
         ))}
       </TabsList>

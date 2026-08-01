@@ -95,7 +95,13 @@ export default async function SettingsPage() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="new_password">New password</Label>
-                <Input id="new_password" name="new_password" type="password" minLength={8} required />
+                <Input
+                  id="new_password"
+                  name="new_password"
+                  type="password"
+                  minLength={8}
+                  required
+                />
               </div>
               <Button type="submit">Update password</Button>
             </form>
