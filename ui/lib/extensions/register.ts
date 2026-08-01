@@ -1,9 +1,11 @@
-import type { LucideIcon } from 'lucide-react'
+/** Serializable icon id — resolved to a Lucide component in client nav. */
+export const ENTERPRISE_NAV_ICONS = ['clipboard-list', 'shield', 'users'] as const
+export type EnterpriseNavIcon = (typeof ENTERPRISE_NAV_ICONS)[number]
 
 export type EnterpriseNavItem = {
   href: string
   label: string
-  icon: LucideIcon
+  icon: EnterpriseNavIcon
   roles?: string[]
 }
 

@@ -1,19 +1,23 @@
 'use client'
 
 import {
+  ClipboardList,
   LayoutDashboard,
   MenuIcon,
   MessageCircleQuestion,
   MessageSquare,
   Radio,
   Settings,
+  Shield,
+  Users,
+  type LucideIcon,
 } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
 import { logoutAction } from '@/lib/actions'
-import type { EnterpriseNavItem } from '@/lib/extensions/register'
+import type { EnterpriseNavIcon, EnterpriseNavItem } from '@/lib/extensions/register'
 import { registerEnterpriseNav } from '@/lib/extensions/register'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
@@ -27,8 +31,27 @@ const baseLinks = [
   { href: '/settings', label: 'Settings', icon: Settings },
 ] as const
 
+const enterpriseIconMap: Record<EnterpriseNavIcon, LucideIcon> = {
+  'clipboard-list': ClipboardList,
+  shield: Shield,
+  users: Users,
+}
+
+type NavLink = {
+  href: string
+  label: string
+  icon: LucideIcon
+}
+
 type HeaderNavProps = {
   enterpriseLinks?: EnterpriseNavItem[]
+}
+
+function resolveEnterpriseLinks(links: EnterpriseNavItem[]): NavLink[] {
+  return links.map(({ icon, ...link }) => ({
+    ...link,
+    icon: enterpriseIconMap[icon],
+  }))
 }
 
 function isNavLinkActive(pathname: string, href: string) {
@@ -39,7 +62,7 @@ function isNavLinkActive(pathname: string, href: string) {
 export function HeaderNav({ enterpriseLinks = registerEnterpriseNav() }: HeaderNavProps) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
-  const links = [...baseLinks, ...enterpriseLinks]
+  const links: NavLink[] = [...baseLinks, ...resolveEnterpriseLinks(enterpriseLinks)]
 
   return (
     <div className="flex items-center gap-1">
