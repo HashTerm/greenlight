@@ -1,5 +1,7 @@
+import { MessageCircleQuestion } from 'lucide-react'
 import { fetchChannels } from '@/lib/actions'
 import { NewPromptForm } from '@/components/new-prompt-form'
+import { PageHeader } from '@/components/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default async function NewPromptPage() {
@@ -9,12 +11,11 @@ export default async function NewPromptPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1>New prompt</h1>
-        <p className="text-sm text-muted-foreground">
-          Send a human-in-the-loop question to a registered PROMPT channel
-        </p>
-      </div>
+      <PageHeader
+        description="Send a human-in-the-loop question to a registered PROMPT channel"
+        icon={MessageCircleQuestion}
+        title="New prompt"
+      />
 
       <Card>
         <CardHeader>

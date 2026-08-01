@@ -1,5 +1,7 @@
+import { MessageSquare } from 'lucide-react'
 import { fetchChannels } from '@/lib/actions'
 import { NewMessageForm } from '@/components/new-message-form'
+import { PageHeader } from '@/components/page-header'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
 export default async function SendMessagePage() {
@@ -9,12 +11,11 @@ export default async function SendMessagePage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1>Send message</h1>
-        <p className="text-sm text-muted-foreground">
-          Send a plain text message to a registered MESSAGE channel
-        </p>
-      </div>
+      <PageHeader
+        description="Send a plain text message to a registered MESSAGE channel"
+        icon={MessageSquare}
+        title="Send message"
+      />
 
       <Card>
         <CardHeader>
