@@ -1,5 +1,4 @@
 import type { EnterpriseSettingsSection } from '@/lib/extensions/register'
-import { registerEnterpriseNav } from '@/lib/extensions/register'
 
 export async function getLicensedEnterpriseSettingsSections(): Promise<
   EnterpriseSettingsSection[]
@@ -8,5 +7,5 @@ export async function getLicensedEnterpriseSettingsSections(): Promise<
 }
 
 export async function getEnterpriseNavLinks() {
-  return registerEnterpriseNav()
+  return []
 }

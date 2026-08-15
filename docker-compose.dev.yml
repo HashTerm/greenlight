@@ -25,6 +25,11 @@ services:
     environment:
       USE_AUTH: 'true'
       GREENLIGHT_API_KEY: ${GREENLIGHT_API_KEY}
+      GREENLIGHT_LICENSE: ${GREENLIGHT_LICENSE:-}
+      GREENLIGHT_LICENSE_FILE: ${GREENLIGHT_LICENSE_FILE:-}
+      GREENLIGHT_LICENSE_CUSTOMER_ID: ${GREENLIGHT_LICENSE_CUSTOMER_ID:-}
+      GREENLIGHT_LICENSE_STRICT: ${GREENLIGHT_LICENSE_STRICT:-}
+      LICENSING_URL: ${LICENSING_URL:-}
       # Override host-side localhost URL from .env for in-network access
       DATABASE_URL: postgresql://greenlight:greenlight@postgres:5432/greenlight
     depends_on:

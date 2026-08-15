@@ -16,7 +16,6 @@ import { useState } from 'react'
 
 import { logoutAction } from '@/lib/actions'
 import type { EnterpriseNavIcon, EnterpriseNavItem } from '@/lib/extensions/register'
-import { registerEnterpriseNav } from '@/lib/extensions/register'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
@@ -65,7 +64,7 @@ function buildNavLinks(enterpriseLinks: EnterpriseNavItem[]): NavLink[] {
   return [...primaryLinks, ...resolveEnterpriseLinks(enterpriseLinks), settingsLink]
 }
 
-export function HeaderNav({ enterpriseLinks = registerEnterpriseNav() }: HeaderNavProps) {
+export function HeaderNav({ enterpriseLinks = [] }: HeaderNavProps) {
   const pathname = usePathname()
   const [mobileOpen, setMobileOpen] = useState(false)
   const links: NavLink[] = buildNavLinks(enterpriseLinks)

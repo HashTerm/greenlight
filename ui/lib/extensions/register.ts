@@ -55,6 +55,6 @@ export function registerCommunitySettingsSections(): CommunitySettingsSection[] 
   ]
 }
 
-export function registerEnterpriseSettingsSections(): EnterpriseSettingsSection[] {
+function registerEnterpriseSettingsSections(): EnterpriseSettingsSection[] {
   return []
 }
