@@ -3,10 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useSearchParams } from 'next/navigation'
 
-import type {
-  CommunitySettingsSection,
-  EnterpriseSettingsSection,
-} from '@/lib/extensions/register'
+import type { CommunitySettingsSection, EnterpriseSettingsSection } from '@/lib/extensions/register'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 const ENTERPRISE_TAB_LABELS: Record<string, string> = {
