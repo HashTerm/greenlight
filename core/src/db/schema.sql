@@ -4,7 +4,8 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto;
 CREATE TABLE IF NOT EXISTS prompts (
   id TEXT PRIMARY KEY,
   organization_id TEXT NOT NULL,
-  prompt_num SERIAL,
+  channel_id TEXT NOT NULL,
+  prompt_num INTEGER NOT NULL,
   chat_id TEXT NOT NULL,
   message_id BIGINT,
   text TEXT NOT NULL,
@@ -12,7 +13,10 @@ CREATE TABLE IF NOT EXISTS prompts (
   options JSONB,
   allow_text BOOLEAN NOT NULL DEFAULT false,
   callback_url TEXT,
+  callback_headers JSONB,
   correlation_id TEXT,
+  callback_data JSONB,
+  broadcast_id TEXT,
   state TEXT NOT NULL DEFAULT 'PENDING',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   expires_at TIMESTAMPTZ,
@@ -24,7 +28,10 @@ CREATE TABLE IF NOT EXISTS prompts (
 
 CREATE INDEX IF NOT EXISTS idx_prompts_state ON prompts(state);
 CREATE INDEX IF NOT EXISTS idx_prompts_created ON prompts(created_at);
-CREATE INDEX IF NOT EXISTS idx_prompts_org_prompt_num ON prompts(organization_id, prompt_num);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_prompts_org_channel_num
+  ON prompts(organization_id, channel_id, prompt_num);
+CREATE INDEX IF NOT EXISTS idx_prompts_broadcast ON prompts(broadcast_id)
+  WHERE broadcast_id IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS prompt_options (
   prompt_id TEXT NOT NULL REFERENCES prompts(id) ON DELETE CASCADE,
@@ -54,6 +61,8 @@ CREATE TABLE IF NOT EXISTS channels (
   target_chat_id TEXT NOT NULL,
   credentials JSONB NOT NULL,
   callback_url TEXT,
+  callback_headers JSONB,
+  callback_data JSONB,
   channel_type TEXT NOT NULL DEFAULT 'MESSAGE' CHECK (channel_type IN ('MESSAGE', 'PROMPT')),
   is_active BOOLEAN DEFAULT true,
   registered_at TIMESTAMPTZ DEFAULT now(),
@@ -204,3 +213,75 @@ CREATE TABLE IF NOT EXISTS organization_licenses (
   license_payload TEXT,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+-- Per-channel prompt ids + callback_data (upgrade from org-wide SERIAL prompt_num)
+ALTER TABLE prompts ADD COLUMN IF NOT EXISTS channel_id TEXT;
+ALTER TABLE prompts ADD COLUMN IF NOT EXISTS callback_data JSONB;
+ALTER TABLE prompts ADD COLUMN IF NOT EXISTS broadcast_id TEXT;
+
+UPDATE prompts p
+SET channel_id = c.channel_id
+FROM channels c
+WHERE p.organization_id = c.organization_id
+  AND p.chat_id = c.target_chat_id
+  AND c.channel_type = 'PROMPT'
+  AND p.channel_id IS NULL;
+
+UPDATE prompts p
+SET channel_id = (
+  SELECT c.channel_id FROM channels c
+  WHERE c.organization_id = p.organization_id AND c.channel_type = 'PROMPT'
+  ORDER BY c.channel_id LIMIT 1
+)
+WHERE p.channel_id IS NULL;
+
+WITH ranked AS (
+  SELECT id,
+    ROW_NUMBER() OVER (
+      PARTITION BY organization_id, channel_id ORDER BY created_at, id
+    ) AS new_num
+  FROM prompts
+  WHERE channel_id IS NOT NULL
+)
+UPDATE prompts p
+SET prompt_num = r.new_num
+FROM ranked r
+WHERE p.id = r.id;
+
+ALTER TABLE prompts ALTER COLUMN channel_id SET NOT NULL;
+
+DROP INDEX IF EXISTS idx_prompts_org_prompt_num;
+CREATE UNIQUE INDEX IF NOT EXISTS idx_prompts_org_channel_num
+  ON prompts(organization_id, channel_id, prompt_num);
+CREATE INDEX IF NOT EXISTS idx_prompts_broadcast ON prompts(broadcast_id)
+  WHERE broadcast_id IS NOT NULL;
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE c.relkind = 'S' AND c.relname = 'prompts_prompt_num_seq'
+  ) THEN
+    ALTER TABLE prompts ALTER COLUMN prompt_num DROP DEFAULT;
+    DROP SEQUENCE prompts_prompt_num_seq;
+  END IF;
+EXCEPTION WHEN undefined_table THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'prompts_organization_id_channel_id_fkey'
+  ) THEN
+    ALTER TABLE prompts
+      ADD CONSTRAINT prompts_organization_id_channel_id_fkey
+      FOREIGN KEY (organization_id, channel_id)
+      REFERENCES channels(organization_id, channel_id);
+  END IF;
+EXCEPTION WHEN undefined_object THEN NULL;
+END $$;
+
+-- Outbound callback auth headers + MESSAGE channel callback_data
+ALTER TABLE prompts ADD COLUMN IF NOT EXISTS callback_headers JSONB;
+ALTER TABLE channels ADD COLUMN IF NOT EXISTS callback_headers JSONB;
+ALTER TABLE channels ADD COLUMN IF NOT EXISTS callback_data JSONB;

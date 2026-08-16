@@ -59,9 +59,9 @@ is stable HTTP — pick the platform your team already runs.
 1. **Create channel once** — `POST /v1/channels/new` with `channel_type: "PROMPT"` (no
    channel-level `callback_url`; each prompt supplies its own).
 2. **Trigger** — GitHub Actions, GitLab CI, Jenkins, or a schedule fires your workflow.
-3. **Create prompt** — `POST /v1/prompts/new` with `options`, `correlation_id` (build ID), and a webhook URL from your automation tool.
+3. **Create prompt** — `POST /v1/prompts/new` with `options`, `correlation_id` (short label), optional `callback_data` (JSON workflow state), and a webhook URL from your automation tool.
 4. **Wait for human** — Greenlight delivers the card to Slack/Telegram/etc.
-5. **Resume workflow** — On signed callback, branch on `answer.value` (`Approve` / `Reject`) and continue the pipeline or open a ticket.
+5. **Resume workflow** — On signed callback, read `channel_id`, `callback_data`, and `answer.value` to branch the pipeline or open a ticket.
 
 Many workflows can share one PROMPT channel (for example a single `#ops-approvals`
 chat); each prompt still resumes at its own `callback_url`. See
@@ -81,6 +81,21 @@ sequenceDiagram
   Greenlight->>Auto: POST callback (signed)
   Auto->>CI: Trigger deploy job
 ```
+
+### Workflow A → human → workflow B
+
+Split automation across two workflows when the first only creates the prompt and
+the second handles the answer:
+
+1. **Workflow A** — `POST /v1/prompts/new` with `channel_id`, `correlation_id`,
+   `callback_data` (JSON state your second workflow needs), and `callback_url`
+   pointing at Workflow B's webhook.
+2. **Human** — answers in chat (button or Type answer).
+3. **Workflow B** — receives the signed callback with `channel_id`,
+   `callback_data`, and `answer`; resumes deploy, ticketing, or LLM steps.
+
+Each PROMPT channel has its own `#n` ids — always pass `channel_id` when fetching
+prompts via `GET /v1/prompts/{id}`.
 
 ### Ops chat bot (MESSAGE)
 

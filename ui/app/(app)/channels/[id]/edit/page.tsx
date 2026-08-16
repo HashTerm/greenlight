@@ -21,6 +21,8 @@ export default async function EditChannelPage({ params }: { params: Promise<{ id
           target_chat_id: channel.target_chat_id,
           channel_type: channel.channel_type,
           callback_url: channel.callback_url ?? '',
+          callback_data: channel.callback_data,
+          callback_headers_configured: channel.callback_headers_configured,
         }}
         lockChannelId
       />

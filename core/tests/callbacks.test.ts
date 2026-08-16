@@ -30,6 +30,20 @@ describe('callbacks', () => {
     expect(headers['X-Signature']).toMatch(/^sha256=/)
   })
 
+  it('sends custom callback headers on prompt callbacks', async () => {
+    const { notifyCallback } = await import('../src/core/callbacks.js')
+    await notifyCallback('https://example.com/hook', { prompt_id: '#1' }, {
+      Authorization: 'Bearer test-token',
+    })
+
+    const fetchMock = vi.mocked(fetch)
+    const [, init] = fetchMock.mock.calls[0]
+    const headers = (init as RequestInit).headers as Record<string, string>
+    expect(headers.Authorization).toBe('Bearer test-token')
+    expect(headers['X-Signature']).toMatch(/^sha256=/)
+    expect(headers['Content-Type']).toBe('application/json')
+  })
+
   it('does not sign channel callbacks', async () => {
     const { forwardChannelCallback } = await import('../src/core/callbacks.js')
     const ok = await forwardChannelCallback('https://example.com/hook', {
@@ -45,6 +59,22 @@ describe('callbacks', () => {
     expect(fetchMock).toHaveBeenCalledOnce()
     const [, init] = fetchMock.mock.calls[0]
     const headers = (init as RequestInit).headers as Record<string, string>
+    expect(headers['X-Signature']).toBeUndefined()
+  })
+
+  it('sends custom callback headers on channel callbacks', async () => {
+    const { forwardChannelCallback } = await import('../src/core/callbacks.js')
+    const ok = await forwardChannelCallback(
+      'https://example.com/hook',
+      { type: 'message.created', text: 'hi' },
+      { 'X-Api-Key': 'secret' },
+    )
+
+    expect(ok).toBe(true)
+    const fetchMock = vi.mocked(fetch)
+    const [, init] = fetchMock.mock.calls[0]
+    const headers = (init as RequestInit).headers as Record<string, string>
+    expect(headers['X-Api-Key']).toBe('secret')
     expect(headers['X-Signature']).toBeUndefined()
   })
 })

@@ -26,6 +26,7 @@ async function resolveChannelForMessage(
 
 async function handlePromptAnswer(
   organizationId: string,
+  channelId: string,
   promptId: string,
   answer: {
     type: string
@@ -37,7 +38,7 @@ async function handlePromptAnswer(
   chatId?: string,
 ): Promise<void> {
   const result = await withClient((client) =>
-    promptModels.markAnswered(client, organizationId, promptId, {
+    promptModels.markAnswered(client, organizationId, channelId, promptId, {
       type: answer.type,
       value: answer.value,
       userId: answer.userId,
@@ -48,7 +49,11 @@ async function handlePromptAnswer(
   switch (result.status) {
     case 'recorded': {
       if (result.callbackInfo) {
-        scheduleCallback(result.callbackInfo.callbackUrl, result.callbackInfo.payload)
+        scheduleCallback(
+          result.callbackInfo.callbackUrl,
+          result.callbackInfo.payload,
+          result.callbackInfo.callbackHeaders,
+        )
       }
 
       await recordAuditEvent({
@@ -104,7 +109,7 @@ async function handleTypeAnswerArm(
   if (userId === null || !Number.isFinite(userId)) return
 
   const prompt = await withClient((client) =>
-    promptModels.getPrompt(client, channel.organization_id, promptId),
+    promptModels.getPrompt(client, channel.organization_id, channel.channel_id, promptId),
   )
   if (!prompt?.allow_text) return
 
@@ -155,7 +160,12 @@ export function wireHandlers(
     if (!channel) return
 
     const parsed = await withClient((client) =>
-      promptModels.getPromptByActionKey(client, channel.organization_id, event.actionId),
+      promptModels.getPromptByActionKey(
+        client,
+        channel.organization_id,
+        channel.channel_id,
+        event.actionId,
+      ),
     )
     if (!parsed) return
 
@@ -168,6 +178,7 @@ export function wireHandlers(
       promptModels.resolveOptionLabel(
         client,
         channel.organization_id,
+        channel.channel_id,
         parsed.promptId,
         parsed.optionId,
       ),
@@ -176,6 +187,7 @@ export function wireHandlers(
 
     await handlePromptAnswer(
       channel.organization_id,
+      channel.channel_id,
       parsed.promptId,
       {
         type: 'option',
@@ -207,12 +219,18 @@ export function wireHandlers(
       const replyText = idMatch[2]
 
       const prompt = await withClient((client) =>
-        promptModels.getPrompt(client, channel.organization_id, promptId),
+        promptModels.getPrompt(
+          client,
+          channel.organization_id,
+          channel.channel_id,
+          promptId,
+        ),
       )
       if (!promptModels.canAcceptTextReply(prompt)) return
 
       await handlePromptAnswer(
         channel.organization_id,
+        channel.channel_id,
         promptId,
         {
           type: 'text',
@@ -248,7 +266,12 @@ export function wireHandlers(
           )
 
           const prompt = await withClient((client) =>
-            promptModels.getPrompt(client, channel.organization_id, pending.prompt_id),
+            promptModels.getPrompt(
+              client,
+              channel.organization_id,
+              channel.channel_id,
+              pending.prompt_id,
+            ),
           )
           if (!promptModels.canAcceptTextReply(prompt)) {
             if (prompt?.state === promptModels.ANSWERED) {
@@ -267,6 +290,7 @@ export function wireHandlers(
 
           await handlePromptAnswer(
             channel.organization_id,
+            channel.channel_id,
             pending.prompt_id,
             {
               type: 'text',
@@ -292,13 +316,22 @@ export function wireHandlers(
 
       if (!channel.callback_url) return
 
-      const ok = await forwardChannelCallback(channel.callback_url, {
+      const messageEvent: Record<string, unknown> = {
         type: 'message.created',
         platform: channel.platform,
         channel_id: channel.channel_id,
         from,
         text: trimmed,
-      })
+      }
+      if (channel.callback_data !== null && channel.callback_data !== undefined) {
+        messageEvent.callback_data = channel.callback_data
+      }
+
+      const ok = await forwardChannelCallback(
+        channel.callback_url,
+        messageEvent,
+        channel.callback_headers,
+      )
 
       if (!ok) {
         const config = loadConfig()

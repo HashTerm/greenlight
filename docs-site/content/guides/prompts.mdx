@@ -19,7 +19,9 @@ Send **`application/json`** or **`multipart/form-data`** to the same path.
 | `options`        | string[] | `[]`                        | Max 10 items (3 on WhatsApp/Messenger), each max 64 chars |
 | `allow_text`     | boolean  | `false`                     | Allow free-text replies                                   |
 | `callback_url`   | string   | —                           | Validated HTTP(S) URL                                     |
-| `correlation_id` | string   | —                           | Echoed in answer callback                                 |
+| `correlation_id` | string   | —                           | Short label echoed in answer callback (logs, dashboards)  |
+| `callback_data`  | object   | —                           | Optional JSON workflow state (max 8192 bytes), echoed in answer callback |
+| `callback_headers` | object | —                           | Optional outbound HTTP headers (max 4096 bytes); not returned on GET |
 | `ttl_sec`        | int      | `3600`                      | 0–604800 (7 days)                                         |
 | `media_url`      | string   | —                           | Remote attachment URL                                     |
 | `media_path`     | string   | —                           | Local path under `MEDIA_ALLOWED_DIR`                      |
@@ -45,10 +47,10 @@ Type answer on another prompt switches the target.
 Power-user syntax is still supported:
 
 ```
-ID:#123 my free-text answer
+ID:#1 my free-text answer
 ```
 
-Also accepted: `ID:123 …`, `ID #123 …`, `ID-123 …` (case-insensitive). This overrides an
+Also accepted: `ID:1 …`, `ID #1 …`, `ID-1 …` (case-insensitive). This overrides an
 armed text session when both are active.
 
 On WhatsApp and Messenger, `allow_text` reserves one button slot — use at most **two**
@@ -66,6 +68,16 @@ button tap or text reply, Greenlight posts a confirmation in the thread:
 Arbitrary plain text on a PROMPT channel (without Type answer or `ID:#n`) is still
 ignored — use a MESSAGE channel for free chat.
 
+## Prompt ids
+
+Each PROMPT channel has its own `#n` sequence (`telegram-prompts` #1, #2;
+`slack-ops` also #1, #2). The number is scoped by `channel_id`, not globally
+across the organization.
+
+Use `correlation_id` for a short human-readable label (build id, ticket ref).
+Use `callback_data` for arbitrary JSON workflow state your automation needs when
+the answer callback fires — for example `{"build_id":9182,"step":"approve"}`.
+
 ## States
 
 | State      | Meaning                       |
@@ -82,14 +94,22 @@ startup.
 ```bash
 GET /v1/prompts?state=pending
 GET /v1/prompts?state=all&limit=100
+GET /v1/prompts?channel_id=telegram-prompts&state=pending
 ```
 
 `state`: `pending` (default) \| `answered` \| `expired` \| `all`. `limit`: 1–200 (default 50).
+Optional `channel_id` filters to one PROMPT channel.
 
 ## Fetch by id
 
-IDs look like `#123` — URL-encode the `#` as `%23`:
+IDs look like `#1` per channel — URL-encode the `#` as `%23` and pass
+`channel_id`:
 
 ```bash
-GET /v1/prompts/%23123
+GET /v1/prompts/%231?channel_id=telegram-prompts
 ```
+
+`channel_id` is required. Without it the API returns 400.
+
+Prompt ids are not access control — set `USE_AUTH=true` in production and protect
+the Agent API with scoped API keys.

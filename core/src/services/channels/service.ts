@@ -1,5 +1,10 @@
 import { withClient } from '../../db/client.js'
 import {
+  validateCallbackData,
+  validateCallbackHeaders,
+  ValueError,
+} from '../../core/security.js'
+import {
   ensureBotForChannel,
   postToChat,
   stopBotForChannelWithRow,
@@ -8,6 +13,7 @@ import type { Platform } from '../../core/platform.js'
 import * as messageModels from '../messages/models.js'
 import * as settingsModels from '../settings/models.js'
 import * as channelModels from './models.js'
+import type { ChannelRow } from './models.js'
 import { getCredentialsValidationError } from './schemas.js'
 
 export class ChannelAlreadyExistsError extends Error {
@@ -35,6 +41,22 @@ function mergeCredentials(
   return merged
 }
 
+export function serializeChannelRow(ch: ChannelRow) {
+  return {
+    channel_id: ch.channel_id,
+    platform: ch.platform,
+    target_chat_id: ch.target_chat_id,
+    channel_type: ch.channel_type,
+    callback_url: ch.callback_url,
+    callback_data: ch.callback_data,
+    callback_headers_configured: Boolean(
+      ch.callback_headers && Object.keys(ch.callback_headers).length > 0,
+    ),
+    is_active: ch.is_active,
+    registered_at: ch.registered_at.toISOString(),
+  }
+}
+
 export async function createChannel(data: {
   organizationId: string
   channelId: string
@@ -42,15 +64,32 @@ export async function createChannel(data: {
   targetChatId: string
   credentials: Record<string, string>
   callbackUrl: string | null
+  callbackHeaders?: Record<string, string> | null
+  callbackData?: unknown | null
   channelType: string
 }): Promise<void> {
+  const callbackHeaders =
+    data.channelType === 'MESSAGE' ? validateCallbackHeaders(data.callbackHeaders ?? null) : null
+  const callbackData =
+    data.channelType === 'MESSAGE' ? validateCallbackData(data.callbackData ?? null) : null
+
   return withClient(async (client) => {
     const existing = await channelModels.getChannel(client, data.organizationId, data.channelId)
     if (existing) {
       throw new ChannelAlreadyExistsError(data.channelId)
     }
 
-    await channelModels.insertChannel(client, data)
+    await channelModels.insertChannel(client, {
+      organizationId: data.organizationId,
+      channelId: data.channelId,
+      platform: data.platform,
+      targetChatId: data.targetChatId,
+      credentials: data.credentials,
+      callbackUrl: data.callbackUrl,
+      callbackHeaders,
+      callbackData,
+      channelType: data.channelType,
+    })
 
     const row = await channelModels.getChannel(client, data.organizationId, data.channelId)
     if (!row) throw new Error('Failed to create channel')
@@ -66,6 +105,8 @@ export async function updateChannel(
     targetChatId?: string
     credentials?: Record<string, string>
     callbackUrl?: string | null
+    callbackHeaders?: Record<string, string> | null
+    callbackData?: unknown | null
   },
 ): Promise<void> {
   return withClient(async (client) => {
@@ -80,6 +121,19 @@ export async function updateChannel(
       ? mergeCredentials(existing.credentials, patch.credentials)
       : existing.credentials
 
+    let callbackHeaders = existing.callback_headers
+    if (patch.callbackHeaders !== undefined) {
+      callbackHeaders = validateCallbackHeaders(patch.callbackHeaders)
+    }
+
+    let callbackData = existing.callback_data
+    if (patch.callbackData !== undefined) {
+      callbackData =
+        existing.channel_type === 'MESSAGE'
+          ? validateCallbackData(patch.callbackData)
+          : null
+    }
+
     const credentialError = getCredentialsValidationError(existing.platform, credentials)
     if (credentialError) {
       throw new Error(credentialError)
@@ -93,6 +147,8 @@ export async function updateChannel(
       targetChatId,
       credentials,
       callbackUrl,
+      callbackHeaders,
+      callbackData,
     })
 
     const row = await channelModels.getChannel(client, organizationId, channelId)
@@ -146,32 +202,14 @@ export async function listChannels(
     channelType?: string
     limit?: number
   },
-): Promise<
-  {
-    channel_id: string
-    platform: Platform
-    target_chat_id: string
-    channel_type: string
-    callback_url: string | null
-    is_active: boolean
-    registered_at: string
-  }[]
-> {
+): Promise<ReturnType<typeof serializeChannelRow>[]> {
   return withClient(async (client) => {
     const channels = await channelModels.listChannelsFiltered(client, organizationId, {
       platform: options?.platform,
       channelType: options?.channelType,
       limit: options?.limit ?? 50,
     })
-    return channels.map((ch) => ({
-      channel_id: ch.channel_id,
-      platform: ch.platform,
-      target_chat_id: ch.target_chat_id,
-      channel_type: ch.channel_type,
-      callback_url: ch.callback_url,
-      is_active: ch.is_active,
-      registered_at: ch.registered_at.toISOString(),
-    }))
+    return channels.map(serializeChannelRow)
   })
 }
 

@@ -27,7 +27,7 @@ export function PromptsTable({ prompts }: { prompts: Prompt[] }) {
           <TableRow key={p.id}>
             <TableCell>
               <Link
-                href={`/prompts/${encodeURIComponent(p.id)}`}
+                href={`/prompts/${encodeURIComponent(p.channel_id)}/${encodeURIComponent(p.id)}`}
                 className="text-primary hover:underline"
               >
                 {p.id}
@@ -43,7 +43,7 @@ export function PromptsTable({ prompts }: { prompts: Prompt[] }) {
                 {p.state}
               </Badge>
             </TableCell>
-            <TableCell className="font-mono text-xs">{p.chat_id}</TableCell>
+            <TableCell className="font-mono text-xs">{p.channel_id}</TableCell>
             <TableCell className="text-xs text-muted-foreground">
               {new Date(p.created_at).toLocaleString()}
             </TableCell>

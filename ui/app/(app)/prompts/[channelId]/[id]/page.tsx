@@ -3,9 +3,13 @@ import { fetchPrompt } from '@/lib/actions'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
-export default async function PromptDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const prompt = await fetchPrompt(id).catch(() => null)
+export default async function PromptDetailPage({
+  params,
+}: {
+  params: Promise<{ channelId: string; id: string }>
+}) {
+  const { channelId, id } = await params
+  const prompt = await fetchPrompt(id, channelId).catch(() => null)
   if (!prompt) notFound()
 
   return (
@@ -69,12 +73,28 @@ export default async function PromptDetailPage({ params }: { params: Promise<{ i
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p>
-              <span className="text-muted-foreground">Channel:</span> {prompt.chat_id}
+              <span className="text-muted-foreground">Channel:</span> {prompt.channel_id}
+            </p>
+            <p>
+              <span className="text-muted-foreground">Chat ID:</span> {prompt.chat_id}
             </p>
             <p>
               <span className="text-muted-foreground">Correlation:</span>{' '}
               {prompt.correlation_id ?? '—'}
             </p>
+            {prompt.callback_data != null && (
+              <div>
+                <p className="text-muted-foreground">Callback data</p>
+                <pre className="mt-1 overflow-x-auto rounded-md bg-muted p-2 text-xs">
+                  {JSON.stringify(prompt.callback_data, null, 2)}
+                </pre>
+              </div>
+            )}
+            {prompt.callback_headers_configured && (
+              <p>
+                <span className="text-muted-foreground">Callback headers:</span> configured
+              </p>
+            )}
             <p>
               <span className="text-muted-foreground">Callback:</span>{' '}
               {prompt.callback_url ? `${prompt.callback_url.slice(0, 32)}…` : '—'}

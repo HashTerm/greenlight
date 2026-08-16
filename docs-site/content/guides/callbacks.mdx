@@ -17,8 +17,13 @@ Secret: `CALLBACK_SIGNING_SECRET`. Retries up to 5 times with exponential backof
 
 ```json
 {
-  "prompt_id": "#123",
+  "prompt_id": "#2",
+  "channel_id": "telegram-prompts",
   "correlation_id": "deploy-42",
+  "callback_data": {
+    "build_id": 9182,
+    "pipeline": "prod"
+  },
   "text": "Approve production deploy?",
   "answer": {
     "type": "option",
@@ -29,6 +34,26 @@ Secret: `CALLBACK_SIGNING_SECRET`. Retries up to 5 times with exponential backof
   "answered_at": "2026-07-25T12:00:00.000Z"
 }
 ```
+
+| Field             | Notes                                                                 |
+| ----------------- | --------------------------------------------------------------------- |
+| `prompt_id`       | Per-channel id (`#n`)                                                 |
+| `channel_id`      | Greenlight PROMPT channel id                                          |
+| `correlation_id`  | Short label from create (optional)                                    |
+| `callback_data`   | JSON object or array from create (optional), echoed for workflow resume |
+
+### Outbound headers (`callback_headers`)
+
+On create (prompt or MESSAGE channel), optional `callback_headers` sends HTTP
+headers on the outbound POST — for example `Authorization: Bearer …` or
+`X-Api-Key`. Greenlight still sets `Content-Type` and `X-Signature` on prompt
+callbacks; integrator headers cannot override those.
+
+Header values are **never** returned by the API (`callback_headers_configured`
+on GET). Do not put Bearer tokens in `callback_data` or URL query strings.
+
+Verify ingress auth first (headers), then HMAC on prompt callbacks, then parse
+JSON.
 
 | `answer.type` | When                                                |
 | ------------- | --------------------------------------------------- |
@@ -48,9 +73,16 @@ audit (see [Messages](/guides/messages)).
   "platform": "slack",
   "channel_id": "ops-slack",
   "from": "alice",
-  "text": "Looks good"
+  "text": "Looks good",
+  "callback_data": {
+    "tenant": "acme",
+    "room": "support"
+  }
 }
 ```
+
+Optional `callback_headers` on the MESSAGE channel authenticate the webhook.
+Optional channel `callback_data` is static JSON merged into every forward.
 
 These events are **not** signed. Retries use `CHANNEL_CALLBACK_MAX_RETRIES`
 (default 3) and `CHANNEL_CALLBACK_RETRY_DELAY` seconds (default 5).

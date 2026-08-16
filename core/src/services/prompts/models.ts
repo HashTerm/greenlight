@@ -14,6 +14,7 @@ export function canAcceptTextReply(prompt: PromptRow | null): boolean {
 export interface PromptRow {
   id: string
   organization_id: string
+  channel_id: string
   prompt_num: number
   chat_id: string
   message_id: number | null
@@ -22,7 +23,10 @@ export interface PromptRow {
   options: string[] | null
   allow_text: boolean
   callback_url: string | null
+  callback_headers: Record<string, string> | null
   correlation_id: string | null
+  callback_data: unknown | null
+  broadcast_id: string | null
   state: string
   created_at: Date
   expires_at: Date | null
@@ -49,34 +53,57 @@ export async function createPrompt(
   client: pg.PoolClient,
   input: {
     organizationId: string
+    channelId: string
     chatId: string
     text: string
     mediaUrl: string | null
     options: string[]
     allowText: boolean
     callbackUrl: string | null
+    callbackHeaders: Record<string, string> | null
     correlationId: string | null
+    callbackData: unknown | null
+    broadcastId: string | null
     ttlSec: number
   },
 ): Promise<{ promptId: string; row: PromptRow }> {
   const tempId = randomUUID()
   const expiresAt = input.ttlSec > 0 ? new Date(Date.now() + input.ttlSec * 1000) : null
 
+  await client.query(
+    'SELECT 1 FROM channels WHERE organization_id = $1 AND channel_id = $2 FOR UPDATE',
+    [input.organizationId, input.channelId],
+  )
+
+  const nextResult = await client.query<{ next: number }>(
+    `SELECT COALESCE(MAX(prompt_num), 0) + 1 AS next
+     FROM prompts WHERE organization_id = $1 AND channel_id = $2`,
+    [input.organizationId, input.channelId],
+  )
+  const promptNum = nextResult.rows[0]?.next ?? 1
+
   const result = await client.query<PromptRow>(
-    `INSERT INTO prompts (id, organization_id, chat_id, text, media_url, options, allow_text, callback_url,
-      correlation_id, state, expires_at)
-     VALUES ($1, $2, $3, $4, $5, $6::jsonb, $7, $8, $9, $10, $11)
+    `INSERT INTO prompts (
+       id, organization_id, channel_id, prompt_num, chat_id, text, media_url, options,
+       allow_text, callback_url, callback_headers, correlation_id, callback_data, broadcast_id, state, expires_at
+     )
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, $11, $12::jsonb, $13, $14::jsonb, $15, $16, $17)
      RETURNING *`,
     [
       tempId,
       input.organizationId,
+      input.channelId,
+      promptNum,
       input.chatId,
       input.text,
       input.mediaUrl,
       JSON.stringify(input.options),
       input.allowText,
       input.callbackUrl,
+      input.callbackHeaders !== null ? JSON.stringify(input.callbackHeaders) : null,
       input.correlationId,
+      input.callbackData !== null ? JSON.stringify(input.callbackData) : null,
+      input.broadcastId,
       PENDING,
       expiresAt,
     ],
@@ -89,6 +116,7 @@ export async function createPrompt(
 export async function addOptionMap(
   client: pg.PoolClient,
   organizationId: string,
+  channelId: string,
   promptId: string,
   optionId: string,
   label: string,
@@ -97,8 +125,8 @@ export async function addOptionMap(
   if (!promptNum) throw new Error(`Invalid prompt id: ${promptId}`)
 
   const prompt = await client.query<{ id: string }>(
-    'SELECT id FROM prompts WHERE organization_id = $1 AND prompt_num = $2',
-    [organizationId, promptNum],
+    'SELECT id FROM prompts WHERE organization_id = $1 AND channel_id = $2 AND prompt_num = $3',
+    [organizationId, channelId, promptNum],
   )
   if (!prompt.rows[0]) throw new Error(`Prompt not found: ${promptId}`)
 
@@ -111,14 +139,16 @@ export async function addOptionMap(
 export async function setMessageId(
   client: pg.PoolClient,
   organizationId: string,
+  channelId: string,
   promptId: string,
   messageId: number,
 ): Promise<void> {
   const promptNum = parsePromptId(promptId)
   if (!promptNum) return
   await client.query(
-    'UPDATE prompts SET message_id = $1 WHERE organization_id = $2 AND prompt_num = $3',
-    [messageId, organizationId, promptNum],
+    `UPDATE prompts SET message_id = $1
+     WHERE organization_id = $2 AND channel_id = $3 AND prompt_num = $4`,
+    [messageId, organizationId, channelId, promptNum],
   )
 }
 
@@ -129,8 +159,24 @@ export async function listPrompts(
   organizationId: string,
   state: PromptListState,
   limit: number,
+  channelId?: string | null,
 ): Promise<PromptRow[]> {
+  const stateMap = {
+    pending: PENDING,
+    answered: ANSWERED,
+    expired: EXPIRED,
+  } as const
+
   if (state === 'all') {
+    if (channelId) {
+      const result = await client.query<PromptRow>(
+        `SELECT * FROM prompts
+         WHERE organization_id = $1 AND channel_id = $2
+         ORDER BY created_at DESC LIMIT $3`,
+        [organizationId, channelId, limit],
+      )
+      return result.rows
+    }
     const result = await client.query<PromptRow>(
       'SELECT * FROM prompts WHERE organization_id = $1 ORDER BY created_at DESC LIMIT $2',
       [organizationId, limit],
@@ -138,11 +184,15 @@ export async function listPrompts(
     return result.rows
   }
 
-  const stateMap = {
-    pending: PENDING,
-    answered: ANSWERED,
-    expired: EXPIRED,
-  } as const
+  if (channelId) {
+    const result = await client.query<PromptRow>(
+      `SELECT * FROM prompts
+       WHERE organization_id = $1 AND channel_id = $2 AND state = $3
+       ORDER BY created_at DESC LIMIT $4`,
+      [organizationId, channelId, stateMap[state], limit],
+    )
+    return result.rows
+  }
 
   const result = await client.query<PromptRow>(
     'SELECT * FROM prompts WHERE organization_id = $1 AND state = $2 ORDER BY created_at DESC LIMIT $3',
@@ -154,13 +204,14 @@ export async function listPrompts(
 export async function getPrompt(
   client: pg.PoolClient,
   organizationId: string,
+  channelId: string,
   promptId: string,
 ): Promise<PromptRow | null> {
   const promptNum = parsePromptId(promptId)
   if (!promptNum) return null
   const result = await client.query<PromptRow>(
-    'SELECT * FROM prompts WHERE organization_id = $1 AND prompt_num = $2',
-    [organizationId, promptNum],
+    'SELECT * FROM prompts WHERE organization_id = $1 AND channel_id = $2 AND prompt_num = $3',
+    [organizationId, channelId, promptNum],
   )
   return result.rows[0] ?? null
 }
@@ -168,6 +219,7 @@ export async function getPrompt(
 export async function resolveOptionLabel(
   client: pg.PoolClient,
   organizationId: string,
+  channelId: string,
   promptId: string,
   optionId: string,
 ): Promise<string | null> {
@@ -175,8 +227,8 @@ export async function resolveOptionLabel(
   if (!promptNum) return null
 
   const prompt = await client.query<{ id: string }>(
-    'SELECT id FROM prompts WHERE organization_id = $1 AND prompt_num = $2',
-    [organizationId, promptNum],
+    'SELECT id FROM prompts WHERE organization_id = $1 AND channel_id = $2 AND prompt_num = $3',
+    [organizationId, channelId, promptNum],
   )
   if (!prompt.rows[0]) return null
 
@@ -189,6 +241,7 @@ export async function resolveOptionLabel(
 
 export interface CallbackInfo {
   callbackUrl: string
+  callbackHeaders: Record<string, string> | null
   payload: Record<string, unknown>
 }
 
@@ -230,26 +283,34 @@ function buildCallbackInfo(
 ): CallbackInfo | null {
   if (!prompt.callback_url) return null
 
+  const payload: Record<string, unknown> = {
+    prompt_id: promptId,
+    channel_id: prompt.channel_id,
+    correlation_id: prompt.correlation_id,
+    text: prompt.text,
+    answer: {
+      type: answer.type,
+      value: answer.value,
+      user_id: answer.userId,
+      username: answer.username,
+    },
+    answered_at: prompt.answered_at?.toISOString() ?? new Date().toISOString(),
+  }
+  if (prompt.callback_data !== null && prompt.callback_data !== undefined) {
+    payload.callback_data = prompt.callback_data
+  }
+
   return {
     callbackUrl: prompt.callback_url,
-    payload: {
-      prompt_id: promptId,
-      correlation_id: prompt.correlation_id,
-      text: prompt.text,
-      answer: {
-        type: answer.type,
-        value: answer.value,
-        user_id: answer.userId,
-        username: answer.username,
-      },
-      answered_at: prompt.answered_at?.toISOString() ?? new Date().toISOString(),
-    },
+    callbackHeaders: prompt.callback_headers,
+    payload,
   }
 }
 
 export async function markAnswered(
   client: pg.PoolClient,
   organizationId: string,
+  channelId: string,
   promptId: string,
   answer: {
     type: string
@@ -268,7 +329,7 @@ export async function markAnswered(
          answered_by_id = $4,
          answered_by_username = $5,
          answered_at = now()
-     WHERE organization_id = $6 AND prompt_num = $7 AND state = $8`,
+     WHERE organization_id = $6 AND channel_id = $7 AND prompt_num = $8 AND state = $9`,
     [
       ANSWERED,
       answer.type,
@@ -276,20 +337,21 @@ export async function markAnswered(
       answer.userId,
       answer.username,
       organizationId,
+      channelId,
       promptNum,
       PENDING,
     ],
   )
 
   if (updateResult.rowCount && updateResult.rowCount > 0) {
-    const prompt = await getPrompt(client, organizationId, promptId)
+    const prompt = await getPrompt(client, organizationId, channelId, promptId)
     return {
       status: 'recorded',
       callbackInfo: prompt ? buildCallbackInfo(promptId, prompt, answer) : null,
     }
   }
 
-  const prompt = await getPrompt(client, organizationId, promptId)
+  const prompt = await getPrompt(client, organizationId, channelId, promptId)
   if (!prompt) return { status: 'not_found' }
   if (prompt.state === ANSWERED) return { status: 'already_answered', prompt }
   if (prompt.state === EXPIRED) return { status: 'expired', prompt }
@@ -332,13 +394,14 @@ export async function deleteOlderThan(
 export async function getPromptByActionKey(
   client: pg.PoolClient,
   organizationId: string,
+  channelId: string,
   actionKey: string,
 ): Promise<{ promptId: string; optionId: string } | null> {
   const idx = actionKey.indexOf(':')
   if (idx === -1) return null
   const promptId = actionKey.slice(0, idx)
   const optionId = actionKey.slice(idx + 1)
-  const prompt = await getPrompt(client, organizationId, promptId)
+  const prompt = await getPrompt(client, organizationId, channelId, promptId)
   if (!prompt) return null
   return { promptId, optionId }
 }

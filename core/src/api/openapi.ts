@@ -101,6 +101,19 @@ export function getOpenApiDocument(): Record<string, unknown> {
               type: 'string',
               maxLength: 255,
               nullable: true,
+              description: 'Short human-readable label for logs and dashboards.',
+            },
+            callback_data: {
+              description:
+                'Optional JSON object or array (max 8192 bytes). Echoed in the signed answer callback.',
+              nullable: true,
+            },
+            callback_headers: {
+              type: 'object',
+              additionalProperties: { type: 'string' },
+              nullable: true,
+              description:
+                'Optional outbound HTTP headers (max 4096 bytes). Not returned on GET; use callback_headers_configured.',
             },
             ttl_sec: {
               type: 'integer',
@@ -136,9 +149,10 @@ export function getOpenApiDocument(): Record<string, unknown> {
         Prompt: {
           type: 'object',
           properties: {
-            id: { type: 'string', example: '#123' },
+            id: { type: 'string', example: '#1' },
             prompt_num: { type: 'integer' },
-            chat_id: { type: 'string' },
+            chat_id: { type: 'string', description: 'Platform target chat id.' },
+            channel_id: { type: 'string', description: 'Greenlight PROMPT channel id.' },
             text: { type: 'string' },
             media_url: { type: 'string', nullable: true },
             options: {
@@ -148,6 +162,19 @@ export function getOpenApiDocument(): Record<string, unknown> {
             allow_text: { type: 'boolean' },
             callback_url: { type: 'string', nullable: true },
             correlation_id: { type: 'string', nullable: true },
+            callback_data: {
+              description: 'Workflow state echoed in answer callbacks.',
+              nullable: true,
+            },
+            callback_headers_configured: {
+              type: 'boolean',
+              description: 'Whether outbound callback_headers were set at create (values not exposed).',
+            },
+            broadcast_id: {
+              type: 'string',
+              nullable: true,
+              description: 'Shared batch id for future channel-group fan-out.',
+            },
             state: {
               type: 'string',
               enum: ['pending', 'answered', 'expired'],
@@ -181,6 +208,17 @@ export function getOpenApiDocument(): Record<string, unknown> {
               nullable: true,
               description: 'Required when channel_type is MESSAGE.',
             },
+            callback_headers: {
+              type: 'object',
+              additionalProperties: { type: 'string' },
+              nullable: true,
+              description: 'Outbound HTTP headers for message.created forwards (MESSAGE only).',
+            },
+            callback_data: {
+              description:
+                'Static JSON merged into each message.created forward (MESSAGE only, max 8192 bytes).',
+              nullable: true,
+            },
             channel_type: { $ref: '#/components/schemas/ChannelType' },
           },
         },
@@ -189,6 +227,15 @@ export function getOpenApiDocument(): Record<string, unknown> {
           properties: {
             target_chat_id: { type: 'string', minLength: 1 },
             callback_url: { type: 'string', nullable: true },
+            callback_headers: {
+              type: 'object',
+              additionalProperties: { type: 'string' },
+              nullable: true,
+            },
+            callback_data: {
+              description: 'Static JSON merged into message.created forwards.',
+              nullable: true,
+            },
             credentials: {
               type: 'object',
               additionalProperties: { type: 'string' },
@@ -220,6 +267,12 @@ export function getOpenApiDocument(): Record<string, unknown> {
             channel_type: { $ref: '#/components/schemas/ChannelType' },
             is_active: { type: 'boolean' },
             callback_url: { type: 'string', nullable: true },
+            callback_data: {
+              description: 'Static JSON attached to message.created forwards.',
+              nullable: true,
+            },
+            callback_headers_configured: { type: 'boolean' },
+            registered_at: { type: 'string', format: 'date-time' },
           },
         },
         AdminStatus: {
@@ -245,6 +298,10 @@ export function getOpenApiDocument(): Record<string, unknown> {
             channel_id: { type: 'string' },
             from: { type: 'string' },
             text: { type: 'string' },
+            callback_data: {
+              description: 'Channel-level static JSON when configured.',
+              nullable: true,
+            },
           },
         },
         Message: {
@@ -363,6 +420,10 @@ export function getOpenApiDocument(): Record<string, unknown> {
                     allow_text: { type: 'string' },
                     callback_url: { type: 'string' },
                     correlation_id: { type: 'string' },
+                    callback_data: {
+                      type: 'string',
+                      description: 'JSON object or array',
+                    },
                     ttl_sec: { type: 'string' },
                     media_url: { type: 'string' },
                     media_path: { type: 'string' },
@@ -435,6 +496,12 @@ export function getOpenApiDocument(): Record<string, unknown> {
                 default: 50,
               },
             },
+            {
+              name: 'channel_id',
+              in: 'query',
+              schema: { type: 'string' },
+              description: 'Filter by Greenlight PROMPT channel id.',
+            },
           ],
           responses: {
             '200': {
@@ -463,14 +530,21 @@ export function getOpenApiDocument(): Record<string, unknown> {
         get: {
           tags: ['Prompts'],
           summary: 'Get prompt by id',
-          description: 'Encode `#` as `%23` (e.g. `%23123` for `#123`).',
+          description:
+            'Requires `channel_id` query param. Encode `#` as `%23` (e.g. `%231` for `#1`).',
           security: [{ ApiKeyAuth: [] }],
           parameters: [
             {
               name: 'id',
               in: 'path',
               required: true,
-              schema: { type: 'string', example: '%23123' },
+              schema: { type: 'string', example: '%231' },
+            },
+            {
+              name: 'channel_id',
+              in: 'query',
+              required: true,
+              schema: { type: 'string', example: 'telegram-prompts' },
             },
           ],
           responses: {
@@ -479,6 +553,14 @@ export function getOpenApiDocument(): Record<string, unknown> {
               content: {
                 'application/json': {
                   schema: { $ref: '#/components/schemas/Prompt' },
+                },
+              },
+            },
+            '400': {
+              description: 'Missing channel_id',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
                 },
               },
             },

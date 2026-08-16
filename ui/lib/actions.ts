@@ -98,8 +98,9 @@ export async function fetchPrompts(
   return apiFetch<Prompt[]>(`/v1/prompts?state=${state}&limit=200`)
 }
 
-export async function fetchPrompt(id: string): Promise<Prompt> {
-  return apiFetch<Prompt>(`/v1/prompts/${encodeURIComponent(id)}`)
+export async function fetchPrompt(id: string, channelId: string): Promise<Prompt> {
+  const params = new URLSearchParams({ channel_id: channelId })
+  return apiFetch<Prompt>(`/v1/prompts/${encodeURIComponent(id)}?${params}`)
 }
 
 export async function fetchMessages(
@@ -212,6 +213,19 @@ function parseChannelFormCredentials(formData: FormData): Record<string, string>
   return credentials
 }
 
+function parseOptionalChannelJson(
+  raw: string,
+  fieldName: string,
+): Record<string, string> | unknown | undefined {
+  const trimmed = raw.trim()
+  if (!trimmed) return undefined
+  try {
+    return JSON.parse(trimmed) as Record<string, string> | unknown
+  } catch {
+    throw new Error(`Invalid JSON in ${fieldName}`)
+  }
+}
+
 export async function createChannelAction(
   _prevState: ChannelFormState,
   formData: FormData,
@@ -235,16 +249,27 @@ export async function createChannelAction(
   }
 
   try {
+    const body: Record<string, unknown> = {
+      channel_id: channelId,
+      platform,
+      target_chat_id: targetChatId,
+      credentials,
+      callback_url: callbackUrl,
+      channel_type: channelType,
+    }
+
+    if (channelType === 'MESSAGE') {
+      const headersRaw = String(formData.get('callback_headers') ?? '')
+      const dataRaw = String(formData.get('callback_data') ?? '')
+      const headers = parseOptionalChannelJson(headersRaw, 'callback headers')
+      const data = parseOptionalChannelJson(dataRaw, 'callback data')
+      if (headers !== undefined) body.callback_headers = headers
+      if (data !== undefined) body.callback_data = data
+    }
+
     await apiFetch('/v1/channels/new', {
       method: 'POST',
-      body: JSON.stringify({
-        channel_id: channelId,
-        platform,
-        target_chat_id: targetChatId,
-        credentials,
-        callback_url: callbackUrl,
-        channel_type: channelType,
-      }),
+      body: JSON.stringify(body),
     })
   } catch (err) {
     return { error: formatAgentApiError(err) }
@@ -262,11 +287,23 @@ export async function updateChannelAction(
   const targetChatId = String(formData.get('target_chat_id'))
   const callbackUrl = String(formData.get('callback_url') ?? '').trim() || null
   const credentials = parseChannelFormCredentials(formData)
+  const channelType = String(formData.get('channel_type') ?? '')
 
   const body: Record<string, unknown> = {}
   if (targetChatId) body.target_chat_id = targetChatId
   if (formData.has('callback_url')) body.callback_url = callbackUrl
   if (Object.keys(credentials).length > 0) body.credentials = credentials
+
+  if (channelType === 'MESSAGE' || formData.has('callback_headers') || formData.has('callback_data')) {
+    const headersRaw = String(formData.get('callback_headers') ?? '')
+    const dataRaw = String(formData.get('callback_data') ?? '')
+    if (headersRaw.trim()) {
+      body.callback_headers = parseOptionalChannelJson(headersRaw, 'callback headers')
+    }
+    if (formData.has('callback_data')) {
+      body.callback_data = dataRaw.trim() ? parseOptionalChannelJson(dataRaw, 'callback data') : null
+    }
+  }
 
   if (Object.keys(body).length === 0) {
     return { error: 'No changes to save.' }
@@ -310,6 +347,8 @@ function parsePromptFormData(formData: FormData) {
   const allowText = formData.get('allow_text') === 'on'
   const callbackUrl = String(formData.get('callback_url') ?? '') || undefined
   const correlationId = String(formData.get('correlation_id') ?? '') || undefined
+  const callbackDataRaw = String(formData.get('callback_data') ?? '').trim()
+  const callbackHeadersRaw = String(formData.get('callback_headers') ?? '').trim()
   const ttlSec = Number(formData.get('ttl_sec') ?? 3600)
   const options = formData
     .getAll('options')
@@ -317,12 +356,57 @@ function parsePromptFormData(formData: FormData) {
     .filter(Boolean)
   const file = formData.get('file')
 
-  return { channelId, text, allowText, callbackUrl, correlationId, ttlSec, options, file }
+  return {
+    channelId,
+    text,
+    allowText,
+    callbackUrl,
+    correlationId,
+    callbackDataRaw,
+    callbackHeadersRaw,
+    ttlSec,
+    options,
+    file,
+  }
 }
 
 export async function createPromptAction(formData: FormData) {
-  const { channelId, text, allowText, callbackUrl, correlationId, ttlSec, options, file } =
-    parsePromptFormData(formData)
+  const {
+    channelId,
+    text,
+    allowText,
+    callbackUrl,
+    correlationId,
+    callbackDataRaw,
+    callbackHeadersRaw,
+    ttlSec,
+    options,
+    file,
+  } = parsePromptFormData(formData)
+
+  let callbackData: unknown | undefined
+  if (callbackDataRaw) {
+    try {
+      callbackData = JSON.parse(callbackDataRaw)
+      if (typeof callbackData !== 'object' || callbackData === null) {
+        throw new Error('Callback data must be a JSON object or array')
+      }
+    } catch (err) {
+      throw err instanceof Error ? err : new Error('Invalid JSON in callback data')
+    }
+  }
+
+  let callbackHeaders: Record<string, string> | undefined
+  if (callbackHeadersRaw) {
+    try {
+      callbackHeaders = JSON.parse(callbackHeadersRaw) as Record<string, string>
+      if (typeof callbackHeaders !== 'object' || callbackHeaders === null || Array.isArray(callbackHeaders)) {
+        throw new Error('Callback headers must be a JSON object')
+      }
+    } catch (err) {
+      throw err instanceof Error ? err : new Error('Invalid JSON in callback headers')
+    }
+  }
 
   const hasFile = file instanceof File && file.size > 0
 
@@ -336,6 +420,8 @@ export async function createPromptAction(formData: FormData) {
     if (options.length) upload.append('options', JSON.stringify(options))
     if (callbackUrl) upload.append('callback_url', callbackUrl)
     if (correlationId) upload.append('correlation_id', correlationId)
+    if (callbackData !== undefined) upload.append('callback_data', JSON.stringify(callbackData))
+    if (callbackHeaders !== undefined) upload.append('callback_headers', JSON.stringify(callbackHeaders))
 
     const key = process.env.GREENLIGHT_API_KEY
     if (!key) {
@@ -352,9 +438,11 @@ export async function createPromptAction(formData: FormData) {
     })
     if (!res.ok) throw new Error(await res.text())
 
-    const result = (await res.json()) as { prompt_id: string }
+    const result = (await res.json()) as { prompt_id: string; channel_id: string }
     revalidatePath('/prompts')
-    redirect(`/prompts/${encodeURIComponent(result.prompt_id)}`)
+    redirect(
+      `/prompts/${encodeURIComponent(result.channel_id)}/${encodeURIComponent(result.prompt_id)}`,
+    )
     return
   }
 
@@ -367,12 +455,16 @@ export async function createPromptAction(formData: FormData) {
   if (options.length) body.options = options
   if (callbackUrl) body.callback_url = callbackUrl
   if (correlationId) body.correlation_id = correlationId
+  if (callbackData !== undefined) body.callback_data = callbackData
+  if (callbackHeaders !== undefined) body.callback_headers = callbackHeaders
 
-  const result = await apiFetch<{ prompt_id: string }>('/v1/prompts/new', {
+  const result = await apiFetch<{ prompt_id: string; channel_id: string }>('/v1/prompts/new', {
     method: 'POST',
     body: JSON.stringify(body),
   })
 
   revalidatePath('/prompts')
-  redirect(`/prompts/${encodeURIComponent(result.prompt_id)}`)
+  redirect(
+    `/prompts/${encodeURIComponent(result.channel_id)}/${encodeURIComponent(result.prompt_id)}`,
+  )
 }

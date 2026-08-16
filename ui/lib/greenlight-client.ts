@@ -66,6 +66,8 @@ export interface Channel {
   platform: string
   target_chat_id: string
   callback_url: string | null
+  callback_data: unknown | null
+  callback_headers_configured: boolean
   channel_type: string
   is_active: boolean
   registered_at: string
@@ -75,12 +77,16 @@ export interface Prompt {
   id: string
   prompt_num: number
   chat_id: string
+  channel_id: string
   text: string
   media_url: string | null
   options: string[] | null
   allow_text: boolean
   callback_url: string | null
   correlation_id: string | null
+  callback_data: unknown | null
+  callback_headers_configured: boolean
+  broadcast_id: string | null
   state: string
   created_at: string
   expires_at: string | null

@@ -75,6 +75,73 @@ export function validateCallbackUrl(url: string): void {
   }
 }
 
+export const CALLBACK_DATA_MAX_BYTES = 8192
+
+export function validateCallbackData(data: unknown): unknown | null {
+  if (data === null || data === undefined) return null
+  if (typeof data !== 'object') {
+    throw new ValueError('callback_data must be a JSON object or array')
+  }
+  const serialized = JSON.stringify(data)
+  if (Buffer.byteLength(serialized, 'utf8') > CALLBACK_DATA_MAX_BYTES) {
+    throw new ValueError(`callback_data exceeds ${CALLBACK_DATA_MAX_BYTES} bytes`)
+  }
+  return data as Record<string, unknown>
+}
+
+export const CALLBACK_HEADERS_MAX_BYTES = 4096
+export const CALLBACK_HEADERS_MAX_COUNT = 20
+
+const BLOCKED_CALLBACK_HEADERS = new Set([
+  'content-type',
+  'x-signature',
+  'connection',
+  'transfer-encoding',
+  'keep-alive',
+  'te',
+  'trailer',
+  'upgrade',
+  'host',
+])
+
+const HEADER_NAME_RE = /^[!#$%&'*+.^_`|~0-9A-Za-z-]+$/
+
+export function validateCallbackHeaders(data: unknown): Record<string, string> | null {
+  if (data === null || data === undefined) return null
+  if (typeof data !== 'object' || Array.isArray(data)) {
+    throw new ValueError('callback_headers must be a JSON object')
+  }
+
+  const entries = Object.entries(data as Record<string, unknown>)
+  if (entries.length > CALLBACK_HEADERS_MAX_COUNT) {
+    throw new ValueError(`callback_headers exceeds ${CALLBACK_HEADERS_MAX_COUNT} headers`)
+  }
+
+  const normalized: Record<string, string> = {}
+  for (const [key, value] of entries) {
+    if (!key.trim()) {
+      throw new ValueError('callback_headers keys must be non-empty')
+    }
+    if (!HEADER_NAME_RE.test(key)) {
+      throw new ValueError(`callback_headers has invalid header name: ${key}`)
+    }
+    if (typeof value !== 'string') {
+      throw new ValueError(`callback_headers value for ${key} must be a string`)
+    }
+    if (BLOCKED_CALLBACK_HEADERS.has(key.toLowerCase())) {
+      throw new ValueError(`callback_headers cannot set ${key}`)
+    }
+    normalized[key] = value
+  }
+
+  const serialized = JSON.stringify(normalized)
+  if (Buffer.byteLength(serialized, 'utf8') > CALLBACK_HEADERS_MAX_BYTES) {
+    throw new ValueError(`callback_headers exceeds ${CALLBACK_HEADERS_MAX_BYTES} bytes`)
+  }
+
+  return Object.keys(normalized).length > 0 ? normalized : null
+}
+
 export function validateMediaPath(path: string): void {
   const config = loadConfig()
   if (!config.MEDIA_ALLOWED_DIR) {

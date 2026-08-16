@@ -111,6 +111,9 @@ export function getCredentialsValidationError(
   return messages[0] ?? null
 }
 
+const callbackHeadersSchema = z.record(z.string(), z.string()).optional().nullable()
+const callbackDataSchema = z.record(z.string(), z.unknown()).or(z.array(z.unknown())).optional().nullable()
+
 export const createChannelSchema = z
   .object({
     channel_id: z.string().min(1),
@@ -118,6 +121,8 @@ export const createChannelSchema = z
     target_chat_id: z.string().min(1),
     credentials: z.record(z.string()),
     callback_url: z.string().optional().nullable(),
+    callback_headers: callbackHeadersSchema,
+    callback_data: callbackDataSchema,
     channel_type: z.enum(['MESSAGE', 'PROMPT']).optional().default('MESSAGE'),
   })
   .superRefine((data, ctx) => {
@@ -128,12 +133,16 @@ export const updateChannelSchema = z
   .object({
     target_chat_id: z.string().min(1).optional(),
     callback_url: z.string().optional().nullable(),
+    callback_headers: callbackHeadersSchema,
+    callback_data: callbackDataSchema,
     credentials: z.record(z.string()).optional(),
   })
   .refine(
     (data) =>
       data.target_chat_id !== undefined ||
       data.callback_url !== undefined ||
+      data.callback_headers !== undefined ||
+      data.callback_data !== undefined ||
       data.credentials !== undefined,
     { message: 'At least one field must be provided' },
   )

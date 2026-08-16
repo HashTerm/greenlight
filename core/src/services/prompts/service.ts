@@ -1,7 +1,7 @@
 /** @jsxImportSource chat */
 import { readFile } from 'node:fs/promises'
 import { withClient } from '../../db/client.js'
-import { validateCallbackUrl, validateMediaPath, ValueError } from '../../core/security.js'
+import { validateCallbackUrl, validateCallbackData, validateCallbackHeaders, validateMediaPath, ValueError } from '../../core/security.js'
 import * as channelModels from '../channels/models.js'
 import type { PromptListState } from './models.js'
 import * as promptModels from './models.js'
@@ -20,7 +20,9 @@ export interface CreatePromptInput {
   options?: string[] | null
   allowText?: boolean
   callbackUrl?: string | null
+  callbackHeaders?: Record<string, string> | null
   correlationId?: string | null
+  callbackData?: unknown | null
   ttlSec?: number | null
   mediaFile?: Buffer | null
   mediaFileName?: string | null
@@ -62,6 +64,9 @@ export async function createAndPostPrompt(
     }
   }
 
+  const callbackData = validateCallbackData(input.callbackData ?? null)
+  const callbackHeaders = validateCallbackHeaders(input.callbackHeaders ?? null)
+
   const resolvedChannelId = resolveChannelId(input.channelId)
 
   return withClient(async (client) => {
@@ -87,15 +92,19 @@ export async function createAndPostPrompt(
 
     const ttlSec = input.ttlSec ?? 3600
 
-    const { promptId, row } = await promptModels.createPrompt(client, {
+    const { promptId } = await promptModels.createPrompt(client, {
       organizationId: input.organizationId,
+      channelId: resolvedChannelId,
       chatId: channel.target_chat_id,
       text: input.text,
       mediaUrl: input.mediaUrl ?? input.mediaPath ?? null,
       options,
       allowText,
       callbackUrl: input.callbackUrl ?? null,
+      callbackHeaders,
       correlationId: input.correlationId ?? null,
+      callbackData,
+      broadcastId: null,
       ttlSec,
     })
 
@@ -104,7 +113,14 @@ export async function createAndPostPrompt(
       const optId = String(i + 1)
       const label = options[i]
       const actionKey = `${promptId}:${optId}`
-      await promptModels.addOptionMap(client, input.organizationId, promptId, optId, label)
+      await promptModels.addOptionMap(
+        client,
+        input.organizationId,
+        resolvedChannelId,
+        promptId,
+        optId,
+        label,
+      )
       cardOptions.push({ optionId: optId, label, actionKey })
     }
 
@@ -155,7 +171,13 @@ export async function createAndPostPrompt(
 
     const messageId = sent.messageId ? Number(sent.messageId) : 0
     if (messageId) {
-      await promptModels.setMessageId(client, input.organizationId, promptId, messageId)
+      await promptModels.setMessageId(
+        client,
+        input.organizationId,
+        resolvedChannelId,
+        promptId,
+        messageId,
+      )
     }
 
     return {
@@ -166,12 +188,19 @@ export async function createAndPostPrompt(
   })
 }
 
-export async function getPrompt(organizationId: string, promptId: string) {
-  return withClient((client) => promptModels.getPrompt(client, organizationId, promptId))
+export async function getPrompt(organizationId: string, channelId: string, promptId: string) {
+  return withClient((client) => promptModels.getPrompt(client, organizationId, channelId, promptId))
 }
 
-export async function listPrompts(organizationId: string, state: PromptListState, limit: number) {
-  return withClient((client) => promptModels.listPrompts(client, organizationId, state, limit))
+export async function listPrompts(
+  organizationId: string,
+  state: PromptListState,
+  limit: number,
+  channelId?: string | null,
+) {
+  return withClient((client) =>
+    promptModels.listPrompts(client, organizationId, state, limit, channelId),
+  )
 }
 
 export async function expirePrompts(): Promise<number> {

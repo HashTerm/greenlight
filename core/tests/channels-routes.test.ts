@@ -143,6 +143,16 @@ describe('v1 prompts API auth', () => {
     expect(res.status).toBe(404)
   })
 
+  it('returns 400 for GET /v1/prompts/:id without channel_id', async () => {
+    const app = createApp()
+    const res = await app.request('/v1/prompts/%231', {
+      headers: { 'X-API-Key': 'agent-api-key' },
+    })
+    expect(res.status).toBe(400)
+    const body = (await res.json()) as { detail: string }
+    expect(body.detail).toBe('channel_id is required')
+  })
+
   it('returns 404 for removed POST /v1/prompts/new/upload', async () => {
     const app = createApp()
     const res = await app.request('/v1/prompts/new/upload', {

@@ -32,6 +32,7 @@ describe('pending text replies', () => {
     const base = {
       id: 'uuid',
       organization_id: 'org',
+      channel_id: 'telegram-prompts',
       prompt_num: 1,
       chat_id: '-100',
       message_id: 1,
@@ -41,6 +42,8 @@ describe('pending text replies', () => {
       allow_text: true,
       callback_url: null,
       correlation_id: null,
+      callback_data: null,
+      broadcast_id: null,
       state: PENDING,
       created_at: new Date('2026-01-01'),
       expires_at: new Date('2026-01-01T00:10:00Z'),

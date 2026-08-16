@@ -27,8 +27,12 @@ convenience, not a production pattern.
 ## Signature verification
 
 Always verify `X-Signature` on prompt answer callbacks. Channel
-`message.created` events are unsigned — authenticate those endpoints yourself
-(VPN, mTLS, shared secret header, etc.).
+`message.created` events are unsigned — authenticate those endpoints with
+`callback_headers` (Bearer, API keys) or your own network controls.
+
+Never store Bearer tokens in `callback_data` or URL query strings. Use
+`callback_headers` for outbound webhook auth; API responses expose only
+`callback_headers_configured`, not raw header values.
 
 ## Media paths
 

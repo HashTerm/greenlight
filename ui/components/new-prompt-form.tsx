@@ -101,6 +101,32 @@ export function NewPromptForm({ channels, hasPromptChannels }: NewPromptFormProp
             placeholder={CORRELATION_ID_PLACEHOLDER}
           />
         </div>
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="callback_headers">Callback headers (JSON)</Label>
+          <Textarea
+            id="callback_headers"
+            name="callback_headers"
+            placeholder='{"Authorization": "Bearer your-token"}'
+            rows={3}
+          />
+          <p className="text-sm text-muted-foreground">
+            Optional outbound headers (Bearer, X-Api-Key) for your answer webhook. Not echoed in
+            the callback body.
+          </p>
+        </div>
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="callback_data">Callback data (JSON)</Label>
+          <Textarea
+            id="callback_data"
+            name="callback_data"
+            placeholder='{"build_id": 9182, "step": "approve"}'
+            rows={3}
+          />
+          <p className="text-sm text-muted-foreground">
+            Optional workflow state echoed in the signed answer callback so a downstream automation
+            can resume.
+          </p>
+        </div>
         <div className="space-y-2">
           <Label htmlFor="ttl_sec">TTL (seconds)</Label>
           <Input id="ttl_sec" name="ttl_sec" type="number" defaultValue={3600} />

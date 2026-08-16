@@ -51,6 +51,9 @@ npm run env:ensure -- --profile self-host
 Or copy [`.env.self-host.example`](https://github.com/HashTerm/greenlight/blob/main/.env.self-host.example)
 and set secrets yourself.
 
+Set `USE_AUTH=true` in production so the Agent API requires scoped API keys.
+Per-channel prompt ids (`#n`) are not access control on their own.
+
 ## Single node
 
 ```bash

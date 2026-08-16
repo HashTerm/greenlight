@@ -69,6 +69,19 @@ export default async function ChannelDetailPage({ params }: { params: Promise<{ 
             <p>
               <span className="text-muted-foreground">Callback:</span> {channel.callback_url ?? '—'}
             </p>
+            {channel.channel_type === 'MESSAGE' && channel.callback_headers_configured ? (
+              <p>
+                <span className="text-muted-foreground">Callback headers:</span> configured
+              </p>
+            ) : null}
+            {channel.channel_type === 'MESSAGE' && channel.callback_data != null ? (
+              <div>
+                <p className="text-muted-foreground">Callback data</p>
+                <pre className="mt-1 overflow-x-auto rounded-md bg-muted p-2 text-xs">
+                  {JSON.stringify(channel.callback_data, null, 2)}
+                </pre>
+              </div>
+            ) : null}
             <p>
               <span className="text-muted-foreground">Status:</span>{' '}
               <Badge variant={channel.is_active ? 'success' : 'destructive'}>

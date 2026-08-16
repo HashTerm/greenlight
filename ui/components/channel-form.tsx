@@ -24,6 +24,8 @@ interface ChannelFormProps {
     target_chat_id: string
     channel_type: string
     callback_url: string
+    callback_data?: unknown | null
+    callback_headers_configured?: boolean
   }
   lockChannelId?: boolean
 }
@@ -50,124 +52,170 @@ export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
     )
   }, [platform, initial?.channel_id, webhookBase, organizationId])
 
+  const showMessageCallback = channelType === 'MESSAGE'
+  const callbackDataDefault =
+    initial?.callback_data != null ? JSON.stringify(initial.callback_data, null, 2) : ''
+
   return (
     <div className="grid gap-6 lg:grid-cols-3">
-      <Card className="lg:col-span-2">
-        <CardHeader>
-          <CardTitle>Channel details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form action={formAction} className="space-y-4">
-            {state.error ? (
-              <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {state.error}
-              </p>
-            ) : null}
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="channel_id">Channel ID</Label>
-                <Input
-                  id="channel_id"
-                  name="channel_id"
-                  defaultValue={initial?.channel_id}
-                  placeholder={CHANNEL_ID_PLACEHOLDER}
-                  readOnly={lockChannelId}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="platform">Platform</Label>
-                <PlatformSelect
-                  id="platform"
-                  name="platform"
-                  value={platform}
-                  onValueChange={setPlatform}
-                  disabled={isEditMode}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="target_chat_id">Target chat ID</Label>
-                <Input
-                  id="target_chat_id"
-                  name="target_chat_id"
-                  defaultValue={initial?.target_chat_id}
-                  placeholder={TARGET_CHAT_ID_PLACEHOLDER}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="channel_type">Channel type</Label>
-                <ChannelTypeSelect
-                  id="channel_type"
-                  name="channel_type"
-                  value={channelType}
-                  onValueChange={setChannelType}
-                  disabled={isEditMode}
-                />
-              </div>
-            </div>
+      <div className="space-y-6 lg:col-span-2">
+        <form action={formAction} className="space-y-6">
+          {state.error ? (
+            <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+              {state.error}
+            </p>
+          ) : null}
 
-            {isEditMode ? (
-              <p className="text-xs text-muted-foreground">
-                Platform and channel type cannot be changed after registration. Create a new channel
-                to use a different platform or mode.
-              </p>
-            ) : null}
+          <Card>
+            <CardHeader>
+              <CardTitle>Channel details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="channel_id">Channel ID</Label>
+                  <Input
+                    id="channel_id"
+                    name="channel_id"
+                    defaultValue={initial?.channel_id}
+                    placeholder={CHANNEL_ID_PLACEHOLDER}
+                    readOnly={lockChannelId}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="platform">Platform</Label>
+                  <PlatformSelect
+                    id="platform"
+                    name="platform"
+                    value={platform}
+                    onValueChange={setPlatform}
+                    disabled={isEditMode}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="target_chat_id">Target chat ID</Label>
+                  <Input
+                    id="target_chat_id"
+                    name="target_chat_id"
+                    defaultValue={initial?.target_chat_id}
+                    placeholder={TARGET_CHAT_ID_PLACEHOLDER}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="channel_type">Channel type</Label>
+                  <ChannelTypeSelect
+                    id="channel_type"
+                    name="channel_type"
+                    value={channelType}
+                    onValueChange={setChannelType}
+                    disabled={isEditMode}
+                  />
+                </div>
+              </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="callback_url">Callback URL (MESSAGE channels)</Label>
-              <Input
-                id="callback_url"
-                name="callback_url"
-                type="url"
-                defaultValue={initial?.callback_url}
-                placeholder={MESSAGE_CALLBACK_URL_PLACEHOLDER}
-                required={channelType === 'MESSAGE'}
-              />
-              {channelType === 'MESSAGE' ? (
+              {isEditMode ? (
                 <p className="text-xs text-muted-foreground">
-                  Where Greenlight forwards inbound messages from this chat. Use Prompt type instead
-                  if you only need approval buttons, not two-way chat.
+                  Platform and channel type cannot be changed after registration. Create a new channel
+                  to use a different platform or mode.
                 </p>
               ) : null}
-            </div>
 
-            <div className="space-y-4 border-t pt-4">
-              <h3 className="font-medium">Credentials</h3>
-              {fields.map((field) => (
-                <div key={field.key} className="space-y-2">
-                  <Label htmlFor={`cred_${field.key}`}>{field.label}</Label>
-                  {field.type === 'textarea' ? (
-                    <Textarea
-                      id={`cred_${field.key}`}
-                      name={`cred_${field.key}`}
-                      placeholder={field.placeholder}
-                      required={!initial}
-                    />
+              <div className="space-y-4 border-t pt-4">
+                <h3 className="font-medium">Credentials</h3>
+                {fields.map((field) => (
+                  <div key={field.key} className="space-y-2">
+                    <Label htmlFor={`cred_${field.key}`}>{field.label}</Label>
+                    {field.type === 'textarea' ? (
+                      <Textarea
+                        id={`cred_${field.key}`}
+                        name={`cred_${field.key}`}
+                        placeholder={field.placeholder}
+                        required={!initial}
+                      />
+                    ) : (
+                      <Input
+                        id={`cred_${field.key}`}
+                        name={`cred_${field.key}`}
+                        type={field.type}
+                        placeholder={field.placeholder}
+                        required={!initial}
+                      />
+                    )}
+                  </div>
+                ))}
+                {initial && (
+                  <p className="text-xs text-muted-foreground">
+                    Leave credential fields blank to keep existing values (re-submit all to update).
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {showMessageCallback ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>Message callback</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="callback_url">Callback URL</Label>
+                  <Input
+                    id="callback_url"
+                    name="callback_url"
+                    type="url"
+                    defaultValue={initial?.callback_url}
+                    placeholder={MESSAGE_CALLBACK_URL_PLACEHOLDER}
+                    required={channelType === 'MESSAGE'}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Where Greenlight forwards inbound messages from this chat as unsigned
+                    message.created events.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="callback_headers">Callback headers (JSON)</Label>
+                  <Textarea
+                    id="callback_headers"
+                    name="callback_headers"
+                    placeholder='{"Authorization": "Bearer your-token"}'
+                    rows={3}
+                  />
+                  {initial?.callback_headers_configured ? (
+                    <p className="text-xs text-muted-foreground">
+                      Headers are configured. Leave blank to keep existing values.
+                    </p>
                   ) : (
-                    <Input
-                      id={`cred_${field.key}`}
-                      name={`cred_${field.key}`}
-                      type={field.type}
-                      placeholder={field.placeholder}
-                      required={!initial}
-                    />
+                    <p className="text-xs text-muted-foreground">
+                      Optional — Bearer token or custom headers for your webhook ingress auth.
+                    </p>
                   )}
                 </div>
-              ))}
-              {initial && (
-                <p className="text-xs text-muted-foreground">
-                  Leave credential fields blank to keep existing values (re-submit all to update).
-                </p>
-              )}
-            </div>
+                <div className="space-y-2">
+                  <Label htmlFor="callback_data">Callback data (JSON)</Label>
+                  <Textarea
+                    id="callback_data"
+                    name="callback_data"
+                    defaultValue={callbackDataDefault}
+                    placeholder='{"tenant": "acme", "room": "support"}'
+                    rows={3}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Optional static JSON attached to every message.created forward (not shown in
+                    chat).
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : null}
 
-            <Button type="submit" disabled={isPending}>
-              {isPending ? 'Saving…' : initial ? 'Update channel' : 'Register channel'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+          <Button type="submit" disabled={isPending}>
+            {isPending ? 'Saving…' : initial ? 'Update channel' : 'Register channel'}
+          </Button>
+        </form>
+      </div>
 
       <Card>
         <CardHeader>

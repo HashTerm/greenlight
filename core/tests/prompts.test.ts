@@ -13,13 +13,22 @@ import {
   ANSWERED,
   type PromptRow,
 } from '../src/services/prompts/models.js'
-import { validateCallbackUrl, validateMediaPath, ValueError } from '../src/core/security.js'
+import {
+  validateCallbackUrl,
+  validateCallbackData,
+  validateCallbackHeaders,
+  validateMediaPath,
+  ValueError,
+  CALLBACK_DATA_MAX_BYTES,
+  CALLBACK_HEADERS_MAX_BYTES,
+} from '../src/core/security.js'
 import { resetConfigForTests } from '../src/core/config.js'
 
 function basePromptRow(overrides: Partial<PromptRow> = {}): PromptRow {
   return {
     id: 'uuid',
     organization_id: 'org-1',
+    channel_id: 'telegram-prompts',
     prompt_num: 1,
     chat_id: '-100',
     message_id: 1,
@@ -28,7 +37,10 @@ function basePromptRow(overrides: Partial<PromptRow> = {}): PromptRow {
     options: [],
     allow_text: false,
     callback_url: 'https://example.com/hook',
+    callback_headers: { Authorization: 'Bearer test' },
     correlation_id: 'corr-1',
+    callback_data: { build: 9182 },
+    broadcast_id: null,
     state: PENDING,
     created_at: new Date('2026-01-01'),
     expires_at: null,
@@ -51,6 +63,7 @@ describe('prompt models', () => {
   it('gates text replies on allow_text and pending state', () => {
     const base = {
       id: 'uuid',
+      channel_id: 'telegram-prompts',
       prompt_num: 1,
       chat_id: '-100',
       message_id: 1,
@@ -59,6 +72,8 @@ describe('prompt models', () => {
       options: [],
       callback_url: null,
       correlation_id: null,
+      callback_data: null,
+      broadcast_id: null,
       created_at: new Date(),
       expires_at: null,
       answered_at: null,
@@ -90,6 +105,7 @@ describe('prompt models', () => {
   })
 
   describe('markAnswered', () => {
+    const channelId = 'telegram-prompts'
     const answer = {
       type: 'option',
       value: 'Approve',
@@ -110,15 +126,18 @@ describe('prompt models', () => {
           .mockResolvedValueOnce({ rows: [prompt] }),
       } as unknown as pg.PoolClient
 
-      const result = await markAnswered(client, 'org-1', '#1', answer)
+      const result = await markAnswered(client, 'org-1', channelId, '#1', answer)
       expect(result.status).toBe('recorded')
       if (result.status !== 'recorded') return
 
       expect(result.callbackInfo).toEqual({
         callbackUrl: 'https://example.com/hook',
+        callbackHeaders: { Authorization: 'Bearer test' },
         payload: {
           prompt_id: '#1',
+          channel_id: 'telegram-prompts',
           correlation_id: 'corr-1',
+          callback_data: { build: 9182 },
           text: 'test',
           answer: {
             type: 'option',
@@ -140,7 +159,7 @@ describe('prompt models', () => {
           .mockResolvedValueOnce({ rows: [prompt] }),
       } as unknown as pg.PoolClient
 
-      const result = await markAnswered(client, 'org-1', '#1', answer)
+      const result = await markAnswered(client, 'org-1', channelId, '#1', answer)
       expect(result).toEqual({ status: 'recorded', callbackInfo: null })
     })
 
@@ -156,7 +175,7 @@ describe('prompt models', () => {
           .mockResolvedValueOnce({ rows: [prompt] }),
       } as unknown as pg.PoolClient
 
-      const result = await markAnswered(client, 'org-1', '#1', answer)
+      const result = await markAnswered(client, 'org-1', channelId, '#1', answer)
       expect(result).toEqual({ status: 'already_answered', prompt })
     })
 
@@ -169,7 +188,7 @@ describe('prompt models', () => {
           .mockResolvedValueOnce({ rows: [prompt] }),
       } as unknown as pg.PoolClient
 
-      const result = await markAnswered(client, 'org-1', '#1', answer)
+      const result = await markAnswered(client, 'org-1', channelId, '#1', answer)
       expect(result).toEqual({ status: 'expired', prompt })
     })
 
@@ -178,7 +197,7 @@ describe('prompt models', () => {
         query: vi.fn().mockResolvedValueOnce({ rowCount: 0 }).mockResolvedValueOnce({ rows: [] }),
       } as unknown as pg.PoolClient
 
-      const result = await markAnswered(client, 'org-1', '#1', answer)
+      const result = await markAnswered(client, 'org-1', channelId, '#1', answer)
       expect(result).toEqual({ status: 'not_found' })
       expect(client.query).toHaveBeenCalledTimes(2)
     })
@@ -186,7 +205,7 @@ describe('prompt models', () => {
     it('returns not_found for invalid prompt id without querying', async () => {
       const client = { query: vi.fn() } as unknown as pg.PoolClient
 
-      const result = await markAnswered(client, 'org-1', 'bad', answer)
+      const result = await markAnswered(client, 'org-1', channelId, 'bad', answer)
       expect(result).toEqual({ status: 'not_found' })
       expect(client.query).not.toHaveBeenCalled()
     })
@@ -206,6 +225,26 @@ describe('security', () => {
     expect(() => validateCallbackUrl('http://127.0.0.1/hook')).toThrow(ValueError)
     expect(() => validateCallbackUrl('ftp://example.com/hook')).toThrow(ValueError)
     expect(() => validateCallbackUrl('https://example.com/hook')).not.toThrow()
+  })
+
+  it('validates callback_data size and shape', () => {
+    expect(validateCallbackData({ build: 1 })).toEqual({ build: 1 })
+    expect(validateCallbackData([1, 2])).toEqual([1, 2])
+    expect(validateCallbackData(null)).toBeNull()
+    expect(() => validateCallbackData('text')).toThrow(ValueError)
+    const big = { key: 'x'.repeat(CALLBACK_DATA_MAX_BYTES) }
+    expect(() => validateCallbackData(big)).toThrow(ValueError)
+  })
+
+  it('validates callback_headers size and shape', () => {
+    expect(validateCallbackHeaders({ Authorization: 'Bearer x' })).toEqual({
+      Authorization: 'Bearer x',
+    })
+    expect(validateCallbackHeaders(null)).toBeNull()
+    expect(() => validateCallbackHeaders('text')).toThrow(ValueError)
+    expect(() => validateCallbackHeaders({ 'Content-Type': 'text/plain' })).toThrow(ValueError)
+    const big = { key: 'x'.repeat(CALLBACK_HEADERS_MAX_BYTES) }
+    expect(() => validateCallbackHeaders(big)).toThrow(ValueError)
   })
 
   it('validates media paths when configured', () => {

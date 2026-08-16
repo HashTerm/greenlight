@@ -9,10 +9,18 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
-function buildHeaders(body: string, sign: boolean): Record<string, string> {
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+function buildHeaders(
+  body: string,
+  sign: boolean,
+  extraHeaders?: Record<string, string> | null,
+): Record<string, string> {
+  const headers: Record<string, string> = {}
+  if (extraHeaders) {
+    for (const [key, value] of Object.entries(extraHeaders)) {
+      headers[key] = value
+    }
   }
+  headers['Content-Type'] = 'application/json'
   if (sign) {
     headers['X-Signature'] = signBody(body)
   }
@@ -22,10 +30,10 @@ function buildHeaders(body: string, sign: boolean): Record<string, string> {
 async function postWithRetries(
   url: string,
   body: string,
-  options: { sign?: boolean; maxAttempts?: number } = {},
+  options: { sign?: boolean; maxAttempts?: number; extraHeaders?: Record<string, string> | null } = {},
 ): Promise<void> {
-  const { sign = true, maxAttempts = 5 } = options
-  const headers = buildHeaders(body, sign)
+  const { sign = true, maxAttempts = 5, extraHeaders = null } = options
+  const headers = buildHeaders(body, sign, extraHeaders)
 
   let lastError: unknown
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -49,14 +57,19 @@ async function postWithRetries(
 export async function notifyCallback(
   callbackUrl: string,
   payload: Record<string, unknown>,
+  callbackHeaders?: Record<string, string> | null,
 ): Promise<void> {
   const resolved = resolveCallbackUrl(callbackUrl)
   validateCallbackUrl(resolved)
   const body = JSON.stringify(payload)
-  await postWithRetries(resolved, body, { sign: true })
+  await postWithRetries(resolved, body, { sign: true, extraHeaders: callbackHeaders })
 }
 
-export function scheduleCallback(callbackUrl: string, payload: Record<string, unknown>): void {
+export function scheduleCallback(
+  callbackUrl: string,
+  payload: Record<string, unknown>,
+  callbackHeaders?: Record<string, string> | null,
+): void {
   if (pending.size >= MAX_PENDING_CALLBACKS) {
     console.error(
       `Callback queue full (${pending.size} pending), dropping callback for prompt_id=${payload.prompt_id ?? 'unknown'}`,
@@ -64,7 +77,7 @@ export function scheduleCallback(callbackUrl: string, payload: Record<string, un
     return
   }
 
-  const task = notifyCallback(callbackUrl, payload)
+  const task = notifyCallback(callbackUrl, payload, callbackHeaders)
     .catch((err) => {
       console.error(`Failed to send callback prompt_id=${payload.prompt_id ?? 'unknown'}:`, err)
     })
@@ -78,6 +91,7 @@ export function scheduleCallback(callbackUrl: string, payload: Record<string, un
 export async function forwardChannelCallback(
   callbackUrl: string,
   messageEvent: Record<string, unknown>,
+  callbackHeaders?: Record<string, string> | null,
 ): Promise<boolean> {
   const config = loadConfig()
   const resolved = resolveCallbackUrl(callbackUrl)
@@ -90,7 +104,7 @@ export async function forwardChannelCallback(
   }
 
   const body = JSON.stringify(messageEvent)
-  const headers = buildHeaders(body, false)
+  const headers = buildHeaders(body, false, callbackHeaders)
 
   for (let attempt = 1; attempt <= config.CHANNEL_CALLBACK_MAX_RETRIES; attempt++) {
     try {

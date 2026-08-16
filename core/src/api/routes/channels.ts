@@ -10,6 +10,7 @@ import {
   unregisterChannel,
   updateChannel,
 } from '../../services/channels/service.js'
+import { ValueError } from '../../core/security.js'
 import { createChannelSchema, updateChannelSchema } from '../../services/channels/schemas.js'
 import { requireScope } from '../middleware/require-scope.js'
 import { recordAuditEvent } from '../../extensions/audit.js'
@@ -45,6 +46,8 @@ channelRoutes.post(
         targetChatId: body.target_chat_id,
         credentials: body.credentials,
         callbackUrl: body.callback_url ?? null,
+        callbackHeaders: body.callback_headers,
+        callbackData: body.callback_data,
         channelType: body.channel_type,
       })
       await recordAuditEvent({
@@ -58,6 +61,9 @@ channelRoutes.post(
     } catch (err) {
       if (err instanceof ChannelAlreadyExistsError) {
         return c.json({ detail: err.message }, 409)
+      }
+      if (err instanceof ValueError) {
+        return c.json({ detail: err.message }, 400)
       }
       throw err
     }
@@ -97,6 +103,8 @@ channelRoutes.patch(
         targetChatId: body.target_chat_id,
         credentials: body.credentials,
         callbackUrl: body.callback_url,
+        callbackHeaders: body.callback_headers,
+        callbackData: body.callback_data,
       })
       await recordAuditEvent({
         ...getAuditEventContext(c),
@@ -110,6 +118,9 @@ channelRoutes.patch(
         return c.json({ detail: err.message }, 404)
       }
       if (err instanceof Error && err.message === 'MESSAGE channels require callback_url') {
+        return c.json({ detail: err.message }, 400)
+      }
+      if (err instanceof ValueError) {
         return c.json({ detail: err.message }, 400)
       }
       throw err

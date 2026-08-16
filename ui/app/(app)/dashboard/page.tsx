@@ -150,7 +150,7 @@ export default async function DashboardPage() {
                     <TableRow key={p.id}>
                       <TableCell>
                         <Link
-                          href={`/prompts/${encodeURIComponent(p.id)}`}
+                          href={`/prompts/${encodeURIComponent(p.channel_id)}/${encodeURIComponent(p.id)}`}
                           className="text-primary hover:underline"
                         >
                           {p.id}
