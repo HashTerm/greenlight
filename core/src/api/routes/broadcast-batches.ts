@@ -70,7 +70,7 @@ async function handleGetBroadcastBatch(c: Context, broadcastBatchId: string) {
 
 broadcastBatchRoutes.get(
   '/broadcast-batches/:broadcast_batch_id',
-  requireScope('prompts:read', 'messages:read'),
+  requireScope('broadcast_batches:read'),
   async (c) => {
     const broadcastBatchId = decodeURIComponent(c.req.param('broadcast_batch_id') ?? '')
     return handleGetBroadcastBatch(c, broadcastBatchId)

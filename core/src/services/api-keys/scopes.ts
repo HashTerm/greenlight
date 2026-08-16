@@ -1,16 +1,19 @@
 const SCOPES = [
   'status:read',
-  'settings:read',
-  'settings:write',
-  'audit:read',
   'keys:read',
   'keys:write',
-  'channels:read',
-  'channels:write',
   'prompts:read',
   'prompts:write',
   'messages:read',
   'messages:send',
+  'channels:read',
+  'channels:write',
+  'broadcast_groups:read',
+  'broadcast_groups:write',
+  'broadcast_batches:read',
+  'audit_log:read',
+  'settings:read',
+  'settings:write',
   'admin',
 ] as const
 
@@ -19,21 +22,21 @@ export type Scope = (typeof SCOPES)[number]
 export type ScopePreset = 'admin' | 'agent' | 'readonly'
 
 const AGENT_SCOPES: Scope[] = [
-  'channels:read',
-  'channels:write',
   'prompts:read',
   'prompts:write',
   'messages:read',
   'messages:send',
+  'channels:read',
+  'channels:write',
 ]
 
 const READONLY_SCOPES: Scope[] = [
   'status:read',
-  'settings:read',
   'keys:read',
-  'channels:read',
   'prompts:read',
   'messages:read',
+  'channels:read',
+  'settings:read',
 ]
 
 export function expandPreset(preset: ScopePreset): Scope[] {
@@ -50,11 +53,11 @@ export function expandPreset(preset: ScopePreset): Scope[] {
 export function normalizeScopes(scopes: string[]): Scope[] {
   const valid = new Set<string>(SCOPES)
   const out = new Set<Scope>()
-  for (const s of scopes) {
-    if (!valid.has(s)) {
-      throw new Error(`Invalid scope: ${s}`)
+  for (const raw of scopes) {
+    if (!valid.has(raw)) {
+      throw new Error(`Invalid scope: ${raw}`)
     }
-    out.add(s as Scope)
+    out.add(raw as Scope)
   }
   return [...out]
 }

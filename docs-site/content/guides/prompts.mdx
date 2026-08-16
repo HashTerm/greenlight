@@ -16,7 +16,7 @@ Send **`application/json`** or **`multipart/form-data`** to the same path.
 | ------------------ | -------- | --------------------------- | ------------------------------------------------------------------------ |
 | `channel_id`           | string   | `DEFAULT_PROMPT_CHANNEL_ID` | Single-channel send; mutually exclusive with `broadcast_group` / `broadcast_group_id` |
 | `broadcast_group`      | object   | —                           | API-only ad-hoc fan-out: `channel_ids` + required `prompt_answer_mode` |
-| `broadcast_group_id`   | string   | —                           | Enterprise: send to a saved [broadcast group](/guides/broadcasts)                 |
+| `broadcast_group_id`   | string   | —                           | Enterprise: send to a saved [broadcast group](/guides/broadcast-groups)                 |
 | `text`             | string   | —                           | Required, max 4096                                                       |
 | `options`          | string[] | `[]`                        | Max 10 items (3 on WhatsApp/Messenger), each max 64 chars                |
 | `allow_text`       | boolean  | `false`                     | Allow free-text replies                                                  |
@@ -170,7 +170,7 @@ GET /v1/prompts/%231?channel_id=telegram-prompts
 
 Multi-channel sends set a shared `broadcast_batch_id` on each row. Filter with
 `GET /v1/prompts?broadcast_batch_id=brd_…`. Enterprise group sends also set
-`broadcast_group_id`. See [Broadcast Groups](/guides/broadcasts).
+`broadcast_group_id`. See [Broadcast Groups](/guides/broadcast-groups).
 
 Prompt ids are not access control — set `USE_AUTH=true` in production and protect
 the Agent API with scoped API keys.

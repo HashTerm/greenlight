@@ -15,7 +15,7 @@ single implicit tenant, scoped API keys, API-only inline multi-channel fan-out
 (`broadcast_group` on send routes).
 
 **Enterprise (commercial):** saved broadcast groups, group CRUD API, and Broadcast
-Groups admin UI — see [Broadcast Groups](docs-site/content/guides/broadcasts.mdx).
+Groups admin UI — see [Broadcast Groups](docs-site/content/guides/broadcast-groups.mdx).
 
 ## Extension hooks (`core/src/extensions/`)
 

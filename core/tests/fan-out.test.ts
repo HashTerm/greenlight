@@ -78,14 +78,6 @@ describe('fan-out API', () => {
     expect(res.status).not.toBe(404)
   })
 
-  it('returns 404 for GET /v1/broadcast-groups without enterprise license', async () => {
-    const app = createApp()
-    const res = await app.request('/v1/broadcast-groups', {
-      headers: { 'X-API-Key': 'agent-api-key' },
-    })
-    expect(res.status).toBe(404)
-  })
-
   it('registers GET /v1/broadcast-batches/{broadcast_batch_id}', async () => {
     const app = createApp()
     const wrongPath = await app.request('/v1/broadcast-batches-extra/brd_test', {
@@ -97,5 +89,21 @@ describe('fan-out API', () => {
       headers: { 'X-API-Key': 'agent-api-key' },
     })
     expect(res.status).not.toBe(404)
+  })
+
+  it('returns 403 for GET /v1/broadcast-batches without broadcast_batches:read', async () => {
+    const app = createApp()
+    const res = await app.request('/v1/broadcast-batches/brd_test', {
+      headers: { 'X-API-Key': 'agent-only-key' },
+    })
+    expect(res.status).toBe(403)
+  })
+
+  it('returns 404 for GET /v1/broadcast-groups without enterprise license', async () => {
+    const app = createApp()
+    const res = await app.request('/v1/broadcast-groups', {
+      headers: { 'X-API-Key': 'broadcast-test-key' },
+    })
+    expect(res.status).toBe(404)
   })
 })

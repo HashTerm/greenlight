@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
-import { BroadcastGroupIdLink, BroadcastIdLink } from '@/components/broadcast-link'
+import { BroadcastGroupIdLink, BroadcastIdLink } from '@/components/broadcast-group-link'
 import {
   Table,
   TableBody,

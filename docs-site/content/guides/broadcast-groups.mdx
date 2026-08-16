@@ -45,6 +45,9 @@ Mode is snapshotted on each prompt row as `broadcast_answer_mode` at send time.
 
 ## Broadcast groups API
 
+Requires `broadcast_groups` license and API scopes: `broadcast_groups:read` for list/get,
+`broadcast_groups:write` for create/update/delete. Not included in `agent` or `readonly` presets.
+
 ```http
 GET /v1/broadcast-groups
 POST /v1/broadcast-groups
@@ -123,6 +126,8 @@ Messages omit `prompt_answer_mode`:
 ```
 
 ## Fan-out batch detail
+
+Requires `broadcast_batches:read` (not `prompts:read` or `messages:read`).
 
 ```http
 GET /v1/broadcast-batches/{broadcast_batch_id}

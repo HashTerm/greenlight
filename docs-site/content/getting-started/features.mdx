@@ -24,10 +24,10 @@ prompts, and callback URLs.
   See [Callbacks](/guides/callbacks).
 - **Multi-channel fan-out** — send one prompt or message to many channels via API
   (`broadcast_group` inline object); Enterprise adds saved broadcast groups and
-  admin UI. See [Broadcast Groups](/guides/broadcasts).
+  admin UI. See [Broadcast Groups](/guides/broadcast-groups).
 - **Bidirectional chat on MESSAGE channels** — inbound messages forward to your
   `callback_url`; replies go out with `POST /v1/messages/send`.
-- **Admin UI** — manage channels, prompts, and messages; view dashboard stats;
+- **Admin UI** — manage prompts, messages, and channels; view dashboard stats;
   configure data retention; send messages on MESSAGE channels.
 - **Automation-friendly HTTP API** — works with n8n, Zapier, Make, Pipedream,
   and similar tools with no Greenlight plugin. See
@@ -137,4 +137,4 @@ sequenceDiagram
 | Call the API from an agent         | [Agent integration](/guides/agent-integration)       |
 | Wire n8n, Zapier, Make, or similar | [Automation platforms](/guides/automation-platforms) |
 | Register and manage channels       | [Channels](/guides/channels)                         |
-| Fan out prompts or messages        | [Broadcast Groups](/guides/broadcasts)               |
+| Fan out prompts or messages        | [Broadcast Groups](/guides/broadcast-groups)               |

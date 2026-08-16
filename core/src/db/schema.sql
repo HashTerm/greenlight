@@ -454,3 +454,7 @@ BEGIN
   END IF;
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
+
+UPDATE api_keys
+SET scopes = array_replace(scopes, 'audit:read', 'audit_log:read')
+WHERE 'audit:read' = ANY(scopes);

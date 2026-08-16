@@ -1,7 +1,8 @@
 # Admin UI
 
-The optional **greenlight-ui** Next.js app manages channels, prompts, and
-dashboard stats. It talks to the core API server-side with a scoped
+The optional **greenlight-ui** Next.js app manages prompts, messages, and
+channels plus dashboard stats. Enterprise adds broadcast groups, audit log, and
+settings. It talks to the core API server-side with a scoped
 `X-API-Key` (`GREENLIGHT_API_KEY`).
 
 **Community self-host:** one super admin account created at `/setup`; no org
@@ -32,10 +33,11 @@ Then visit `/setup` again.
 | `/setup`     | First-run admin creation             |
 | `/login`     | Sign in                              |
 | `/dashboard` | Health and prompt stats              |
-| `/channels`  | Register / list / delete channels    |
-| `/messages`  | MESSAGE channel history and send     |
 | `/prompts`   | Create prompts and view history      |
+| `/messages`  | MESSAGE channel history and send     |
+| `/channels`  | Register / list / delete channels    |
 | `/broadcast-groups`| Broadcast groups (Enterprise)        |
+| `/audit-log` | Audit log (Enterprise)               |
 | `/settings`  | Connectivity, retention, and account |
 
 ## Register a channel in the UI
@@ -63,7 +65,7 @@ from the dropdown (answer mode comes from the group — not chosen on send).
 2. Optionally set `callback_url`, TTL, and allow free-text replies
 
 Multi-channel inline fan-out is **API only** — not available in the web UI.
-See [Broadcast Groups](/guides/broadcasts).
+See [Broadcast Groups](/guides/broadcast-groups).
 
 ## Send a message in the UI
 

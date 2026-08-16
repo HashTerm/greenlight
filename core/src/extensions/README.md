@@ -9,11 +9,11 @@ output of this folder.
 | File              | Role                                                                                     |
 | ----------------- | ---------------------------------------------------------------------------------------- |
 | `license-gate.ts` | `licenseGate.isEnabled(feature)` — always `false` in community                           |
-| `audit.ts`        | `recordAuditEvent(event)` — no-op in community                                           |
+| `audit-log.ts`    | `recordAuditEvent(event)` — no-op in community                                           |
 | `register.ts`     | `registerEnterpriseRoutes(app)`, `onEnterpriseBoot()` — no-ops in community              |
 | `core-host.ts`    | Stable re-exports for injected enterprise (`requireScope`, `withClient`, org resolution) |
 
-Enterprise-only modules (`members.ts`, `sso.ts`, `license.ts`, route handlers, etc.) live in
+Enterprise-only modules (`members.ts`, `single-sign-on.ts`, `license.ts`, route handlers, etc.) live in
 `greenlight-platform/enterprise/src/extensions/` and are overlaid at licensed image build time.
 
 Injected enterprise code must import core APIs from `./core-host.js` only — not `../core/` or `../api/`.

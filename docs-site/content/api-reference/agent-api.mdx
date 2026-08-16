@@ -15,7 +15,7 @@ replacement keys via `POST /v1/keys/new` and revoke the bootstrap key.
 
 | Verb       | Paths                                                                | Meaning                                    |
 | ---------- | -------------------------------------------------------------------- | ------------------------------------------ |
-| **`new`**  | `POST /v1/channels/new`, `POST /v1/prompts/new`, `POST /v1/keys/new` | Create a **durable resource**              |
+| **`new`**  | `POST /v1/prompts/new`, `POST /v1/channels/new`, `POST /v1/keys/new` | Create a **durable resource**              |
 | **`send`** | `POST /v1/messages/send`                                             | Deliver **chat text** on a MESSAGE channel |
 
 ## Scopes
@@ -26,23 +26,27 @@ all permissions.
 | Scope            | Routes                                                    |
 | ---------------- | --------------------------------------------------------- |
 | `status:read`    | `GET /v1/status`                                          |
-| `settings:read`  | `GET /v1/settings`                                        |
-| `settings:write` | `PATCH /v1/settings`                                      |
 | `keys:read`      | `GET /v1/keys`, `GET /v1/keys/{id}`                       |
 | `keys:write`     | `POST /v1/keys/new`, `DELETE /v1/keys/{id}`               |
+| `prompts:read`   | `GET /v1/prompts`, `GET /v1/prompts/{id}` |
+| `prompts:write`  | `POST /v1/prompts/new`                                    |
+| `messages:read`  | `GET /v1/messages`, `GET /v1/messages/{id}` |
+| `messages:send`  | `POST /v1/messages/send`                                  |
 | `channels:read`  | `GET /v1/channels`                                        |
 | `channels:write` | `POST /v1/channels/new`, `PATCH/DELETE /v1/channels/{id}` |
-| `prompts:read`   | `GET /v1/prompts`, `GET /v1/prompts/{id}`, `GET /v1/broadcast-batches/{broadcast_batch_id}` |
-| `prompts:write`  | `POST /v1/prompts/new`                                    |
-| `messages:read`  | `GET /v1/messages`, `GET /v1/messages/{id}`, `GET /v1/broadcast-batches/{broadcast_batch_id}` |
-| `messages:send`  | `POST /v1/messages/send`                                  |
+| `broadcast_groups:read` | `GET /v1/broadcast-groups`, `GET /v1/broadcast-groups/{broadcast_group_id}` (Enterprise) |
+| `broadcast_groups:write` | `POST/PATCH/DELETE /v1/broadcast-groups*` (Enterprise) |
+| `broadcast_batches:read` | `GET /v1/broadcast-batches/{broadcast_batch_id}` |
+| `audit_log:read` | `GET /v1/audit-log`, `GET /v1/audit-log/export` (Enterprise) |
+| `settings:read`  | `GET /v1/settings`                                        |
+| `settings:write` | `PATCH /v1/settings`                                      |
 | `admin`          | All of the above                                          |
 
 **Presets** (for `POST /v1/keys/new`):
 
 - `admin` → `['admin']`
-- `agent` → channels, prompts, messages read+write (no settings/keys/status)
-- `readonly` → all `*:read` scopes including `status:read`
+- `agent` → prompts, messages, channels read+write (no settings/keys/status/broadcast group scopes)
+- `readonly` → all `*:read` scopes including `status:read` (no `broadcast_groups:*` or `broadcast_batches:read`)
 
 ## Endpoints
 
@@ -50,8 +54,6 @@ all permissions.
 | -------- | ------------------- | ---------------- | ----------------------------------- |
 | `GET`    | `/healthz`          | —                | Health check (**no auth**)          |
 | `GET`    | `/v1/status`        | `status:read`    | Operator status / dashboard         |
-| `GET`    | `/v1/settings`      | `settings:read`  | Retention settings                  |
-| `PATCH`  | `/v1/settings`      | `settings:write` | Update retention settings           |
 | `GET`    | `/v1/keys`          | `keys:read`      | List API keys                       |
 | `GET`    | `/v1/keys/{id}`     | `keys:read`      | Get API key metadata                |
 | `POST`   | `/v1/keys/new`      | `keys:write`     | Create API key (plaintext once)     |
@@ -59,19 +61,21 @@ all permissions.
 | `POST`   | `/v1/prompts/new`   | `prompts:write`  | Create a prompt (JSON or multipart) |
 | `GET`    | `/v1/prompts`       | `prompts:read`   | List prompts (`state` filter)       |
 | `GET`    | `/v1/prompts/{id}`  | `prompts:read`   | Get prompt (`%23123` for `#123`)    |
+| `GET`    | `/v1/messages`           | `messages:read`  | List message history                |
+| `GET`    | `/v1/messages/{id}`      | `messages:read`  | Get message by UUID                 |
+| `POST`   | `/v1/messages/send`      | `messages:send`  | Send chat text on MESSAGE channel   |
 | `POST`   | `/v1/channels/new`  | `channels:write` | Create a channel                    |
 | `GET`    | `/v1/channels`      | `channels:read`  | List channels (filters)             |
 | `PATCH`  | `/v1/channels/{id}` | `channels:write` | Update a channel                    |
 | `DELETE` | `/v1/channels/{id}` | `channels:write` | Unregister channel                  |
-| `GET`    | `/v1/messages`           | `messages:read`  | List message history                |
-| `GET`    | `/v1/messages/{id}`      | `messages:read`  | Get message by UUID                 |
-| `POST`   | `/v1/messages/send`      | `messages:send`  | Send chat text on MESSAGE channel   |
-| `GET`    | `/v1/broadcast-groups`   | `prompts:read` or `messages:read` | List saved broadcast groups (Enterprise) |
-| `POST`   | `/v1/broadcast-groups`   | `prompts:write` or `messages:write` | Create broadcast group (Enterprise) |
-| `GET`    | `/v1/broadcast-groups/{broadcast_group_id}` | `prompts:read` or `messages:read` | Get broadcast group (Enterprise) |
-| `PATCH`  | `/v1/broadcast-groups/{broadcast_group_id}` | `prompts:write` or `messages:write` | Update broadcast group (Enterprise) |
-| `DELETE` | `/v1/broadcast-groups/{broadcast_group_id}` | `prompts:write` or `messages:write` | Delete broadcast group (Enterprise) |
-| `GET`    | `/v1/broadcast-batches/{broadcast_batch_id}` | `prompts:read` or `messages:read` | Fan-out batch detail |
+| `GET`    | `/v1/broadcast-groups`   | `broadcast_groups:read` | List saved broadcast groups (Enterprise) |
+| `POST`   | `/v1/broadcast-groups`   | `broadcast_groups:write` | Create broadcast group (Enterprise) |
+| `GET`    | `/v1/broadcast-groups/{broadcast_group_id}` | `broadcast_groups:read` | Get broadcast group (Enterprise) |
+| `PATCH`  | `/v1/broadcast-groups/{broadcast_group_id}` | `broadcast_groups:write` | Update broadcast group (Enterprise) |
+| `DELETE` | `/v1/broadcast-groups/{broadcast_group_id}` | `broadcast_groups:write` | Delete broadcast group (Enterprise) |
+| `GET`    | `/v1/broadcast-batches/{broadcast_batch_id}` | `broadcast_batches:read` | Fan-out batch detail |
+| `GET`    | `/v1/settings`      | `settings:read`  | Retention settings                  |
+| `PATCH`  | `/v1/settings`      | `settings:write` | Update retention settings           |
 
 Platforms: `telegram`, `slack`, `teams`, `discord`, `gchat`, `whatsapp`,
 `messenger`.
@@ -121,7 +125,7 @@ API key metadata plus `key` (plaintext, shown once).
 Accepts **`application/json`** or **`multipart/form-data`**.
 
 Provide **exactly one** send target: `channel_id`, `broadcast_group_id` (Enterprise),
-or inline `broadcast_group` (API only — see [Broadcast Groups](/guides/broadcasts)).
+or inline `broadcast_group` (API only — see [Broadcast Groups](/guides/broadcast-groups)).
 
 ### JSON body
 
@@ -302,7 +306,7 @@ Requires Enterprise license with the **broadcast_groups** feature. Community ret
 | `PATCH`  | `/v1/broadcast-groups/{broadcast_group_id}`  | `name`, `channel_ids`, `prompt_answer_mode`       |
 | `DELETE` | `/v1/broadcast-groups/{broadcast_group_id}`  |                                                   |
 
-See [Broadcast Groups](/guides/broadcasts) for examples and edition scope.
+See [Broadcast Groups](/guides/broadcast-groups) for examples and edition scope.
 
 ## `GET /v1/broadcast-batches/{broadcast_batch_id}`
 
@@ -310,7 +314,7 @@ Returns batch summary plus per-channel `prompts` and `messages` arrays. Prompt
 batches include `broadcast_batch_status` (`COLLECTING`, `RESOLVED`, `CONFLICT`,
 `EXPIRED`).
 
-Narrative: [Broadcast Groups](/guides/broadcasts).
+Narrative: [Broadcast Groups](/guides/broadcast-groups).
 
 ## Common errors
 

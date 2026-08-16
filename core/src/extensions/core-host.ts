@@ -20,7 +20,7 @@ export {
   getAuditEventContext,
   type AuditActor,
   type AuditEventContext,
-} from '../api/middleware/audit-actor.js'
+} from '../api/middleware/audit-log-actor.js'
 export { withClient } from '../db/client.js'
 
 export function resolveRequestOrganizationId(c: Context): string {

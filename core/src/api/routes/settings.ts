@@ -4,8 +4,8 @@ import { z } from 'zod'
 import { getRetentionSettings, updateRetentionSettings } from '../../services/settings/service.js'
 import { requireScope } from '../middleware/require-scope.js'
 import { getApiKeyId } from '../middleware/auth.js'
-import { recordAuditEvent } from '../../extensions/audit.js'
-import { getAuditEventContext } from '../middleware/audit-actor.js'
+import { recordAuditEvent } from '../../extensions/audit-log.js'
+import { getAuditEventContext } from '../middleware/audit-log-actor.js'
 import { getOrganizationId } from '../middleware/org-context.js'
 
 const patchSchema = z.object({

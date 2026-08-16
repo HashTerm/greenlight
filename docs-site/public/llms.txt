@@ -11,7 +11,7 @@ Greenlight is source-available under BUSL-1.1 (not OSI open source until the Cha
 - [Features & benefits](/getting-started/features): Capabilities, multi-workflow channels, limitations
 - [Concepts](/getting-started/concepts): PROMPT vs MESSAGE, auth layers, platform adapters
 - [Editions & admin identity](/getting-started/editions): Self-host vs enterprise vs cloud; repo boundaries
-- [Admin UI](/getting-started/admin-ui): Setup, channels, prompts, messages, retention settings
+- [Admin UI](/getting-started/admin-ui): Setup, prompts, messages, channels, broadcast groups, audit log, retention settings
 - [Docker](/self-hosting/docker): Self-host Compose and Swarm
 - [Dokploy](/self-hosting/dokploy): Deploy with Dokploy
 - [Coolify](/self-hosting/coolify): Deploy with Coolify

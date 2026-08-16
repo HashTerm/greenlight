@@ -4,8 +4,8 @@ import { zValidator } from '@hono/zod-validator'
 import { z } from 'zod'
 import { licenseGate } from '../../extensions/license-gate.js'
 import { requireScope } from '../middleware/require-scope.js'
-import { recordAuditEvent } from '../../extensions/audit.js'
-import { getAuditEventContext } from '../middleware/audit-actor.js'
+import { recordAuditEvent } from '../../extensions/audit-log.js'
+import { getAuditEventContext } from '../middleware/audit-log-actor.js'
 import { getOrganizationId } from '../middleware/org-context.js'
 import { ValueError } from '../../core/security.js'
 import {
@@ -55,7 +55,7 @@ function broadcastGate(c: Context): Response | null {
 
 broadcastGroupRoutes.get(
   '/broadcast-groups',
-  requireScope('prompts:read', 'messages:read'),
+  requireScope('broadcast_groups:read'),
   zValidator('query', listQuerySchema),
   async (c) => {
     const blocked = broadcastGate(c)
@@ -69,7 +69,7 @@ broadcastGroupRoutes.get(
 
 broadcastGroupRoutes.post(
   '/broadcast-groups',
-  requireScope('prompts:write', 'messages:send'),
+  requireScope('broadcast_groups:write'),
   zValidator('json', createSchema),
   async (c) => {
     const blocked = broadcastGate(c)
@@ -104,7 +104,7 @@ broadcastGroupRoutes.post(
 
 broadcastGroupRoutes.get(
   '/broadcast-groups/:broadcast_group_id',
-  requireScope('prompts:read', 'messages:read'),
+  requireScope('broadcast_groups:read'),
   async (c) => {
     const blocked = broadcastGate(c)
     if (blocked) return blocked
@@ -120,7 +120,7 @@ broadcastGroupRoutes.get(
 
 broadcastGroupRoutes.patch(
   '/broadcast-groups/:broadcast_group_id',
-  requireScope('prompts:write', 'messages:send'),
+  requireScope('broadcast_groups:write'),
   zValidator('json', updateSchema),
   async (c) => {
     const blocked = broadcastGate(c)
@@ -159,7 +159,7 @@ broadcastGroupRoutes.patch(
 
 broadcastGroupRoutes.delete(
   '/broadcast-groups/:broadcast_group_id',
-  requireScope('prompts:write', 'messages:send'),
+  requireScope('broadcast_groups:write'),
   async (c) => {
     const blocked = broadcastGate(c)
     if (blocked) return blocked

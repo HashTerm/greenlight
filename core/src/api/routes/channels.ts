@@ -13,8 +13,8 @@ import {
 import { ValueError } from '../../core/security.js'
 import { createChannelSchema, updateChannelSchema } from '../../services/channels/schemas.js'
 import { requireScope } from '../middleware/require-scope.js'
-import { recordAuditEvent } from '../../extensions/audit.js'
-import { getAuditEventContext } from '../middleware/audit-actor.js'
+import { recordAuditEvent } from '../../extensions/audit-log.js'
+import { getAuditEventContext } from '../middleware/audit-log-actor.js'
 import { getOrganizationId } from '../middleware/org-context.js'
 
 const listQuerySchema = z.object({

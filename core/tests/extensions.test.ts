@@ -47,7 +47,7 @@ describe('community extension stubs', () => {
 
   it('does not register enterprise routes', async () => {
     const app = createApp()
-    const res = await app.request('/v1/audit', {
+    const res = await app.request('/v1/audit-log', {
       headers: { 'X-API-Key': 'agent-api-key' },
     })
     expect(res.status).toBe(404)

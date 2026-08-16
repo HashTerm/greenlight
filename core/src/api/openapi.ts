@@ -4,7 +4,7 @@
  * Also synced into docs-site/public/openapi.json.
  */
 export function getOpenApiDocument(): Record<string, unknown> {
-  return {
+  const doc = {
     openapi: '3.0.3',
     info: {
       title: 'Greenlight — Multi-Platform Prompt & Channel Gateway',
@@ -741,6 +741,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
         get: {
           tags: ['Broadcast groups'],
           summary: 'List broadcast groups (Enterprise)',
+          description: 'Requires `broadcast_groups` license and `broadcast_groups:read` scope.',
           security: [{ ApiKeyAuth: [] }],
           parameters: [
             {
@@ -772,6 +773,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
         post: {
           tags: ['Broadcast groups'],
           summary: 'Create broadcast group (Enterprise)',
+          description: 'Requires `broadcast_groups` license and `broadcast_groups:write` scope.',
           security: [{ ApiKeyAuth: [] }],
           requestBody: {
             required: true,
@@ -798,6 +800,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
         get: {
           tags: ['Broadcast groups'],
           summary: 'Get broadcast group (Enterprise)',
+          description: 'Requires `broadcast_groups` license and `broadcast_groups:read` scope.',
           security: [{ ApiKeyAuth: [] }],
           parameters: [
             {
@@ -821,6 +824,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
         patch: {
           tags: ['Broadcast groups'],
           summary: 'Update broadcast group (Enterprise)',
+          description: 'Requires `broadcast_groups` license and `broadcast_groups:write` scope.',
           security: [{ ApiKeyAuth: [] }],
           parameters: [
             {
@@ -852,6 +856,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
         delete: {
           tags: ['Broadcast groups'],
           summary: 'Delete broadcast group (Enterprise)',
+          description: 'Requires `broadcast_groups` license and `broadcast_groups:write` scope.',
           security: [{ ApiKeyAuth: [] }],
           parameters: [
             {
@@ -872,7 +877,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
           tags: ['Broadcast batches'],
           summary: 'Get fan-out batch',
           description:
-            'Returns batch summary and per-channel prompt or message rows for one fan-out send (broadcast_batch_id / brd_…).',
+            'Returns batch summary and per-channel prompt or message rows for one fan-out send (broadcast_batch_id / brd_…). Requires `broadcast_batches:read` scope.',
           security: [{ ApiKeyAuth: [] }],
           parameters: [
             {
@@ -1606,4 +1611,39 @@ export function getOpenApiDocument(): Record<string, unknown> {
       },
     },
   }
+  const paths = doc.paths as Record<string, unknown>
+  doc.paths = orderOpenApiPaths(paths)
+  return doc
+}
+
+const OPENAPI_PATH_ORDER = [
+  '/healthz',
+  '/v1/prompts',
+  '/v1/prompts/new',
+  '/v1/prompts/{id}',
+  '/v1/messages',
+  '/v1/messages/send',
+  '/v1/messages/{id}',
+  '/v1/channels',
+  '/v1/channels/new',
+  '/v1/channels/{id}',
+  '/v1/broadcast-groups',
+  '/v1/broadcast-groups/{broadcast_group_id}',
+  '/v1/broadcast-batches/{broadcast_batch_id}',
+  '/v1/status',
+  '/v1/settings',
+  '/v1/keys',
+  '/v1/keys/new',
+  '/v1/keys/{id}',
+]
+
+function orderOpenApiPaths(paths: Record<string, unknown>): Record<string, unknown> {
+  const ordered: Record<string, unknown> = {}
+  for (const key of OPENAPI_PATH_ORDER) {
+    if (key in paths) ordered[key] = paths[key]
+  }
+  for (const key of Object.keys(paths)) {
+    if (!(key in ordered)) ordered[key] = paths[key]
+  }
+  return ordered
 }
