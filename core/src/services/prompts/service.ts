@@ -7,8 +7,9 @@ import type { PromptListState } from './models.js'
 import * as promptModels from './models.js'
 import { ensureBotForChannel, postToChat } from '../../chat/bot-manager.js'
 import { buildPromptCard } from '../../chat/prompt-card.js'
+import * as pendingText from './pending-text.js'
 import { loadConfig } from '../../core/config.js'
-import { maxPromptOptionsForPlatform } from '../../core/platform.js'
+import { maxPromptOptionsForPlatform, maxPromptOptionLabelsForPlatform } from '../../core/platform.js'
 
 export interface CreatePromptInput {
   organizationId: string
@@ -70,9 +71,18 @@ export async function createAndPostPrompt(
     }
 
     const options = input.options ?? []
-    const optionLimit = maxPromptOptionsForPlatform(channel.platform)
-    if (optionLimit !== null && options.length > optionLimit) {
-      throw new ValueError(`${channel.platform} supports at most ${optionLimit} prompt options`)
+    const allowText = input.allowText ?? false
+    const optionLabelLimit = maxPromptOptionLabelsForPlatform(channel.platform, allowText)
+    const buttonLimit = maxPromptOptionsForPlatform(channel.platform)
+    if (buttonLimit !== null && options.length + (allowText ? 1 : 0) > buttonLimit) {
+      throw new ValueError(
+        `${channel.platform} supports at most ${buttonLimit} buttons; with allow_text only ${buttonLimit - 1} option labels allowed`,
+      )
+    }
+    if (optionLabelLimit !== null && options.length > optionLabelLimit) {
+      throw new ValueError(
+        `${channel.platform} supports at most ${optionLabelLimit} prompt options when allow_text is enabled`,
+      )
     }
 
     const ttlSec = input.ttlSec ?? 3600
@@ -83,7 +93,7 @@ export async function createAndPostPrompt(
       text: input.text,
       mediaUrl: input.mediaUrl ?? input.mediaPath ?? null,
       options,
-      allowText: input.allowText ?? false,
+      allowText,
       callbackUrl: input.callbackUrl ?? null,
       correlationId: input.correlationId ?? null,
       ttlSec,
@@ -100,7 +110,7 @@ export async function createAndPostPrompt(
 
     await ensureBotForChannel(channel)
 
-    const card = buildPromptCard(promptId, input.text, cardOptions)
+    const card = buildPromptCard(promptId, input.text, cardOptions, allowText)
     let messageToSend: unknown = card
 
     if (input.mediaFile) {
@@ -165,5 +175,9 @@ export async function listPrompts(organizationId: string, state: PromptListState
 }
 
 export async function expirePrompts(): Promise<number> {
-  return withClient((client) => promptModels.expireOld(client))
+  return withClient(async (client) => {
+    const expired = await promptModels.expireOld(client)
+    await pendingText.deleteExpiredPendingTextReplies(client)
+    return expired
+  })
 }

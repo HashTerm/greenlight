@@ -39,6 +39,10 @@ const envSchema = z
     CHANNEL_OFFLINE_NOTIFICATION: z
       .string()
       .default('Assistant offline, could not deliver message.'),
+    TEXT_REPLY_ARM_TTL_SEC: z
+      .string()
+      .optional()
+      .transform((v) => (v ? Number(v) : 900)),
     PORT: z
       .string()
       .optional()

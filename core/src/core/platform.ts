@@ -70,3 +70,13 @@ export function maxPromptOptionsForPlatform(platform: Platform): number | null {
   if (platform === 'whatsapp' || platform === 'messenger') return 3
   return null
 }
+
+/** Max option labels when allow_text reserves a Type answer button. */
+export function maxPromptOptionLabelsForPlatform(
+  platform: Platform,
+  allowText: boolean,
+): number | null {
+  const limit = maxPromptOptionsForPlatform(platform)
+  if (limit === null) return null
+  return allowText ? limit - 1 : limit
+}

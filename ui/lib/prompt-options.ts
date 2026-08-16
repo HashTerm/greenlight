@@ -11,14 +11,28 @@ export function maxPromptOptionsForPlatform(platform: Platform | null): number |
   return DEFAULT_MAX_PROMPT_OPTIONS
 }
 
-export function promptOptionsFieldLabel(platform: Platform | null): string {
+/** Max option labels when allow_text reserves a Type answer button. */
+export function maxPromptOptionLabelsForPlatform(
+  platform: Platform | null,
+  allowText: boolean,
+): number | null {
+  if (!platform || !allowText) return maxPromptOptionsForPlatform(platform)
+  if (platform === 'whatsapp' || platform === 'messenger') return 2
+  return maxPromptOptionsForPlatform(platform)
+}
+
+export function promptOptionsFieldLabel(platform: Platform | null, allowText = false): string {
   if (!platform) return 'Options'
 
-  const max = maxPromptOptionsForPlatform(platform)
+  const max = maxPromptOptionLabelsForPlatform(platform, allowText)
   if (max === null) return 'Options'
 
   const { label } = getPlatformBrand(platform)
-  return `Options (max ${max} on ${label})`
+  const typeAnswerNote =
+    allowText && (platform === 'whatsapp' || platform === 'messenger')
+      ? ' — Type answer uses one button'
+      : ''
+  return `Options (max ${max}${typeAnswerNote} on ${label})`
 }
 
 export function countFilledPromptOptions(options: string[]): number {

@@ -33,6 +33,20 @@ CREATE TABLE IF NOT EXISTS prompt_options (
   PRIMARY KEY (prompt_id, option_id)
 );
 
+CREATE INDEX IF NOT EXISTS idx_prompt_options_prompt ON prompt_options(prompt_id);
+
+CREATE TABLE IF NOT EXISTS pending_text_replies (
+  organization_id TEXT NOT NULL,
+  chat_id TEXT NOT NULL,
+  user_id BIGINT NOT NULL,
+  prompt_id TEXT NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (organization_id, chat_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_pending_text_replies_expires ON pending_text_replies(expires_at);
+
 CREATE TABLE IF NOT EXISTS channels (
   organization_id TEXT NOT NULL,
   channel_id TEXT NOT NULL,

@@ -17,12 +17,14 @@ import type { Platform } from '@/lib/platform-fields'
 import { getPlatformBrand } from '@/lib/brand-icons'
 
 type PromptOptionsFieldProps = {
+  allowText?: boolean
   maxOptions: number | null
   onOverLimitChange?: (overLimit: boolean) => void
   platform: Platform | null
 }
 
 export function PromptOptionsField({
+  allowText = false,
   maxOptions,
   onOverLimitChange,
   platform,
@@ -54,7 +56,7 @@ export function PromptOptionsField({
 
   return (
     <div className="space-y-2">
-      <Label>{promptOptionsFieldLabel(platform)}</Label>
+      <Label>{promptOptionsFieldLabel(platform, allowText)}</Label>
       {options.length > 0 && (
         <div className="space-y-2">
           {options.map((option, index) => (

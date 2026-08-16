@@ -3,6 +3,7 @@ import { createApp } from './api/app.js'
 import { loadConfig } from './core/config.js'
 import { migrate, closePool, withClient } from './db/client.js'
 import * as promptModels from './services/prompts/models.js'
+import { deleteExpiredPendingTextReplies } from './services/prompts/pending-text.js'
 import { shutdownAllBots } from './chat/bot-manager.js'
 import { restoreChannelsOnStartup } from './services/channels/service.js'
 import { expirePrompts } from './services/prompts/service.js'
@@ -26,7 +27,10 @@ async function bootstrap(): Promise<void> {
   await onEnterpriseBoot()
 
   if (config.CLEAN_ON_BOOT) {
-    await withClient((client) => promptModels.cleanOnBoot(client))
+    await withClient(async (client) => {
+      await promptModels.cleanOnBoot(client)
+      await deleteExpiredPendingTextReplies(client)
+    })
   }
 
   await restoreChannelsOnStartup()

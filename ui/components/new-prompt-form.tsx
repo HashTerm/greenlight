@@ -17,7 +17,7 @@ import {
   PROMPT_CALLBACK_URL_PLACEHOLDER,
   PROMPT_TEXT_PLACEHOLDER,
 } from '@/lib/form-placeholders'
-import { maxPromptOptionsForPlatform } from '@/lib/prompt-options'
+import { maxPromptOptionLabelsForPlatform } from '@/lib/prompt-options'
 import type { Platform } from '@/lib/platform-fields'
 
 type NewPromptFormProps = {
@@ -27,11 +27,12 @@ type NewPromptFormProps = {
 
 export function NewPromptForm({ channels, hasPromptChannels }: NewPromptFormProps) {
   const [selectedChannelId, setSelectedChannelId] = useState(channels[0]?.channel_id ?? '')
+  const [allowText, setAllowText] = useState(false)
   const [optionsOverLimit, setOptionsOverLimit] = useState(false)
 
   const selectedChannel = channels.find((channel) => channel.channel_id === selectedChannelId)
   const platform = (selectedChannel?.platform as Platform | undefined) ?? null
-  const maxOptions = maxPromptOptionsForPlatform(platform)
+  const maxOptions = maxPromptOptionLabelsForPlatform(platform, allowText)
 
   return (
     <form action={createPromptAction} className="space-y-4">
@@ -64,14 +65,24 @@ export function NewPromptForm({ channels, hasPromptChannels }: NewPromptFormProp
         </p>
       </div>
       <PromptOptionsField
+        allowText={allowText}
         maxOptions={maxOptions}
         platform={platform}
         onOverLimitChange={setOptionsOverLimit}
       />
       <div className="flex items-center gap-2">
-        <input id="allow_text" name="allow_text" type="checkbox" />
+        <input
+          id="allow_text"
+          name="allow_text"
+          type="checkbox"
+          onChange={(event) => setAllowText(event.target.checked)}
+        />
         <Label htmlFor="allow_text">Allow free-text reply</Label>
       </div>
+      <p className="text-sm text-muted-foreground">
+        Adds a <strong>Type answer</strong> button; the user&apos;s next message is recorded as the
+        answer. On WhatsApp and Messenger, only two option labels are allowed when this is enabled.
+      </p>
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="callback_url">Callback URL</Label>

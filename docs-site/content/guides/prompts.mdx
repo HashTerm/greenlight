@@ -37,13 +37,22 @@ Default content type for uploads is `image/jpeg`. Max size is governed by
 
 ## Text replies
 
-When `allow_text` is true, humans can reply in the chat with:
+When `allow_text` is true, prompts include a **Type answer** button. The user taps it,
+then sends any plain message — Greenlight records that message as the answer for that
+prompt (no `ID:#n` prefix required). One armed text session per user per chat; tapping
+Type answer on another prompt switches the target.
+
+Power-user syntax is still supported:
 
 ```
 ID:#123 my free-text answer
 ```
 
-Also accepted: `ID:123 …`, `ID #123 …`, `ID-123 …` (case-insensitive).
+Also accepted: `ID:123 …`, `ID #123 …`, `ID-123 …` (case-insensitive). This overrides an
+armed text session when both are active.
+
+On WhatsApp and Messenger, `allow_text` reserves one button slot — use at most **two**
+option labels (three buttons total including Type answer).
 
 Greenlight records `answer.type = "text"` and posts a confirmation in the thread.
 
@@ -53,6 +62,9 @@ button tap or text reply, Greenlight posts a confirmation in the thread:
 - First answer: `Recorded answer for ID:#2 Approve`
 - Repeat tap on the same prompt: `Already answered for ID:#2: Approve` (no duplicate callback)
 - Expired prompt: `Prompt expired for ID:#2`
+
+Arbitrary plain text on a PROMPT channel (without Type answer or `ID:#n`) is still
+ignored — use a MESSAGE channel for free chat.
 
 ## States
 

@@ -107,14 +107,14 @@ sequenceDiagram
 
 | Type        | Verb   | Agent → human            | Human → agent                                   | Callback                                 |
 | ----------- | ------ | ------------------------ | ----------------------------------------------- | ---------------------------------------- |
-| **PROMPT**  | `new`  | `POST /v1/prompts/new`   | Prompt answers only (buttons or `ID:#123` text) | Per-prompt `callback_url` (signed)       |
+| **PROMPT**  | `new`  | `POST /v1/prompts/new`   | Buttons, Type answer, or `ID:#123` text         | Per-prompt `callback_url` (signed)       |
 | **MESSAGE** | `send` | `POST /v1/messages/send` | Any chat text                                   | Single channel `callback_url` (unsigned) |
 
 ## Limitations
 
 - **MESSAGE inbound is not multi-subscriber** — one `callback_url` per channel.
 - **PROMPT is not a general chat router** — arbitrary text on a PROMPT channel is
-  ignored unless it matches a pending prompt reply format.
+  ignored unless the user taps **Type answer** or uses `ID:#n` text syntax.
 - **No agent registry** — Greenlight does not store workflow or agent IDs; you
   manage ownership and routing in your own stack via `channel_id`,
   `correlation_id`, and callback URLs.

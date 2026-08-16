@@ -6,6 +6,7 @@ import {
   resolvePlatformChannelId,
   parseThreadChannelId,
   maxPromptOptionsForPlatform,
+  maxPromptOptionLabelsForPlatform,
 } from '../src/core/platform.js'
 
 describe('channel schemas', () => {
@@ -172,5 +173,8 @@ describe('platform helpers', () => {
     expect(maxPromptOptionsForPlatform('whatsapp')).toBe(3)
     expect(maxPromptOptionsForPlatform('messenger')).toBe(3)
     expect(maxPromptOptionsForPlatform('slack')).toBeNull()
+    expect(maxPromptOptionLabelsForPlatform('whatsapp', true)).toBe(2)
+    expect(maxPromptOptionLabelsForPlatform('whatsapp', false)).toBe(3)
+    expect(maxPromptOptionLabelsForPlatform('slack', true)).toBeNull()
   })
 })

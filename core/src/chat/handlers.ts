@@ -4,6 +4,7 @@ import { scheduleCallback, forwardChannelCallback } from '../core/callbacks.js'
 import { loadConfig } from '../core/config.js'
 import { credentialFingerprint, parseThreadChannelId, type Platform } from '../core/platform.js'
 import * as promptModels from '../services/prompts/models.js'
+import * as pendingText from '../services/prompts/pending-text.js'
 import * as channelModels from '../services/channels/models.js'
 import { recordInboundMessage } from '../services/messages/service.js'
 import { recordAuditEvent } from '../extensions/audit.js'
@@ -33,6 +34,7 @@ async function handlePromptAnswer(
     username: string | null
   },
   thread: { post: (msg: string) => Promise<unknown> } | null,
+  chatId?: string,
 ): Promise<void> {
   const result = await withClient((client) =>
     promptModels.markAnswered(client, organizationId, promptId, {
@@ -62,6 +64,12 @@ async function handlePromptAnswer(
         },
       })
 
+      if (chatId) {
+        await withClient((client) =>
+          pendingText.clearPendingTextRepliesForPrompt(client, organizationId, chatId, promptId),
+        )
+      }
+
       if (thread) {
         await thread.post(promptModels.formatRecordedReply(promptId, answer.value))
       }
@@ -86,6 +94,49 @@ async function handlePromptAnswer(
   }
 }
 
+async function handleTypeAnswerArm(
+  channel: channelModels.ChannelRow,
+  promptId: string,
+  user: { userId?: string; userName?: string; fullName?: string } | undefined,
+  thread: { post: (msg: string) => Promise<unknown> },
+): Promise<void> {
+  const userId = user?.userId ? Number(user.userId) : null
+  if (userId === null || !Number.isFinite(userId)) return
+
+  const prompt = await withClient((client) =>
+    promptModels.getPrompt(client, channel.organization_id, promptId),
+  )
+  if (!prompt?.allow_text) return
+
+  if (prompt.state === promptModels.ANSWERED) {
+    await thread.post(promptModels.formatAlreadyAnsweredReply(promptId, prompt))
+    return
+  }
+  if (prompt.state === 'EXPIRED') {
+    await thread.post(promptModels.formatExpiredPromptReply(promptId))
+    return
+  }
+  if (prompt.state !== promptModels.PENDING) return
+
+  const config = loadConfig()
+  const expiresAt = pendingText.computeTextArmExpiresAt(prompt, config.TEXT_REPLY_ARM_TTL_SEC)
+
+  const previousPromptId = await withClient((client) =>
+    pendingText.armPendingTextReply(client, {
+      organizationId: channel.organization_id,
+      chatId: channel.target_chat_id,
+      userId,
+      promptId,
+      expiresAt,
+    }),
+  )
+
+  if (previousPromptId && previousPromptId !== promptId) {
+    await thread.post(pendingText.formatTypeAnswerSwitched(previousPromptId, promptId))
+  }
+  await thread.post(pendingText.formatTypeAnswerInstruction(promptId))
+}
+
 export function wireHandlers(
   bot: Chat,
   platform: Platform,
@@ -108,6 +159,11 @@ export function wireHandlers(
     )
     if (!parsed) return
 
+    if (parsed.optionId === pendingText.TEXT_OPTION_ID) {
+      await handleTypeAnswerArm(channel, parsed.promptId, event.user, event.thread)
+      return
+    }
+
     const label = await withClient((client) =>
       promptModels.resolveOptionLabel(
         client,
@@ -128,6 +184,7 @@ export function wireHandlers(
         username: event.user?.userName ?? event.user?.fullName ?? null,
       },
       event.thread,
+      channel.target_chat_id,
     )
   })
 
@@ -164,8 +221,65 @@ export function wireHandlers(
           username: user?.userName ?? user?.fullName ?? null,
         },
         thread,
+        channel.target_chat_id,
       )
       return
+    }
+
+    if (channel.channel_type === 'PROMPT' && user?.userId) {
+      const userId = Number(user.userId)
+      if (Number.isFinite(userId)) {
+        const pending = await withClient((client) =>
+          pendingText.getPendingTextReply(
+            client,
+            channel.organization_id,
+            channel.target_chat_id,
+            userId,
+          ),
+        )
+        if (pending) {
+          await withClient((client) =>
+            pendingText.clearPendingTextReply(
+              client,
+              channel.organization_id,
+              channel.target_chat_id,
+              userId,
+            ),
+          )
+
+          const prompt = await withClient((client) =>
+            promptModels.getPrompt(client, channel.organization_id, pending.prompt_id),
+          )
+          if (!promptModels.canAcceptTextReply(prompt)) {
+            if (prompt?.state === promptModels.ANSWERED) {
+              if (thread) {
+                await thread.post(
+                  promptModels.formatAlreadyAnsweredReply(pending.prompt_id, prompt),
+                )
+              }
+            } else if (prompt?.state === 'EXPIRED') {
+              if (thread) {
+                await thread.post(promptModels.formatExpiredPromptReply(pending.prompt_id))
+              }
+            }
+            return
+          }
+
+          await handlePromptAnswer(
+            channel.organization_id,
+            pending.prompt_id,
+            {
+              type: 'text',
+              value: trimmed,
+              userId,
+              username: user?.userName ?? user?.fullName ?? null,
+            },
+            thread,
+            channel.target_chat_id,
+          )
+          return
+        }
+      }
     }
 
     if (channel.channel_type === 'MESSAGE') {
