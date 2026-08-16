@@ -43,7 +43,11 @@ describe('api key scopes', () => {
 
   it('accepts broadcast group and batch scopes', () => {
     expect(
-      normalizeScopes(['broadcast_groups:read', 'broadcast_groups:write', 'broadcast_batches:read']),
+      normalizeScopes([
+        'broadcast_groups:read',
+        'broadcast_groups:write',
+        'broadcast_batches:read',
+      ]),
     ).toEqual(['broadcast_groups:read', 'broadcast_groups:write', 'broadcast_batches:read'])
     expect(hasScope(['broadcast_batches:read'], 'broadcast_batches:read')).toBe(true)
     expect(hasScope(['broadcast_groups:read'], 'broadcast_groups:write')).toBe(false)

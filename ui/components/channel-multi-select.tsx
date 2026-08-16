@@ -23,11 +23,7 @@ function formatChannelLabel(channel: ChannelOption) {
   return `${channel.channel_id} · ${label}`
 }
 
-export function ChannelMultiSelect({
-  channels,
-  id,
-  onSelectionChange,
-}: ChannelMultiSelectProps) {
+export function ChannelMultiSelect({ channels, id, onSelectionChange }: ChannelMultiSelectProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>(
     channels[0] ? [channels[0].channel_id] : [],
   )

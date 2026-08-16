@@ -16,11 +16,7 @@ export function registerEnterpriseNav(role?: string): EnterpriseNavItem[] {
 }
 
 export type EnterpriseLicensedFeature =
-  | 'broadcast_groups'
-  | 'audit_log'
-  | 'multi_user_admin'
-  | 'role_based_access'
-  | 'single_sign_on'
+  'broadcast_groups' | 'audit_log' | 'multi_user_admin' | 'role_based_access' | 'single_sign_on'
 
 export type EnterpriseSettingsSection = {
   id: string

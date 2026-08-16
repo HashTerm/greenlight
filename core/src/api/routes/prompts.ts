@@ -23,13 +23,11 @@ const inlineBroadcastGroupPromptSchema = z.object({
   prompt_answer_mode: promptAnswerModeSchema,
 })
 
-const sendTargetRefine = (
-  data: {
-    channel_id?: string | null
-    broadcast_group?: { channel_ids: string[] } | null
-    broadcast_group_id?: string | null
-  },
-) => {
+const sendTargetRefine = (data: {
+  channel_id?: string | null
+  broadcast_group?: { channel_ids: string[] } | null
+  broadcast_group_id?: string | null
+}) => {
   const modes = [
     Boolean(data.channel_id?.trim()),
     Boolean(data.broadcast_group?.channel_ids?.length),
@@ -272,7 +270,9 @@ async function parseMultipartPrompt(c: Context): Promise<CreatePromptRequest | R
   let broadcastGroupInline: CreatePromptRequest['broadcastGroupInline'] = undefined
   if (form.broadcast_group) {
     try {
-      broadcastGroupInline = JSON.parse(String(form.broadcast_group)) as CreatePromptRequest['broadcastGroupInline']
+      broadcastGroupInline = JSON.parse(
+        String(form.broadcast_group),
+      ) as CreatePromptRequest['broadcastGroupInline']
     } catch {
       return c.json({ detail: 'Invalid JSON format for broadcast_group' }, 400)
     }
@@ -360,7 +360,8 @@ promptRoutes.get(
   requireScope('prompts:read'),
   zValidator('query', listQuerySchema),
   async (c) => {
-    const { state, limit, channel_id, broadcast_batch_id, broadcast_group_id } = c.req.valid('query')
+    const { state, limit, channel_id, broadcast_batch_id, broadcast_group_id } =
+      c.req.valid('query')
     if (broadcast_group_id && !licenseGate.isEnabled('broadcast_groups')) {
       return c.json({ detail: 'not found' }, 404)
     }

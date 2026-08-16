@@ -1,9 +1,5 @@
 export type EnterpriseFeature =
-  | 'broadcast_groups'
-  | 'audit_log'
-  | 'multi_user_admin'
-  | 'role_based_access'
-  | 'single_sign_on'
+  'broadcast_groups' | 'audit_log' | 'multi_user_admin' | 'role_based_access' | 'single_sign_on'
 
 export interface LicenseGate {
   isEnabled(feature: EnterpriseFeature): boolean

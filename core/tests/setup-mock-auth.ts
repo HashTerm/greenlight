@@ -37,11 +37,7 @@ export const TEST_API_KEYS: Record<string, AuthenticatedApiKey> = {
   'broadcast-test-key': {
     id: 'test-broadcast-key',
     name: 'test-broadcast',
-    scopes: [
-      'broadcast_groups:read',
-      'broadcast_groups:write',
-      'broadcast_batches:read',
-    ],
+    scopes: ['broadcast_groups:read', 'broadcast_groups:write', 'broadcast_batches:read'],
     organizationId: 'default',
   },
   'org-b-key': {

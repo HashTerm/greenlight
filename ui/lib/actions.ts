@@ -185,13 +185,13 @@ export async function createMessageAction(formData: FormData) {
   const channelId = String(formData.get('channel_id') ?? '').trim()
   const text = String(formData.get('text'))
 
-  const result = await apiFetch<Message | { broadcast_batch_id: string; channels: Array<{ channel_id: string; message_id?: string }> }>(
-    '/v1/messages/send',
-    {
-      method: 'POST',
-      body: JSON.stringify({ channel_id: channelId, text }),
-    },
-  )
+  const result = await apiFetch<
+    | Message
+    | { broadcast_batch_id: string; channels: Array<{ channel_id: string; message_id?: string }> }
+  >('/v1/messages/send', {
+    method: 'POST',
+    body: JSON.stringify({ channel_id: channelId, text }),
+  })
 
   revalidatePath('/messages')
   if ('channels' in result && result.channels.length > 1) {

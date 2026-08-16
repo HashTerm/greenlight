@@ -147,7 +147,9 @@ export async function updateBroadcastGroup(input: {
       name,
       channelIds,
       promptAnswerMode:
-        existing.kind === 'prompt' ? (input.promptAnswerMode ?? existing.prompt_answer_mode) : undefined,
+        existing.kind === 'prompt'
+          ? (input.promptAnswerMode ?? existing.prompt_answer_mode)
+          : undefined,
     }),
   )
   return row ? serializeGroup(row) : null

@@ -42,11 +42,7 @@ export async function listBroadcastGroups(
 
   const groups: BroadcastGroupWithChannels[] = []
   for (const row of result.rows) {
-    const channelIds = await getGroupChannelIds(
-      client,
-      organizationId,
-      row.broadcast_group_id,
-    )
+    const channelIds = await getGroupChannelIds(client, organizationId, row.broadcast_group_id)
     groups.push({ ...row, channel_ids: channelIds })
   }
   return groups
@@ -129,7 +125,9 @@ export async function updateBroadcastGroup(
   if (!existing) return null
 
   const promptAnswerMode =
-    existing.kind === 'prompt' ? (input.promptAnswerMode ?? existing.prompt_answer_mode) : existing.prompt_answer_mode
+    existing.kind === 'prompt'
+      ? (input.promptAnswerMode ?? existing.prompt_answer_mode)
+      : existing.prompt_answer_mode
 
   await client.query(
     `UPDATE broadcast_groups

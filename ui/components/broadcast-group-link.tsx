@@ -1,6 +1,10 @@
 import Link from 'next/link'
 
-export function BroadcastIdLink({ broadcastBatchId }: { broadcastBatchId: string | null | undefined }) {
+export function BroadcastIdLink({
+  broadcastBatchId,
+}: {
+  broadcastBatchId: string | null | undefined
+}) {
   if (!broadcastBatchId) {
     return <span className="text-muted-foreground">—</span>
   }

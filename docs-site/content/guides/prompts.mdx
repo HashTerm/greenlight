@@ -12,21 +12,21 @@ Send **`application/json`** or **`multipart/form-data`** to the same path.
 
 ### JSON body
 
-| Field              | Type     | Default                     | Notes                                                                    |
-| ------------------ | -------- | --------------------------- | ------------------------------------------------------------------------ |
-| `channel_id`           | string   | `DEFAULT_PROMPT_CHANNEL_ID` | Single-channel send; mutually exclusive with `broadcast_group` / `broadcast_group_id` |
-| `broadcast_group`      | object   | —                           | API-only ad-hoc fan-out: `channel_ids` + required `prompt_answer_mode` |
-| `broadcast_group_id`   | string   | —                           | Enterprise: send to a saved [broadcast group](/guides/broadcast-groups)                 |
-| `text`             | string   | —                           | Required, max 4096                                                       |
-| `options`          | string[] | `[]`                        | Max 10 items (3 on WhatsApp/Messenger), each max 64 chars                |
-| `allow_text`       | boolean  | `false`                     | Allow free-text replies                                                  |
-| `callback_url`     | string   | —                           | Validated HTTP(S) URL                                                    |
-| `correlation_id`   | string   | —                           | Short label echoed in answer callback (logs, dashboards)                 |
-| `callback_data`    | object   | —                           | Optional JSON workflow state (max 8192 bytes), echoed in answer callback |
-| `callback_headers` | object   | —                           | Optional outbound HTTP headers (max 4096 bytes); not returned on GET     |
-| `ttl_sec`          | int      | `3600`                      | 0–604800 (7 days)                                                        |
-| `media_url`        | string   | —                           | Remote attachment URL                                                    |
-| `media_path`       | string   | —                           | Local path under `MEDIA_ALLOWED_DIR`                                     |
+| Field                | Type     | Default                     | Notes                                                                                 |
+| -------------------- | -------- | --------------------------- | ------------------------------------------------------------------------------------- |
+| `channel_id`         | string   | `DEFAULT_PROMPT_CHANNEL_ID` | Single-channel send; mutually exclusive with `broadcast_group` / `broadcast_group_id` |
+| `broadcast_group`    | object   | —                           | API-only ad-hoc fan-out: `channel_ids` + required `prompt_answer_mode`                |
+| `broadcast_group_id` | string   | —                           | Enterprise: send to a saved [broadcast group](/guides/broadcast-groups)               |
+| `text`               | string   | —                           | Required, max 4096                                                                    |
+| `options`            | string[] | `[]`                        | Max 10 items (3 on WhatsApp/Messenger), each max 64 chars                             |
+| `allow_text`         | boolean  | `false`                     | Allow free-text replies                                                               |
+| `callback_url`       | string   | —                           | Validated HTTP(S) URL                                                                 |
+| `correlation_id`     | string   | —                           | Short label echoed in answer callback (logs, dashboards)                              |
+| `callback_data`      | object   | —                           | Optional JSON workflow state (max 8192 bytes), echoed in answer callback              |
+| `callback_headers`   | object   | —                           | Optional outbound HTTP headers (max 4096 bytes); not returned on GET                  |
+| `ttl_sec`            | int      | `3600`                      | 0–604800 (7 days)                                                                     |
+| `media_url`          | string   | —                           | Remote attachment URL                                                                 |
+| `media_path`         | string   | —                           | Local path under `MEDIA_ALLOWED_DIR`                                                  |
 
 Provide **exactly one** send target: `channel_id`, `broadcast_group_id` (Enterprise),
 or inline `broadcast_group` (API only — not available in the web UI). Community
@@ -94,11 +94,11 @@ When sending to multiple PROMPT channels (inline `broadcast_group` or saved
 `broadcast_group_id`), each row stores snapshotted `broadcast_answer_mode` from
 the group's `prompt_answer_mode` at send time:
 
-| Mode | API value | Resolution |
-| ---- | --------- | ---------- |
-| First answer | `first_answer` | First channel answer closes the batch; all channels notified |
-| All same answer | `all_answer_same` | All channels must answer; unanimous → one callback; split → `CONFLICT`, no callback |
-| Majority answer | `all_answer_majority` | Strict majority closes remaining channels; all channels notified |
+| Mode            | API value             | Resolution                                                                          |
+| --------------- | --------------------- | ----------------------------------------------------------------------------------- |
+| First answer    | `first_answer`        | First channel answer closes the batch; all channels notified                        |
+| All same answer | `all_answer_same`     | All channels must answer; unanimous → one callback; split → `CONFLICT`, no callback |
+| Majority answer | `all_answer_majority` | Strict majority closes remaining channels; all channels notified                    |
 
 ## Two-layer status
 
@@ -106,12 +106,12 @@ the group's `prompt_answer_mode` at send time:
 
 **Per batch** — `broadcast_batch_status` on rows sharing a `broadcast_batch_id`:
 
-| Value | Meaning |
-| ----- | ------- |
-| `COLLECTING` | Batch not resolved yet |
-| `RESOLVED` | Rule satisfied; callback fired when applicable |
-| `CONFLICT` | `all_answer_same`: all answered but values disagreed |
-| `EXPIRED` | Batch expired without resolution |
+| Value        | Meaning                                              |
+| ------------ | ---------------------------------------------------- |
+| `COLLECTING` | Batch not resolved yet                               |
+| `RESOLVED`   | Rule satisfied; callback fired when applicable       |
+| `CONFLICT`   | `all_answer_same`: all answered but values disagreed |
+| `EXPIRED`    | Batch expired without resolution                     |
 
 ## Answer JSON
 

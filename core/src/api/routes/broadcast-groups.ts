@@ -36,9 +36,7 @@ const createSchema = z
 const updateSchema = z.object({
   name: z.string().min(1).max(255),
   channel_ids: z.array(z.string()).min(1).max(50),
-  prompt_answer_mode: z
-    .enum(['first_answer', 'all_answer_same', 'all_answer_majority'])
-    .optional(),
+  prompt_answer_mode: z.enum(['first_answer', 'all_answer_same', 'all_answer_majority']).optional(),
 })
 
 const listQuerySchema = z.object({
@@ -110,11 +108,11 @@ broadcastGroupRoutes.get(
     if (blocked) return blocked
 
     const id = decodeURIComponent(c.req.param('broadcast_group_id') ?? '')
-  const group = await getBroadcastGroup(getOrganizationId(c), id)
-  if (!group) {
-    return c.json({ detail: 'not found' }, 404)
-  }
-  return c.json(group)
+    const group = await getBroadcastGroup(getOrganizationId(c), id)
+    if (!group) {
+      return c.json({ detail: 'not found' }, 404)
+    }
+    return c.json(group)
   },
 )
 

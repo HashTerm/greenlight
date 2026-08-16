@@ -38,9 +38,11 @@ export default async function MessagesPage({
     ? (direction as 'inbound' | 'outbound' | 'all')
     : 'all'
 
-  const messages = await fetchMessages(validDirection, undefined, broadcast_batch_id || undefined).catch(
-    () => [],
-  )
+  const messages = await fetchMessages(
+    validDirection,
+    undefined,
+    broadcast_batch_id || undefined,
+  ).catch(() => [])
 
   return (
     <div className="space-y-6">

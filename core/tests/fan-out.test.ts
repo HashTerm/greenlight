@@ -44,16 +44,20 @@ describe('fan-out targets', () => {
 
   it('rejects inline prompt send without prompt_answer_mode', async () => {
     await expect(
-      resolveSendTargets('default', {
-        broadcast_group: { channel_ids: ['a'] },
-      }, 'PROMPT'),
+      resolveSendTargets(
+        'default',
+        {
+          broadcast_group: { channel_ids: ['a'] },
+        },
+        'PROMPT',
+      ),
     ).rejects.toThrow(/prompt_answer_mode/)
   })
 
   it('rejects broadcast_group_id without enterprise license', async () => {
-    await expect(
-      resolveSendTargets('default', { broadcast_group_id: 'brg_test' }),
-    ).rejects.toThrow(/broadcast_groups feature/)
+    await expect(resolveSendTargets('default', { broadcast_group_id: 'brg_test' })).rejects.toThrow(
+      /broadcast_groups feature/,
+    )
   })
 })
 

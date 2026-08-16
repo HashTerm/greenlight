@@ -23,24 +23,24 @@ replacement keys via `POST /v1/keys/new` and revoke the bootstrap key.
 Middleware checks **any-of** required scopes per route. The `admin` scope grants
 all permissions.
 
-| Scope            | Routes                                                    |
-| ---------------- | --------------------------------------------------------- |
-| `status:read`    | `GET /v1/status`                                          |
-| `keys:read`      | `GET /v1/keys`, `GET /v1/keys/{id}`                       |
-| `keys:write`     | `POST /v1/keys/new`, `DELETE /v1/keys/{id}`               |
-| `prompts:read`   | `GET /v1/prompts`, `GET /v1/prompts/{id}` |
-| `prompts:write`  | `POST /v1/prompts/new`                                    |
-| `messages:read`  | `GET /v1/messages`, `GET /v1/messages/{id}` |
-| `messages:send`  | `POST /v1/messages/send`                                  |
-| `channels:read`  | `GET /v1/channels`                                        |
-| `channels:write` | `POST /v1/channels/new`, `PATCH/DELETE /v1/channels/{id}` |
-| `broadcast_groups:read` | `GET /v1/broadcast-groups`, `GET /v1/broadcast-groups/{id}` (Enterprise) |
-| `broadcast_groups:write` | `POST/PATCH/DELETE /v1/broadcast-groups*` (Enterprise) |
-| `broadcast_batches:read` | `GET /v1/broadcast-batches/{id}` |
-| `audit_log:read` | `GET /v1/audit-log`, `GET /v1/audit-log/export` (Enterprise) |
-| `settings:read`  | `GET /v1/settings`                                        |
-| `settings:write` | `PATCH /v1/settings`                                      |
-| `admin`          | All of the above                                          |
+| Scope                    | Routes                                                                   |
+| ------------------------ | ------------------------------------------------------------------------ |
+| `status:read`            | `GET /v1/status`                                                         |
+| `keys:read`              | `GET /v1/keys`, `GET /v1/keys/{id}`                                      |
+| `keys:write`             | `POST /v1/keys/new`, `DELETE /v1/keys/{id}`                              |
+| `prompts:read`           | `GET /v1/prompts`, `GET /v1/prompts/{id}`                                |
+| `prompts:write`          | `POST /v1/prompts/new`                                                   |
+| `messages:read`          | `GET /v1/messages`, `GET /v1/messages/{id}`                              |
+| `messages:send`          | `POST /v1/messages/send`                                                 |
+| `channels:read`          | `GET /v1/channels`                                                       |
+| `channels:write`         | `POST /v1/channels/new`, `PATCH/DELETE /v1/channels/{id}`                |
+| `broadcast_groups:read`  | `GET /v1/broadcast-groups`, `GET /v1/broadcast-groups/{id}` (Enterprise) |
+| `broadcast_groups:write` | `POST/PATCH/DELETE /v1/broadcast-groups*` (Enterprise)                   |
+| `broadcast_batches:read` | `GET /v1/broadcast-batches/{id}`                                         |
+| `audit_log:read`         | `GET /v1/audit-log`, `GET /v1/audit-log/export` (Enterprise)             |
+| `settings:read`          | `GET /v1/settings`                                                       |
+| `settings:write`         | `PATCH /v1/settings`                                                     |
+| `admin`                  | All of the above                                                         |
 
 **Presets** (for `POST /v1/keys/new`):
 
@@ -50,39 +50,39 @@ all permissions.
 
 ## Endpoints
 
-| Method   | Path                | Scope(s)         | Description                         |
-| -------- | ------------------- | ---------------- | ----------------------------------- |
-| `GET`    | `/healthz`          | —                | Health check (**no auth**)          |
-| `POST`   | `/v1/prompts/new`   | `prompts:write`  | Create a prompt (JSON or multipart) |
-| `GET`    | `/v1/prompts`       | `prompts:read`   | List prompts (`state` filter)       |
-| `GET`    | `/v1/prompts/{id}`  | `prompts:read`   | Get prompt (`%23123` for `#123`)    |
-| `GET`    | `/v1/messages`      | `messages:read`  | List message history                |
-| `GET`    | `/v1/messages/{id}` | `messages:read`  | Get message by UUID                 |
-| `POST`   | `/v1/messages/send` | `messages:send`  | Send chat text on MESSAGE channel   |
-| `POST`   | `/v1/channels/new`  | `channels:write` | Create a channel                    |
-| `GET`    | `/v1/channels`      | `channels:read`  | List channels (filters)             |
-| `PATCH`  | `/v1/channels/{id}` | `channels:write` | Update a channel                    |
-| `DELETE` | `/v1/channels/{id}` | `channels:write` | Unregister channel                  |
-| `GET`    | `/v1/broadcast-groups` | `broadcast_groups:read` | List saved broadcast groups (Enterprise) |
-| `POST`   | `/v1/broadcast-groups` | `broadcast_groups:write` | Create broadcast group (Enterprise) |
-| `GET`    | `/v1/broadcast-groups/{id}` | `broadcast_groups:read` | Get broadcast group (`brg_…`) (Enterprise) |
-| `PATCH`  | `/v1/broadcast-groups/{id}` | `broadcast_groups:write` | Update broadcast group (Enterprise) |
-| `DELETE` | `/v1/broadcast-groups/{id}` | `broadcast_groups:write` | Delete broadcast group (Enterprise) |
-| `GET`    | `/v1/broadcast-batches/{id}` | `broadcast_batches:read` | Fan-out batch detail (`brd_…`) |
-| `GET`    | `/v1/audit-log`     | `audit_log:read` | List audit events (Enterprise)      |
-| `GET`    | `/v1/audit-log/export` | `audit_log:read` | Export audit events (Enterprise)    |
-| `GET`    | `/v1/settings`      | `settings:read`  | Retention settings                  |
-| `PATCH`  | `/v1/settings`      | `settings:write` | Update retention settings           |
+| Method   | Path                         | Scope(s)                 | Description                                |
+| -------- | ---------------------------- | ------------------------ | ------------------------------------------ |
+| `GET`    | `/healthz`                   | —                        | Health check (**no auth**)                 |
+| `POST`   | `/v1/prompts/new`            | `prompts:write`          | Create a prompt (JSON or multipart)        |
+| `GET`    | `/v1/prompts`                | `prompts:read`           | List prompts (`state` filter)              |
+| `GET`    | `/v1/prompts/{id}`           | `prompts:read`           | Get prompt (`%23123` for `#123`)           |
+| `GET`    | `/v1/messages`               | `messages:read`          | List message history                       |
+| `GET`    | `/v1/messages/{id}`          | `messages:read`          | Get message by UUID                        |
+| `POST`   | `/v1/messages/send`          | `messages:send`          | Send chat text on MESSAGE channel          |
+| `POST`   | `/v1/channels/new`           | `channels:write`         | Create a channel                           |
+| `GET`    | `/v1/channels`               | `channels:read`          | List channels (filters)                    |
+| `PATCH`  | `/v1/channels/{id}`          | `channels:write`         | Update a channel                           |
+| `DELETE` | `/v1/channels/{id}`          | `channels:write`         | Unregister channel                         |
+| `GET`    | `/v1/broadcast-groups`       | `broadcast_groups:read`  | List saved broadcast groups (Enterprise)   |
+| `POST`   | `/v1/broadcast-groups`       | `broadcast_groups:write` | Create broadcast group (Enterprise)        |
+| `GET`    | `/v1/broadcast-groups/{id}`  | `broadcast_groups:read`  | Get broadcast group (`brg_…`) (Enterprise) |
+| `PATCH`  | `/v1/broadcast-groups/{id}`  | `broadcast_groups:write` | Update broadcast group (Enterprise)        |
+| `DELETE` | `/v1/broadcast-groups/{id}`  | `broadcast_groups:write` | Delete broadcast group (Enterprise)        |
+| `GET`    | `/v1/broadcast-batches/{id}` | `broadcast_batches:read` | Fan-out batch detail (`brd_…`)             |
+| `GET`    | `/v1/audit-log`              | `audit_log:read`         | List audit events (Enterprise)             |
+| `GET`    | `/v1/audit-log/export`       | `audit_log:read`         | Export audit events (Enterprise)           |
+| `GET`    | `/v1/settings`               | `settings:read`          | Retention settings                         |
+| `PATCH`  | `/v1/settings`               | `settings:write`         | Update retention settings                  |
 
 ### Operator
 
-| Method   | Path                | Scope(s)         | Description                         |
-| -------- | ------------------- | ---------------- | ----------------------------------- |
-| `GET`    | `/v1/status`        | `status:read`    | Operator status / dashboard         |
-| `GET`    | `/v1/keys`          | `keys:read`      | List API keys                       |
-| `GET`    | `/v1/keys/{id}`     | `keys:read`      | Get API key metadata                |
-| `POST`   | `/v1/keys/new`      | `keys:write`     | Create API key (plaintext once)     |
-| `DELETE` | `/v1/keys/{id}`     | `keys:write`     | Revoke API key                      |
+| Method   | Path            | Scope(s)      | Description                     |
+| -------- | --------------- | ------------- | ------------------------------- |
+| `GET`    | `/v1/status`    | `status:read` | Operator status / dashboard     |
+| `GET`    | `/v1/keys`      | `keys:read`   | List API keys                   |
+| `GET`    | `/v1/keys/{id}` | `keys:read`   | Get API key metadata            |
+| `POST`   | `/v1/keys/new`  | `keys:write`  | Create API key (plaintext once) |
+| `DELETE` | `/v1/keys/{id}` | `keys:write`  | Revoke API key                  |
 
 Platforms: `telegram`, `slack`, `teams`, `discord`, `gchat`, `whatsapp`,
 `messenger`.
@@ -136,21 +136,21 @@ or inline `broadcast_group` (API only — see [Broadcast Groups](/guides/broadca
 
 ### JSON body
 
-| Field                | Type     | Required    | Notes                                                              |
-| -------------------- | -------- | ----------- | ------------------------------------------------------------------ |
-| `text`               | string   | Yes         | Max 4096                                                           |
-| `channel_id`         | string   | Conditional | Single-channel send; or `DEFAULT_PROMPT_CHANNEL_ID` when omitted   |
-| `broadcast_group`    | object   | Conditional | Inline fan-out: `channel_ids` + `prompt_answer_mode` (API only)    |
-| `broadcast_group_id` | string   | Conditional | Enterprise: saved broadcast group (`brg_…`)                        |
-| `options`            | string[] | No          | Max 10 (3 on WhatsApp/Messenger)                                   |
-| `allow_text`         | boolean  | No          | Default `false`                                                    |
-| `callback_url`       | string   | No          | Validated HTTP(S)                                                  |
-| `correlation_id`     | string   | No          | Max 255                                                            |
-| `callback_data`      | object   | No          | JSON workflow state (max 8192 bytes), echoed in answer callback    |
-| `callback_headers`   | object   | No          | Outbound HTTP headers (max 4096 bytes); not returned on GET        |
-| `ttl_sec`            | int      | No          | Default `3600`, max 604800                                         |
-| `media_url`          | string   | No          | Mutually exclusive media sources                                   |
-| `media_path`         | string   | No          | Under `MEDIA_ALLOWED_DIR`                                          |
+| Field                | Type     | Required    | Notes                                                            |
+| -------------------- | -------- | ----------- | ---------------------------------------------------------------- |
+| `text`               | string   | Yes         | Max 4096                                                         |
+| `channel_id`         | string   | Conditional | Single-channel send; or `DEFAULT_PROMPT_CHANNEL_ID` when omitted |
+| `broadcast_group`    | object   | Conditional | Inline fan-out: `channel_ids` + `prompt_answer_mode` (API only)  |
+| `broadcast_group_id` | string   | Conditional | Enterprise: saved broadcast group (`brg_…`)                      |
+| `options`            | string[] | No          | Max 10 (3 on WhatsApp/Messenger)                                 |
+| `allow_text`         | boolean  | No          | Default `false`                                                  |
+| `callback_url`       | string   | No          | Validated HTTP(S)                                                |
+| `correlation_id`     | string   | No          | Max 255                                                          |
+| `callback_data`      | object   | No          | JSON workflow state (max 8192 bytes), echoed in answer callback  |
+| `callback_headers`   | object   | No          | Outbound HTTP headers (max 4096 bytes); not returned on GET      |
+| `ttl_sec`            | int      | No          | Default `3600`, max 604800                                       |
+| `media_url`          | string   | No          | Mutually exclusive media sources                                 |
+| `media_path`         | string   | No          | Under `MEDIA_ALLOWED_DIR`                                        |
 
 Inline `broadcast_group` for prompts:
 
@@ -200,13 +200,13 @@ create). Community rejects `broadcast_group_id` (Enterprise license required).
 
 ### Query
 
-| Param                 | Type   | Default   | Notes                                         |
-| --------------------- | ------ | --------- | --------------------------------------------- |
-| `state`               | string | `pending` | `pending` \| `answered` \| `expired` \| `all` |
-| `limit`               | int    | `50`      | 1–200                                         |
-| `channel_id`          | string | —         | Filter to one PROMPT channel                  |
-| `broadcast_batch_id`  | string | —         | Rows from one fan-out batch (`brd_…`)         |
-| `broadcast_group_id`  | string | —         | Enterprise: filter by saved group (`brg_…`)   |
+| Param                | Type   | Default   | Notes                                         |
+| -------------------- | ------ | --------- | --------------------------------------------- |
+| `state`              | string | `pending` | `pending` \| `answered` \| `expired` \| `all` |
+| `limit`              | int    | `50`      | 1–200                                         |
+| `channel_id`         | string | —         | Filter to one PROMPT channel                  |
+| `broadcast_batch_id` | string | —         | Rows from one fan-out batch (`brd_…`)         |
+| `broadcast_group_id` | string | —         | Enterprise: filter by saved group (`brg_…`)   |
 
 ## `GET /v1/prompts/{id}`
 
@@ -252,13 +252,13 @@ deactivated channel. `platform` and `channel_type` cannot be changed.
 
 ### Query
 
-| Param                 | Type   | Default | Notes                            |
-| --------------------- | ------ | ------- | -------------------------------- |
-| `direction`           | string | `all`   | `inbound` \| `outbound` \| `all` |
-| `channel_id`          | string | —       | Filter by channel                |
-| `broadcast_batch_id`  | string | —       | Rows from one fan-out batch      |
-| `broadcast_group_id`  | string | —       | Enterprise: filter by saved group |
-| `limit`               | int    | `50`    | 1–200                            |
+| Param                | Type   | Default | Notes                             |
+| -------------------- | ------ | ------- | --------------------------------- |
+| `direction`          | string | `all`   | `inbound` \| `outbound` \| `all`  |
+| `channel_id`         | string | —       | Filter by channel                 |
+| `broadcast_batch_id` | string | —       | Rows from one fan-out batch       |
+| `broadcast_group_id` | string | —       | Enterprise: filter by saved group |
+| `limit`              | int    | `50`    | 1–200                             |
 
 Outbound messages include `api_key_id` and optional `broadcast_batch_id` /
 `broadcast_group_id` when stored.

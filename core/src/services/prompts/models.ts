@@ -410,8 +410,7 @@ export async function markAnswered(
 
     const prompt = await getPrompt(client, organizationId, channelId, promptId)
     const callbackInfo =
-      batchResolution?.callbackInfo ??
-      (prompt ? buildCallbackInfo(promptId, prompt, answer) : null)
+      batchResolution?.callbackInfo ?? (prompt ? buildCallbackInfo(promptId, prompt, answer) : null)
 
     return {
       status: 'recorded',

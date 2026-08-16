@@ -4,13 +4,11 @@ const inlineBroadcastGroupSchema = z.object({
   channel_ids: z.array(z.string().min(1)).min(1).max(50),
 })
 
-const sendTargetRefine = (
-  data: {
-    channel_id?: string | null
-    broadcast_group?: { channel_ids: string[] } | null
-    broadcast_group_id?: string | null
-  },
-) => {
+const sendTargetRefine = (data: {
+  channel_id?: string | null
+  broadcast_group?: { channel_ids: string[] } | null
+  broadcast_group_id?: string | null
+}) => {
   const modes = [
     Boolean(data.channel_id?.trim()),
     Boolean(data.broadcast_group?.channel_ids?.length),

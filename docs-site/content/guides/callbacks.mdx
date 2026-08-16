@@ -60,9 +60,9 @@ JSON.
 | `option`      | Human tapped a button — `value` is the option label |
 | `text`        | Free-text reply — `value` is the reply body         |
 
-| `answer.origin` | When                                                                 |
-| --------------- | -------------------------------------------------------------------- |
-| `direct`        | Human answered on this channel (default when omitted on single send) |
+| `answer.origin`  | When                                                                             |
+| ---------------- | -------------------------------------------------------------------------------- |
+| `direct`         | Human answered on this channel (default when omitted on single send)             |
 | `broadcast_sync` | Row closed by batch resolution on another channel — includes `source_channel_id` |
 
 ## Broadcast prompt batches
@@ -94,12 +94,12 @@ Resolved batch example:
 }
 ```
 
-| Field                    | Notes                                                          |
-| ------------------------ | -------------------------------------------------------------- |
-| `broadcast_batch_id`     | Links all rows from one API fan-out (`brd_…`)                  |
+| Field                    | Notes                                                                      |
+| ------------------------ | -------------------------------------------------------------------------- |
+| `broadcast_batch_id`     | Links all rows from one API fan-out (`brd_…`)                              |
 | `broadcast_answer_mode`  | Snapshotted mode: `first_answer`, `all_answer_same`, `all_answer_majority` |
-| `broadcast_batch_status` | `COLLECTING`, `RESOLVED`, `CONFLICT`, `EXPIRED`                |
-| `answering_channel_id`   | Channel where the decisive direct answer was recorded          |
+| `broadcast_batch_status` | `COLLECTING`, `RESOLVED`, `CONFLICT`, `EXPIRED`                            |
+| `answering_channel_id`   | Channel where the decisive direct answer was recorded                      |
 
 **No callback** when `all_answer_same` completes with disagreeing answers —
 `broadcast_batch_status` becomes `CONFLICT`. See [Broadcast Groups](/guides/broadcast-groups)

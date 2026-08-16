@@ -3,10 +3,7 @@ import { ValueError } from '../../core/security.js'
 import { licenseGate } from '../../extensions/license-gate.js'
 import * as channelModels from '../channels/models.js'
 import * as broadcastGroupModels from '../broadcast-groups/models.js'
-import {
-  PROMPT_ANSWER_MODES,
-  type PromptAnswerMode,
-} from '../prompts/models.js'
+import { PROMPT_ANSWER_MODES, type PromptAnswerMode } from '../prompts/models.js'
 
 const MIN_CHANNELS = 1
 const MAX_CHANNELS = 50
@@ -55,9 +52,7 @@ function parsePromptAnswerMode(
   }
   const mode = value.trim()
   if (!PROMPT_ANSWER_MODES.includes(mode as PromptAnswerMode)) {
-    throw new ValueError(
-      `prompt_answer_mode must be one of: ${PROMPT_ANSWER_MODES.join(', ')}`,
-    )
+    throw new ValueError(`prompt_answer_mode must be one of: ${PROMPT_ANSWER_MODES.join(', ')}`)
   }
   return mode as PromptAnswerMode
 }
@@ -74,9 +69,7 @@ async function validateChannelsExist(
         throw new ValueError(`Channel ${channelId} not found`)
       }
       if (expectedChannelType && channel.channel_type !== expectedChannelType) {
-        throw new ValueError(
-          `Channel ${channelId} is not a ${expectedChannelType} channel`,
-        )
+        throw new ValueError(`Channel ${channelId} is not a ${expectedChannelType} channel`)
       }
     }
   })
@@ -92,11 +85,9 @@ export async function resolveSendTargets(
   const inlineChannelIds = inlineGroup?.channel_ids ?? []
   const groupId = body.broadcast_group_id?.trim() ?? ''
 
-  const modes = [
-    Boolean(channelId),
-    inlineChannelIds.length > 0,
-    Boolean(groupId),
-  ].filter(Boolean).length
+  const modes = [Boolean(channelId), inlineChannelIds.length > 0, Boolean(groupId)].filter(
+    Boolean,
+  ).length
 
   if (modes !== 1) {
     throw new ValueError(
@@ -145,9 +136,7 @@ export async function resolveSendTargets(
   if (expectedChannelType) {
     const expectedKind = expectedChannelType === 'PROMPT' ? 'prompt' : 'message'
     if (group.kind !== expectedKind) {
-      throw new ValueError(
-        `Broadcast group kind is ${group.kind}; expected ${expectedKind} send`,
-      )
+      throw new ValueError(`Broadcast group kind is ${group.kind}; expected ${expectedKind} send`)
     }
   }
 

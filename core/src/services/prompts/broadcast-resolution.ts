@@ -178,7 +178,11 @@ export async function evaluateBroadcastBatch(
 
     const updated = await promptModels.getPrompt(client, organizationId, channelId, promptId)
     const callbackInfo = updated
-      ? buildBatchCallback(promptId, { ...updated, broadcast_batch_status: promptModels.BATCH_RESOLVED }, directAnswer)
+      ? buildBatchCallback(
+          promptId,
+          { ...updated, broadcast_batch_status: promptModels.BATCH_RESOLVED },
+          directAnswer,
+        )
       : null
 
     const message = formatBroadcastDecidedReply(winningValue, answeringChannelId)

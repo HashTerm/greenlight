@@ -9,24 +9,24 @@ object on send APIs (API only — not in the web UI). See [Prompts](/guides/prom
 
 ## Edition and UI scope
 
-| Capability | Community | Enterprise |
-| ---------- | --------- | ---------- |
-| Inline `broadcast_group` on `POST /v1/prompts/new` and `POST /v1/messages/send` | Yes — **API only** | Yes — **API only** (not in web UI) |
-| Saved groups (`broadcast_groups`, `brg_…`) + CRUD API | No (`404`) | Yes |
-| Send via `broadcast_group_id` | No | Yes |
-| Admin **Broadcast Groups** UI | No | Yes |
-| New Prompt / New Message UI | Single `channel_id` only | Single channel **or** saved group |
+| Capability                                                                      | Community                | Enterprise                         |
+| ------------------------------------------------------------------------------- | ------------------------ | ---------------------------------- |
+| Inline `broadcast_group` on `POST /v1/prompts/new` and `POST /v1/messages/send` | Yes — **API only**       | Yes — **API only** (not in web UI) |
+| Saved groups (`broadcast_groups`, `brg_…`) + CRUD API                           | No (`404`)               | Yes                                |
+| Send via `broadcast_group_id`                                                   | No                       | Yes                                |
+| Admin **Broadcast Groups** UI                                                   | No                       | Yes                                |
+| New Prompt / New Message UI                                                     | Single `channel_id` only | Single channel **or** saved group  |
 
 Neither community nor enterprise web UI submits inline `broadcast_group` — only
 `channel_id` or `broadcast_group_id` from forms.
 
 ## Concepts
 
-| Concept | Field | ID prefix | Notes |
-| ------- | ----- | --------- | ----- |
-| **Broadcast group** | `broadcast_group_id` | `brg_…` | Persistent named channel collection |
-| **Fan-out batch** | `broadcast_batch_id` | `brd_…` | Links rows created in one API call |
-| **Batch status** | `broadcast_batch_status` | — | `COLLECTING`, `RESOLVED`, `CONFLICT`, `EXPIRED` (prompt batches) |
+| Concept             | Field                    | ID prefix | Notes                                                            |
+| ------------------- | ------------------------ | --------- | ---------------------------------------------------------------- |
+| **Broadcast group** | `broadcast_group_id`     | `brg_…`   | Persistent named channel collection                              |
+| **Fan-out batch**   | `broadcast_batch_id`     | `brd_…`   | Links rows created in one API call                               |
+| **Batch status**    | `broadcast_batch_status` | —         | `COLLECTING`, `RESOLVED`, `CONFLICT`, `EXPIRED` (prompt batches) |
 
 A send to a saved broadcast group sets **both** `broadcast_batch_id` and `broadcast_group_id` on each
 prompt or message row.
@@ -35,11 +35,11 @@ prompt or message row.
 
 Saved prompt groups require `prompt_answer_mode`:
 
-| Value | Behavior |
-| ----- | -------- |
-| `first_answer` | First channel answer closes the batch |
-| `all_answer_same` | All channels must answer; unanimous required |
-| `all_answer_majority` | Strict majority closes remaining channels |
+| Value                 | Behavior                                     |
+| --------------------- | -------------------------------------------- |
+| `first_answer`        | First channel answer closes the batch        |
+| `all_answer_same`     | All channels must answer; unanimous required |
+| `all_answer_majority` | Strict majority closes remaining channels    |
 
 Mode is snapshotted on each prompt row as `broadcast_answer_mode` at send time.
 

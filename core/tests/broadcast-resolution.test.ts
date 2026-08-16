@@ -15,10 +15,7 @@ import {
   type PromptRow,
 } from '../src/services/prompts/models.js'
 
-function siblingRow(
-  channelId: string,
-  overrides: Partial<PromptRow> = {},
-): PromptRow {
+function siblingRow(channelId: string, overrides: Partial<PromptRow> = {}): PromptRow {
   return {
     id: `id-${channelId}`,
     organization_id: 'org-1',
@@ -80,10 +77,7 @@ describe('evaluateBroadcastBatch', () => {
       answer: { type: 'option', value: 'Approve', origin: 'direct' },
       broadcast_answer_mode: 'first_answer',
     })
-    const siblings = [
-      answeredPrompt,
-      siblingRow(otherChannel),
-    ]
+    const siblings = [answeredPrompt, siblingRow(otherChannel)]
 
     const client = {
       query: vi.fn(async (sql: string) => {
@@ -193,18 +187,12 @@ describe('evaluateBroadcastBatch', () => {
       }),
     } as unknown as pg.PoolClient
 
-    const result = await evaluateBroadcastBatch(
-      client,
-      organizationId,
-      channelB,
-      '#2',
-      {
-        type: 'option',
-        value: 'Reject',
-        userId: 99,
-        username: 'bob',
-      },
-    )
+    const result = await evaluateBroadcastBatch(client, organizationId, channelB, '#2', {
+      type: 'option',
+      value: 'Reject',
+      userId: 99,
+      username: 'bob',
+    })
 
     expect(result!.batchStatus).toBe(BATCH_CONFLICT)
     expect(result!.callbackInfo).toBeNull()
