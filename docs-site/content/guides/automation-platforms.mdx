@@ -63,6 +63,24 @@ is stable HTTP — pick the platform your team already runs.
 4. **Wait for human** — Greenlight delivers the card to Slack/Telegram/etc.
 5. **Resume workflow** — On signed callback, read `channel_id`, `callback_data`, and `answer.value` to branch the pipeline or open a ticket.
 
+For approvals that must reach **multiple** PROMPT channels in one step, use inline
+`broadcast_group` on `POST /v1/prompts/new` (API only — community and enterprise):
+
+```json
+{
+  "broadcast_group": {
+    "channel_ids": ["slack-ops", "telegram-alerts"],
+    "prompt_answer_mode": "first_answer"
+  },
+  "text": "Approve production deploy?",
+  "options": ["Approve", "Reject"],
+  "callback_url": "https://your-n8n.example/webhook/approve"
+}
+```
+
+Enterprise operators can also create saved broadcast groups and send with
+`broadcast_group_id`. See [Broadcast Groups](/guides/broadcasts).
+
 Many workflows can share one PROMPT channel (for example a single `#ops-approvals`
 chat); each prompt still resumes at its own `callback_url`. See
 [Features & benefits](/getting-started/features).

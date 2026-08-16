@@ -77,7 +77,29 @@ export function getOpenApiDocument(): Record<string, unknown> {
             channel_id: {
               type: 'string',
               nullable: true,
-              description: 'Target PROMPT channel. Optional if DEFAULT_PROMPT_CHANNEL_ID is set.',
+              description:
+                'Single-channel send. Mutually exclusive with broadcast_group and broadcast_group_id.',
+            },
+            broadcast_group: {
+              type: 'object',
+              required: ['channel_ids', 'prompt_answer_mode'],
+              properties: {
+                channel_ids: {
+                  type: 'array',
+                  minItems: 1,
+                  maxItems: 50,
+                  items: { type: 'string' },
+                },
+                prompt_answer_mode: {
+                  type: 'string',
+                  enum: ['first_answer', 'all_answer_same', 'all_answer_majority'],
+                },
+              },
+              description: 'API-only ad-hoc multi-channel fan-out (not persisted).',
+            },
+            broadcast_group_id: {
+              type: 'string',
+              description: 'Enterprise: send to a saved broadcast group.',
             },
             text: { type: 'string', maxLength: 4096 },
             options: {
@@ -171,14 +193,29 @@ export function getOpenApiDocument(): Record<string, unknown> {
               description:
                 'Whether outbound callback_headers were set at create (values not exposed).',
             },
-            broadcast_id: {
+            broadcast_batch_id: {
               type: 'string',
               nullable: true,
-              description: 'Shared batch id for future channel-group fan-out.',
+              description: 'Fan-out batch id linking rows from one multi-channel send.',
+            },
+            broadcast_group_id: {
+              type: 'string',
+              nullable: true,
+              description: 'Saved broadcast group when sent via broadcast_group_id.',
+            },
+            broadcast_answer_mode: {
+              type: 'string',
+              nullable: true,
+              enum: ['first_answer', 'all_answer_same', 'all_answer_majority'],
+            },
+            broadcast_batch_status: {
+              type: 'string',
+              nullable: true,
+              enum: ['COLLECTING', 'RESOLVED', 'CONFLICT', 'EXPIRED'],
             },
             state: {
               type: 'string',
-              enum: ['pending', 'answered', 'expired'],
+              enum: ['PENDING', 'ANSWERED', 'EXPIRED'],
             },
             created_at: { type: 'string', format: 'date-time' },
             expires_at: { type: 'string', format: 'date-time', nullable: true },
@@ -253,9 +290,22 @@ export function getOpenApiDocument(): Record<string, unknown> {
         },
         SendMessageRequest: {
           type: 'object',
-          required: ['channel_id', 'text'],
+          required: ['text'],
           properties: {
             channel_id: { type: 'string', minLength: 1 },
+            broadcast_group: {
+              type: 'object',
+              required: ['channel_ids'],
+              properties: {
+                channel_ids: {
+                  type: 'array',
+                  minItems: 1,
+                  maxItems: 50,
+                  items: { type: 'string', minLength: 1 },
+                },
+              },
+            },
+            broadcast_group_id: { type: 'string', minLength: 1 },
             text: { type: 'string', minLength: 1 },
           },
         },
@@ -316,65 +366,74 @@ export function getOpenApiDocument(): Record<string, unknown> {
             from_user: { type: 'string', nullable: true },
             api_key_id: { type: 'string', nullable: true, description: 'Outbound API key id' },
             platform_message_id: { type: 'string', nullable: true },
-            broadcast_id: {
+            broadcast_batch_id: {
               type: 'string',
               nullable: true,
-              description: 'Shared batch id when sent via enterprise broadcast fan-out.',
+              description: 'Fan-out batch id linking rows from one multi-channel send.',
+            },
+            broadcast_group_id: {
+              type: 'string',
+              nullable: true,
+              description: 'Saved broadcast group when sent via broadcast_group_id.',
             },
             created_at: { type: 'string', format: 'date-time' },
           },
         },
-        BroadcastKind: {
-          type: 'string',
-          enum: ['prompt', 'message'],
-        },
-        BroadcastSummary: {
+        BroadcastGroup: {
           type: 'object',
-          description: 'Enterprise broadcast batch summary.',
           properties: {
-            broadcast_id: { type: 'string' },
+            broadcast_group_id: { type: 'string' },
+            name: { type: 'string' },
             kind: { $ref: '#/components/schemas/BroadcastKind' },
-            text: { type: 'string' },
-            correlation_id: { type: 'string', nullable: true },
+            channel_ids: { type: 'array', items: { type: 'string' } },
+            prompt_answer_mode: {
+              type: 'string',
+              enum: ['first_answer', 'all_answer_same', 'all_answer_majority'],
+            },
             created_at: { type: 'string', format: 'date-time' },
-            channel_count: { type: 'integer' },
-            pending_count: { type: 'integer', nullable: true },
-            answered_count: { type: 'integer', nullable: true },
-            expired_count: { type: 'integer', nullable: true },
+            updated_at: { type: 'string', format: 'date-time' },
           },
         },
-        CreateBroadcastRequest: {
+        CreateBroadcastGroupRequest: {
           type: 'object',
-          required: ['kind', 'channel_ids', 'text'],
+          required: ['name', 'kind', 'channel_ids'],
           properties: {
+            name: { type: 'string', maxLength: 255 },
             kind: { $ref: '#/components/schemas/BroadcastKind' },
             channel_ids: {
               type: 'array',
-              minItems: 2,
+              minItems: 1,
               maxItems: 50,
               items: { type: 'string' },
             },
-            text: { type: 'string', maxLength: 4096 },
-            options: { type: 'array', items: { type: 'string', maxLength: 64 }, maxItems: 10 },
-            allow_text: { type: 'boolean', default: false },
-            callback_url: { type: 'string', nullable: true },
-            correlation_id: { type: 'string', maxLength: 255, nullable: true },
-            callback_data: { nullable: true },
-            callback_headers: {
-              type: 'object',
-              additionalProperties: { type: 'string' },
-              nullable: true,
+            prompt_answer_mode: {
+              type: 'string',
+              enum: ['first_answer', 'all_answer_same', 'all_answer_majority'],
+              description: 'Required when kind is prompt.',
             },
-            ttl_sec: { type: 'integer', minimum: 0, maximum: 604800, nullable: true },
-            media_url: { type: 'string', nullable: true },
-            media_path: { type: 'string', nullable: true },
           },
         },
-        CreateBroadcastResponse: {
+        UpdateBroadcastGroupRequest: {
+          type: 'object',
+          required: ['name', 'channel_ids'],
+          properties: {
+            name: { type: 'string', maxLength: 255 },
+            channel_ids: {
+              type: 'array',
+              minItems: 1,
+              maxItems: 50,
+              items: { type: 'string' },
+            },
+            prompt_answer_mode: {
+              type: 'string',
+              enum: ['first_answer', 'all_answer_same', 'all_answer_majority'],
+            },
+          },
+        },
+        FanOutResponse: {
           type: 'object',
           properties: {
-            broadcast_id: { type: 'string' },
-            kind: { $ref: '#/components/schemas/BroadcastKind' },
+            broadcast_batch_id: { type: 'string' },
             channels: {
               type: 'array',
               items: {
@@ -386,6 +445,26 @@ export function getOpenApiDocument(): Record<string, unknown> {
                 },
               },
             },
+          },
+        },
+        BroadcastKind: {
+          type: 'string',
+          enum: ['prompt', 'message'],
+        },
+        BroadcastSummary: {
+          type: 'object',
+          description: 'Fan-out send batch summary.',
+          properties: {
+            broadcast_batch_id: { type: 'string' },
+            kind: { $ref: '#/components/schemas/BroadcastKind' },
+            text: { type: 'string' },
+            correlation_id: { type: 'string', nullable: true },
+            broadcast_group_id: { type: 'string', nullable: true },
+            created_at: { type: 'string', format: 'date-time' },
+            channel_count: { type: 'integer' },
+            pending_count: { type: 'integer', nullable: true },
+            answered_count: { type: 'integer', nullable: true },
+            expired_count: { type: 'integer', nullable: true },
           },
         },
         ApiKey: {
@@ -573,11 +652,17 @@ export function getOpenApiDocument(): Record<string, unknown> {
               description: 'Filter by Greenlight PROMPT channel id.',
             },
             {
-              name: 'broadcast_id',
+              name: 'broadcast_batch_id',
+              in: 'query',
+              schema: { type: 'string' },
+              description: 'List prompt rows from one fan-out batch (broadcast_batch_id).',
+            },
+            {
+              name: 'broadcast_group_id',
               in: 'query',
               schema: { type: 'string' },
               description:
-                'Enterprise: list all prompt rows from one broadcast batch (requires broadcast license).',
+                'Enterprise: filter by broadcast group (requires broadcast license).',
             },
           ],
           responses: {
@@ -652,12 +737,10 @@ export function getOpenApiDocument(): Record<string, unknown> {
           },
         },
       },
-      '/v1/broadcasts': {
+      '/v1/broadcast-groups': {
         get: {
-          tags: ['Broadcasts'],
-          summary: 'List broadcast batches (Enterprise)',
-          description:
-            'Requires enterprise license with the `broadcast` feature. Returns prompt and message fan-out batches.',
+          tags: ['Broadcast groups'],
+          summary: 'List broadcast groups (Enterprise)',
           security: [{ ApiKeyAuth: [] }],
           parameters: [
             {
@@ -665,81 +748,60 @@ export function getOpenApiDocument(): Record<string, unknown> {
               in: 'query',
               schema: { type: 'integer', minimum: 1, maximum: 200, default: 50 },
             },
+            {
+              name: 'kind',
+              in: 'query',
+              schema: { $ref: '#/components/schemas/BroadcastKind' },
+            },
           ],
           responses: {
             '200': {
-              description: 'Broadcast list',
+              description: 'Broadcast group list',
               content: {
                 'application/json': {
                   schema: {
                     type: 'array',
-                    items: { $ref: '#/components/schemas/BroadcastSummary' },
+                    items: { $ref: '#/components/schemas/BroadcastGroup' },
                   },
                 },
               },
             },
-            '404': {
-              description: 'Not licensed',
-              content: {
-                'application/json': {
-                  schema: { $ref: '#/components/schemas/Error' },
-                },
-              },
-            },
+            '404': { description: 'Not licensed' },
           },
         },
-      },
-      '/v1/broadcasts/new': {
         post: {
-          tags: ['Broadcasts'],
-          summary: 'Create a broadcast (Enterprise)',
-          description:
-            'Fan out one prompt or message to multiple channels of the same type. Requires `prompts:write` for prompt kind or `messages:send` for message kind.',
+          tags: ['Broadcast groups'],
+          summary: 'Create broadcast group (Enterprise)',
           security: [{ ApiKeyAuth: [] }],
           requestBody: {
             required: true,
             content: {
               'application/json': {
-                schema: { $ref: '#/components/schemas/CreateBroadcastRequest' },
+                schema: { $ref: '#/components/schemas/CreateBroadcastGroupRequest' },
               },
             },
           },
           responses: {
             '201': {
-              description: 'Broadcast created',
+              description: 'Created',
               content: {
                 'application/json': {
-                  schema: { $ref: '#/components/schemas/CreateBroadcastResponse' },
+                  schema: { $ref: '#/components/schemas/BroadcastGroup' },
                 },
               },
             },
-            '400': {
-              description: 'Validation error',
-              content: {
-                'application/json': {
-                  schema: { $ref: '#/components/schemas/Error' },
-                },
-              },
-            },
-            '404': {
-              description: 'Not licensed',
-              content: {
-                'application/json': {
-                  schema: { $ref: '#/components/schemas/Error' },
-                },
-              },
-            },
+            '404': { description: 'Not licensed' },
           },
         },
       },
-      '/v1/broadcasts/{id}': {
+      '/v1/broadcast-groups/{broadcast_group_id}': {
         get: {
-          tags: ['Broadcasts'],
-          summary: 'Get broadcast batch (Enterprise)',
+          tags: ['Broadcast groups'],
+          summary: 'Get broadcast group (Enterprise)',
           security: [{ ApiKeyAuth: [] }],
           parameters: [
             {
-              name: 'id',
+              name: 'broadcast_group_id',
               in: 'path',
               required: true,
               schema: { type: 'string' },
@@ -747,7 +809,82 @@ export function getOpenApiDocument(): Record<string, unknown> {
           ],
           responses: {
             '200': {
-              description: 'Broadcast detail with per-channel children',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/BroadcastGroup' },
+                },
+              },
+            },
+            '404': { description: 'Not found or not licensed' },
+          },
+        },
+        patch: {
+          tags: ['Broadcast groups'],
+          summary: 'Update broadcast group (Enterprise)',
+          security: [{ ApiKeyAuth: [] }],
+          parameters: [
+            {
+              name: 'broadcast_group_id',
+              in: 'path',
+              required: true,
+              schema: { type: 'string' },
+            },
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/UpdateBroadcastGroupRequest' },
+              },
+            },
+          },
+          responses: {
+            '200': {
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/BroadcastGroup' },
+                },
+              },
+            },
+            '404': { description: 'Not found or not licensed' },
+          },
+        },
+        delete: {
+          tags: ['Broadcast groups'],
+          summary: 'Delete broadcast group (Enterprise)',
+          security: [{ ApiKeyAuth: [] }],
+          parameters: [
+            {
+              name: 'broadcast_group_id',
+              in: 'path',
+              required: true,
+              schema: { type: 'string' },
+            },
+          ],
+          responses: {
+            '200': { description: 'Deleted' },
+            '404': { description: 'Not found or not licensed' },
+          },
+        },
+      },
+      '/v1/broadcast-batches/{broadcast_batch_id}': {
+        get: {
+          tags: ['Broadcast batches'],
+          summary: 'Get fan-out batch',
+          description:
+            'Returns batch summary and per-channel prompt or message rows for one fan-out send (broadcast_batch_id / brd_…).',
+          security: [{ ApiKeyAuth: [] }],
+          parameters: [
+            {
+              name: 'broadcast_batch_id',
+              in: 'path',
+              required: true,
+              schema: { type: 'string' },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Fan-out batch detail with per-channel children',
               content: {
                 'application/json': {
                   schema: {
@@ -772,7 +909,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
               },
             },
             '404': {
-              description: 'Not found or not licensed',
+              description: 'Not found',
               content: {
                 'application/json': {
                   schema: { $ref: '#/components/schemas/Error' },
@@ -964,11 +1101,17 @@ export function getOpenApiDocument(): Record<string, unknown> {
               schema: { type: 'string' },
             },
             {
-              name: 'broadcast_id',
+              name: 'broadcast_batch_id',
+              in: 'query',
+              schema: { type: 'string' },
+              description: 'List outbound messages from one fan-out batch (broadcast_batch_id).',
+            },
+            {
+              name: 'broadcast_group_id',
               in: 'query',
               schema: { type: 'string' },
               description:
-                'Enterprise: list outbound messages from one broadcast batch (requires broadcast license).',
+                'Enterprise: filter by broadcast group (requires broadcast license).',
             },
             {
               name: 'limit',

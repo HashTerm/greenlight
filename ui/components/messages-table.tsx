@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
+import { BroadcastGroupIdLink } from '@/components/broadcast-link'
 import {
   Table,
   TableBody,
@@ -10,6 +11,21 @@ import {
 } from '@/components/ui/table'
 import type { Message } from '@/lib/greenlight-client'
 
+function MessageBroadcastIdLink({ broadcastId }: { broadcastId: string | null | undefined }) {
+  if (!broadcastId) {
+    return <span className="text-muted-foreground">—</span>
+  }
+
+  return (
+    <Link
+      className="font-mono text-xs text-primary hover:underline"
+      href={`/messages?broadcast_batch_id=${encodeURIComponent(broadcastId)}`}
+    >
+      {broadcastId}
+    </Link>
+  )
+}
+
 export function MessagesTable({ messages }: { messages: Message[] }) {
   return (
     <Table>
@@ -19,6 +35,8 @@ export function MessagesTable({ messages }: { messages: Message[] }) {
           <TableHead>Channel</TableHead>
           <TableHead>Direction</TableHead>
           <TableHead>From / API key</TableHead>
+          <TableHead>Broadcast</TableHead>
+          <TableHead>Group</TableHead>
           <TableHead>Text</TableHead>
         </TableRow>
       </TableHeader>
@@ -38,6 +56,20 @@ export function MessagesTable({ messages }: { messages: Message[] }) {
               {message.direction === 'inbound'
                 ? (message.from_user ?? '—')
                 : (message.api_key_id ?? '—')}
+            </TableCell>
+            <TableCell>
+              {message.direction === 'outbound' ? (
+                <MessageBroadcastIdLink broadcastId={message.broadcast_batch_id} />
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )}
+            </TableCell>
+            <TableCell>
+              {message.direction === 'outbound' ? (
+                <BroadcastGroupIdLink broadcastGroupId={message.broadcast_group_id} />
+              ) : (
+                <span className="text-muted-foreground">—</span>
+              )}
             </TableCell>
             <TableCell className="max-w-md">
               <Link

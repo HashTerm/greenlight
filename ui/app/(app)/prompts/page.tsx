@@ -35,14 +35,14 @@ const EMPTY_MESSAGES = {
 export default async function PromptsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ state?: string; q?: string }>
+  searchParams: Promise<{ state?: string; q?: string; broadcast_batch_id?: string }>
 }) {
-  const { state = 'all', q = '' } = await searchParams
+  const { state = 'all', q = '', broadcast_batch_id = '' } = await searchParams
   const validState = ['pending', 'answered', 'expired', 'all'].includes(state)
     ? (state as 'pending' | 'answered' | 'expired' | 'all')
     : 'all'
 
-  const prompts = await fetchPrompts(validState).catch(() => [])
+  const prompts = await fetchPrompts(validState, broadcast_batch_id || undefined).catch(() => [])
   const filtered = q
     ? prompts.filter((p) => p.correlation_id?.includes(q) || p.id.includes(q))
     : prompts
@@ -52,7 +52,11 @@ export default async function PromptsPage({
   return (
     <div className="space-y-6">
       <PageHeader
-        description="History across all states"
+        description={
+          broadcast_batch_id
+            ? `Filtered by broadcast batch ${broadcast_batch_id}`
+            : 'History across all states'
+        }
         icon={MessageCircleQuestion}
         title="Prompts"
         actions={

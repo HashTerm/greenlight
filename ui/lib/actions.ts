@@ -94,8 +94,11 @@ export async function fetchChannels(): Promise<Channel[]> {
 
 export async function fetchPrompts(
   state: 'pending' | 'answered' | 'expired' | 'all' = 'all',
+  broadcastBatchId?: string,
 ): Promise<Prompt[]> {
-  return apiFetch<Prompt[]>(`/v1/prompts?state=${state}&limit=200`)
+  const params = new URLSearchParams({ state, limit: '200' })
+  if (broadcastBatchId) params.set('broadcast_batch_id', broadcastBatchId)
+  return apiFetch<Prompt[]>(`/v1/prompts?${params}`)
 }
 
 export async function fetchPrompt(id: string, channelId: string): Promise<Prompt> {
@@ -106,9 +109,11 @@ export async function fetchPrompt(id: string, channelId: string): Promise<Prompt
 export async function fetchMessages(
   direction: 'inbound' | 'outbound' | 'all' = 'all',
   channelId?: string,
+  broadcastBatchId?: string,
 ): Promise<Message[]> {
   const params = new URLSearchParams({ direction, limit: '200' })
   if (channelId) params.set('channel_id', channelId)
+  if (broadcastBatchId) params.set('broadcast_batch_id', broadcastBatchId)
   return apiFetch<Message[]>(`/v1/messages?${params}`)
 }
 
@@ -177,15 +182,21 @@ export async function updateRetentionSettingsAction(formData: FormData) {
 type AdminSendMessageResponse = Message | { status: string; stored: false }
 
 export async function createMessageAction(formData: FormData) {
-  const channelId = String(formData.get('channel_id'))
+  const channelId = String(formData.get('channel_id') ?? '').trim()
   const text = String(formData.get('text'))
 
-  const result = await apiFetch<AdminSendMessageResponse>('/v1/messages/send', {
-    method: 'POST',
-    body: JSON.stringify({ channel_id: channelId, text }),
-  })
+  const result = await apiFetch<Message | { broadcast_batch_id: string; channels: Array<{ channel_id: string; message_id?: string }> }>(
+    '/v1/messages/send',
+    {
+      method: 'POST',
+      body: JSON.stringify({ channel_id: channelId, text }),
+    },
+  )
 
   revalidatePath('/messages')
+  if ('channels' in result && result.channels.length > 1) {
+    redirect(`/messages?broadcast_batch_id=${encodeURIComponent(result.broadcast_batch_id)}`)
+  }
   if ('id' in result && result.id) {
     redirect(`/messages/${encodeURIComponent(result.id)}`)
   }
@@ -348,7 +359,8 @@ export async function sendMessageAction(formData: FormData) {
 }
 
 function parsePromptFormData(formData: FormData) {
-  const channelId = String(formData.get('channel_id'))
+  const channelId = String(formData.get('channel_id') ?? '').trim()
+  const broadcastGroupId = String(formData.get('broadcast_group_id') ?? '').trim()
   const text = String(formData.get('text'))
   const allowText = formData.get('allow_text') === 'on'
   const callbackUrl = String(formData.get('callback_url') ?? '') || undefined
@@ -364,6 +376,7 @@ function parsePromptFormData(formData: FormData) {
 
   return {
     channelId,
+    broadcastGroupId,
     text,
     allowText,
     callbackUrl,
@@ -379,6 +392,7 @@ function parsePromptFormData(formData: FormData) {
 export async function createPromptAction(formData: FormData) {
   const {
     channelId,
+    broadcastGroupId,
     text,
     allowText,
     callbackUrl,
@@ -422,7 +436,11 @@ export async function createPromptAction(formData: FormData) {
 
   if (hasFile) {
     const upload = new FormData()
-    upload.append('channel_id', channelId)
+    if (broadcastGroupId) {
+      upload.append('broadcast_group_id', broadcastGroupId)
+    } else {
+      upload.append('channel_id', channelId)
+    }
     upload.append('text', text)
     upload.append('file', file)
     upload.append('allow_text', String(allowText))
@@ -449,19 +467,34 @@ export async function createPromptAction(formData: FormData) {
     })
     if (!res.ok) throw new Error(await res.text())
 
-    const result = (await res.json()) as { prompt_id: string; channel_id: string }
+    const result = (await res.json()) as {
+      prompt_id?: string
+      channel_id?: string
+      broadcast_batch_id?: string
+      channels?: Array<{ channel_id: string; prompt_id?: string }>
+    }
     revalidatePath('/prompts')
-    redirect(
-      `/prompts/${encodeURIComponent(result.channel_id)}/${encodeURIComponent(result.prompt_id)}`,
-    )
+    if (result.channels && result.channels.length > 1 && result.broadcast_batch_id) {
+      redirect(`/prompts?broadcast_batch_id=${encodeURIComponent(result.broadcast_batch_id)}`)
+    }
+    if (result.prompt_id && result.channel_id) {
+      redirect(
+        `/prompts/${encodeURIComponent(result.channel_id)}/${encodeURIComponent(result.prompt_id)}`,
+      )
+    }
+    redirect('/prompts')
     return
   }
 
   const body: Record<string, unknown> = {
-    channel_id: channelId,
     text,
     allow_text: allowText,
     ttl_sec: ttlSec,
+  }
+  if (broadcastGroupId) {
+    body.broadcast_group_id = broadcastGroupId
+  } else {
+    body.channel_id = channelId
   }
   if (options.length) body.options = options
   if (callbackUrl) body.callback_url = callbackUrl
@@ -469,13 +502,24 @@ export async function createPromptAction(formData: FormData) {
   if (callbackData !== undefined) body.callback_data = callbackData
   if (callbackHeaders !== undefined) body.callback_headers = callbackHeaders
 
-  const result = await apiFetch<{ prompt_id: string; channel_id: string }>('/v1/prompts/new', {
+  const result = await apiFetch<{
+    prompt_id?: string
+    channel_id?: string
+    broadcast_batch_id?: string
+    channels?: Array<{ channel_id: string; prompt_id?: string }>
+  }>('/v1/prompts/new', {
     method: 'POST',
     body: JSON.stringify(body),
   })
 
   revalidatePath('/prompts')
-  redirect(
-    `/prompts/${encodeURIComponent(result.channel_id)}/${encodeURIComponent(result.prompt_id)}`,
-  )
+  if (result.channels && result.channels.length > 1 && result.broadcast_batch_id) {
+    redirect(`/prompts?broadcast_batch_id=${encodeURIComponent(result.broadcast_batch_id)}`)
+  }
+  if (result.prompt_id && result.channel_id) {
+    redirect(
+      `/prompts/${encodeURIComponent(result.channel_id)}/${encodeURIComponent(result.prompt_id)}`,
+    )
+  }
+  redirect('/prompts')
 }

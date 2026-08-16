@@ -31,19 +31,25 @@ const EMPTY_MESSAGES = {
 export default async function MessagesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ direction?: string }>
+  searchParams: Promise<{ direction?: string; broadcast_batch_id?: string }>
 }) {
-  const { direction = 'all' } = await searchParams
+  const { direction = 'all', broadcast_batch_id = '' } = await searchParams
   const validDirection = ['inbound', 'outbound', 'all'].includes(direction)
     ? (direction as 'inbound' | 'outbound' | 'all')
     : 'all'
 
-  const messages = await fetchMessages(validDirection).catch(() => [])
+  const messages = await fetchMessages(validDirection, undefined, broadcast_batch_id || undefined).catch(
+    () => [],
+  )
 
   return (
     <div className="space-y-6">
       <PageHeader
-        description="Inbound and outbound MESSAGE channel history"
+        description={
+          broadcast_batch_id
+            ? `Filtered by broadcast batch ${broadcast_batch_id}`
+            : 'Inbound and outbound MESSAGE channel history'
+        }
         icon={MessageSquare}
         title="Messages"
         actions={

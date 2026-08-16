@@ -60,6 +60,51 @@ JSON.
 | `option`      | Human tapped a button — `value` is the option label |
 | `text`        | Free-text reply — `value` is the reply body         |
 
+| `answer.origin` | When                                                                 |
+| --------------- | -------------------------------------------------------------------- |
+| `direct`        | Human answered on this channel (default when omitted on single send) |
+| `broadcast_sync` | Row closed by batch resolution on another channel — includes `source_channel_id` |
+
+## Broadcast prompt batches
+
+When a prompt is part of a multi-channel fan-out (`broadcast_batch_id` on the row),
+the answer callback fires **once per batch** when the batch's `prompt_answer_mode`
+rule is satisfied — not once per channel.
+
+Resolved batch example:
+
+```json
+{
+  "prompt_id": "#2",
+  "channel_id": "slack-ops",
+  "correlation_id": "deploy-42",
+  "callback_data": { "build_id": 9182 },
+  "text": "Approve production deploy?",
+  "broadcast_batch_id": "brd_abc123",
+  "broadcast_answer_mode": "first_answer",
+  "broadcast_batch_status": "RESOLVED",
+  "answering_channel_id": "telegram-alerts",
+  "answer": {
+    "type": "option",
+    "value": "Approve",
+    "user_id": 42,
+    "username": "alice"
+  },
+  "answered_at": "2026-07-25T12:00:00.000Z"
+}
+```
+
+| Field                    | Notes                                                          |
+| ------------------------ | -------------------------------------------------------------- |
+| `broadcast_batch_id`     | Links all rows from one API fan-out (`brd_…`)                  |
+| `broadcast_answer_mode`  | Snapshotted mode: `first_answer`, `all_answer_same`, `all_answer_majority` |
+| `broadcast_batch_status` | `COLLECTING`, `RESOLVED`, `CONFLICT`, `EXPIRED`                |
+| `answering_channel_id`   | Channel where the decisive direct answer was recorded          |
+
+**No callback** when `all_answer_same` completes with disagreeing answers —
+`broadcast_batch_status` becomes `CONFLICT`. See [Broadcast Groups](/guides/broadcasts)
+for mode rules and [Prompts](/guides/prompts) for chat confirmations.
+
 ## Channel message callbacks (unsigned)
 
 For `MESSAGE` channels with `callback_url`, inbound text becomes:

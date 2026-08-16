@@ -8,6 +8,7 @@ import * as pendingText from '../services/prompts/pending-text.js'
 import * as channelModels from '../services/channels/models.js'
 import { recordInboundMessage } from '../services/messages/service.js'
 import { recordAuditEvent } from '../extensions/audit.js'
+import { ensureBotForChannel, postToChat } from '../chat/bot-manager.js'
 import { getBotByKey } from './bot-registry.js'
 import { instanceKey } from '../core/platform.js'
 import { isTelegramPrivateChat, isTelegramStartCommand } from './telegram-start.js'
@@ -23,6 +24,21 @@ async function resolveChannelForMessage(
   return withClient((client) =>
     channelModels.findChannelByTargetAndFingerprint(client, platform, targetChatId, fingerprint),
   )
+}
+
+async function postBatchNotifications(
+  organizationId: string,
+  notifications: import('../services/prompts/broadcast-resolution.js').BatchNotification[],
+): Promise<void> {
+  for (const notification of notifications) {
+    if (notification.skipPost) continue
+    const channel = await withClient((client) =>
+      channelModels.getChannel(client, organizationId, notification.channelId),
+    )
+    if (!channel) continue
+    await ensureBotForChannel(channel)
+    await postToChat(channel, notification.message)
+  }
 }
 
 async function handlePromptAnswer(
@@ -77,13 +93,27 @@ async function handlePromptAnswer(
       }
 
       if (thread) {
-        await thread.post(promptModels.formatRecordedReply(promptId, answer.value))
+        const skipRecordedOnAnswering =
+          result.batchResolution?.notifications.some(
+            (n) => n.channelId === channelId && n.skipPost,
+          ) ?? false
+        if (!skipRecordedOnAnswering) {
+          await thread.post(promptModels.formatRecordedReply(promptId, answer.value))
+        }
+      }
+
+      if (result.batchResolution?.notifications.length) {
+        await postBatchNotifications(organizationId, result.batchResolution.notifications)
       }
       break
     }
     case 'already_answered': {
       if (thread) {
-        await thread.post(promptModels.formatAlreadyAnsweredReply(promptId, result.prompt))
+        const reply =
+          result.prompt.answer?.origin === 'broadcast_sync'
+            ? promptModels.formatBroadcastAlreadyAnsweredReply(result.prompt)
+            : promptModels.formatAlreadyAnsweredReply(promptId, result.prompt)
+        await thread.post(reply)
       }
       break
     }

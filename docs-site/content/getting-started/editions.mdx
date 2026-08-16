@@ -86,6 +86,11 @@ actions, and a dedicated **audit log** — see [Security](/guides/security#editi
 | Full audit trail (who changed what) | Partial        | Yes                       | Yes                           |
 | SSO                                 | No             | Yes (OIDC)                | Yes                           |
 | RBAC                                | No             | Yes                       | Yes                           |
-| Multi-channel broadcasts            | No             | Yes                       | Yes                           |
+| Inline multi-channel fan-out (API)  | Yes            | Yes                       | Yes                           |
+| Saved broadcast groups + admin UI   | No             | Yes                       | Yes                           |
+
+Inline fan-out uses `broadcast_group` on send routes (API only — not in the web UI).
+Saved groups, group CRUD, and the Broadcast Groups admin UI require Enterprise.
+See [Broadcast Groups](/guides/broadcasts).
 
 For commercial editions, contact the Licensor — see [Licensing](/legal/licensing).

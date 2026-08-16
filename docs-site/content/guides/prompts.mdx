@@ -14,7 +14,9 @@ Send **`application/json`** or **`multipart/form-data`** to the same path.
 
 | Field              | Type     | Default                     | Notes                                                                    |
 | ------------------ | -------- | --------------------------- | ------------------------------------------------------------------------ |
-| `channel_id`       | string   | `DEFAULT_PROMPT_CHANNEL_ID` | Required unless default set                                              |
+| `channel_id`           | string   | `DEFAULT_PROMPT_CHANNEL_ID` | Single-channel send; mutually exclusive with `broadcast_group` / `broadcast_group_id` |
+| `broadcast_group`      | object   | —                           | API-only ad-hoc fan-out: `channel_ids` + required `prompt_answer_mode` |
+| `broadcast_group_id`   | string   | —                           | Enterprise: send to a saved [broadcast group](/guides/broadcasts)                 |
 | `text`             | string   | —                           | Required, max 4096                                                       |
 | `options`          | string[] | `[]`                        | Max 10 items (3 on WhatsApp/Messenger), each max 64 chars                |
 | `allow_text`       | boolean  | `false`                     | Allow free-text replies                                                  |
@@ -25,6 +27,10 @@ Send **`application/json`** or **`multipart/form-data`** to the same path.
 | `ttl_sec`          | int      | `3600`                      | 0–604800 (7 days)                                                        |
 | `media_url`        | string   | —                           | Remote attachment URL                                                    |
 | `media_path`       | string   | —                           | Local path under `MEDIA_ALLOWED_DIR`                                     |
+
+Provide **exactly one** send target: `channel_id`, `broadcast_group_id` (Enterprise),
+or inline `broadcast_group` (API only — not available in the web UI). Community
+rejects `broadcast_group_id` without an Enterprise license.
 
 ### Multipart form (file upload)
 
@@ -64,6 +70,10 @@ button tap or text reply, Greenlight posts a confirmation in the thread:
 - First answer: `Recorded answer for ID:#2 Approve`
 - Repeat tap on the same prompt: `Already answered for ID:#2: Approve` (no duplicate callback)
 - Expired prompt: `Prompt expired for ID:#2`
+- Batch resolved on another channel (sync-closed row): `Already answered on slack-ops: Approve`
+- Batch decided (`first_answer` / unanimous): `Broadcast decided: Approve (answered on telegram-alerts)`
+- Batch majority: `Majority decided: Approve`
+- Batch conflict (`all_answer_same` split): `Prompt was not processed — channel answers did not agree.`
 
 Arbitrary plain text on a PROMPT channel (without Type answer or `ID:#n`) is still
 ignored — use a MESSAGE channel for free chat.
@@ -78,7 +88,54 @@ Use `correlation_id` for a short human-readable label (build id, ticket ref).
 Use `callback_data` for arbitrary JSON workflow state your automation needs when
 the answer callback fires — for example `{"build_id":9182,"step":"approve"}`.
 
-## States
+## Broadcast answer modes
+
+When sending to multiple PROMPT channels (inline `broadcast_group` or saved
+`broadcast_group_id`), each row stores snapshotted `broadcast_answer_mode` from
+the group's `prompt_answer_mode` at send time:
+
+| Mode | API value | Resolution |
+| ---- | --------- | ---------- |
+| First answer | `first_answer` | First channel answer closes the batch; all channels notified |
+| All same answer | `all_answer_same` | All channels must answer; unanimous → one callback; split → `CONFLICT`, no callback |
+| Majority answer | `all_answer_majority` | Strict majority closes remaining channels; all channels notified |
+
+## Two-layer status
+
+**Per row** — `state`: `PENDING`, `ANSWERED`, `EXPIRED` (unchanged).
+
+**Per batch** — `broadcast_batch_status` on rows sharing a `broadcast_batch_id`:
+
+| Value | Meaning |
+| ----- | ------- |
+| `COLLECTING` | Batch not resolved yet |
+| `RESOLVED` | Rule satisfied; callback fired when applicable |
+| `CONFLICT` | `all_answer_same`: all answered but values disagreed |
+| `EXPIRED` | Batch expired without resolution |
+
+## Answer JSON
+
+Direct answer on the answering channel:
+
+```json
+{ "type": "option", "value": "Approve", "origin": "direct" }
+```
+
+Sync-closed sibling row (batch resolution on another channel):
+
+```json
+{
+  "type": "option",
+  "value": "Approve",
+  "origin": "broadcast_sync",
+  "source_channel_id": "telegram-alerts"
+}
+```
+
+`answered_by_*` fields apply only to direct rows. See [Callbacks](/guides/callbacks)
+for batch callback payload fields.
+
+## States (per row)
 
 | State      | Meaning                       |
 | ---------- | ----------------------------- |
@@ -111,8 +168,9 @@ GET /v1/prompts/%231?channel_id=telegram-prompts
 
 `channel_id` is required. Without it the API returns 400.
 
-Enterprise **prompt broadcasts** fan the same question to multiple PROMPT channels
-with a shared `broadcast_id`. See [Broadcasts](/guides/broadcasts).
+Multi-channel sends set a shared `broadcast_batch_id` on each row. Filter with
+`GET /v1/prompts?broadcast_batch_id=brd_…`. Enterprise group sends also set
+`broadcast_group_id`. See [Broadcast Groups](/guides/broadcasts).
 
 Prompt ids are not access control — set `USE_AUTH=true` in production and protect
 the Agent API with scoped API keys.

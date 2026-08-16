@@ -40,7 +40,10 @@ function basePromptRow(overrides: Partial<PromptRow> = {}): PromptRow {
     callback_headers: { Authorization: 'Bearer test' },
     correlation_id: 'corr-1',
     callback_data: { build: 9182 },
-    broadcast_id: null,
+    broadcast_batch_id: null,
+    broadcast_group_id: null,
+    broadcast_answer_mode: null,
+    broadcast_batch_status: null,
     state: PENDING,
     created_at: new Date('2026-01-01'),
     expires_at: null,
@@ -73,8 +76,9 @@ describe('prompt models', () => {
       callback_url: null,
       correlation_id: null,
       callback_data: null,
-      broadcast_id: null,
-      created_at: new Date(),
+    broadcast_batch_id: null,
+    broadcast_group_id: null,
+    created_at: new Date(),
       expires_at: null,
       answered_at: null,
       answered_by_id: null,
@@ -129,6 +133,7 @@ describe('prompt models', () => {
         query: vi
           .fn()
           .mockResolvedValueOnce({ rowCount: 1 })
+          .mockResolvedValueOnce({ rows: [prompt] })
           .mockResolvedValueOnce({ rows: [prompt] }),
       } as unknown as pg.PoolClient
 
@@ -136,6 +141,7 @@ describe('prompt models', () => {
       expect(result.status).toBe('recorded')
       if (result.status !== 'recorded') return
 
+      expect(result.batchResolution).toBeNull()
       expect(result.callbackInfo).toEqual({
         callbackUrl: 'https://example.com/hook',
         callbackHeaders: { Authorization: 'Bearer test' },
@@ -162,11 +168,12 @@ describe('prompt models', () => {
         query: vi
           .fn()
           .mockResolvedValueOnce({ rowCount: 1 })
+          .mockResolvedValueOnce({ rows: [prompt] })
           .mockResolvedValueOnce({ rows: [prompt] }),
       } as unknown as pg.PoolClient
 
       const result = await markAnswered(client, 'org-1', channelId, '#1', answer)
-      expect(result).toEqual({ status: 'recorded', callbackInfo: null })
+      expect(result).toEqual({ status: 'recorded', callbackInfo: null, batchResolution: null })
     })
 
     it('returns already_answered when prompt is not pending', async () => {

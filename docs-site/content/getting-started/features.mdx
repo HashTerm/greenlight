@@ -22,6 +22,9 @@ prompts, and callback URLs.
   media, and `correlation_id` for matching answers. See [Prompts](/guides/prompts).
 - **Signed prompt callbacks** — HMAC-SHA256 (`X-Signature`) on prompt answers.
   See [Callbacks](/guides/callbacks).
+- **Multi-channel fan-out** — send one prompt or message to many channels via API
+  (`broadcast_group` inline object); Enterprise adds saved broadcast groups and
+  admin UI. See [Broadcast Groups](/guides/broadcasts).
 - **Bidirectional chat on MESSAGE channels** — inbound messages forward to your
   `callback_url`; replies go out with `POST /v1/messages/send`.
 - **Admin UI** — manage channels, prompts, and messages; view dashboard stats;
@@ -134,3 +137,4 @@ sequenceDiagram
 | Call the API from an agent         | [Agent integration](/guides/agent-integration)       |
 | Wire n8n, Zapier, Make, or similar | [Automation platforms](/guides/automation-platforms) |
 | Register and manage channels       | [Channels](/guides/channels)                         |
+| Fan out prompts or messages        | [Broadcast Groups](/guides/broadcasts)               |

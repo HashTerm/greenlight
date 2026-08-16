@@ -89,8 +89,8 @@ POST /v1/messages/send
 
 Use `/send` to deliver plain chat text on a registered MESSAGE channel (not a
 prompt card). See [Messages](/guides/messages) for list, get, and send API
-details. Enterprise **message broadcasts** send the same text to multiple MESSAGE
-channels in one call — see [Broadcasts](/guides/broadcasts).
+details. Multi-channel message fan-out uses `broadcast_group` or
+`broadcast_group_id` on `POST /v1/messages/send` — see [Broadcasts](/guides/broadcasts).
 
 ## Platform credentials
 

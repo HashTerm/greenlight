@@ -3,7 +3,27 @@ import type pg from 'pg'
 
 export const PENDING = 'PENDING'
 export const ANSWERED = 'ANSWERED'
-const EXPIRED = 'EXPIRED'
+export const EXPIRED = 'EXPIRED'
+
+export const BATCH_COLLECTING = 'COLLECTING'
+export const BATCH_RESOLVED = 'RESOLVED'
+export const BATCH_CONFLICT = 'CONFLICT'
+export const BATCH_EXPIRED = 'EXPIRED'
+
+export const PROMPT_ANSWER_MODES = [
+  'first_answer',
+  'all_answer_same',
+  'all_answer_majority',
+] as const
+
+export type PromptAnswerMode = (typeof PROMPT_ANSWER_MODES)[number]
+
+export interface PromptAnswer {
+  type: string
+  value: string
+  origin?: 'direct' | 'broadcast_sync'
+  source_channel_id?: string
+}
 
 export function canAcceptTextReply(prompt: PromptRow | null): boolean {
   if (!prompt) return false
@@ -26,14 +46,17 @@ export interface PromptRow {
   callback_headers: Record<string, string> | null
   correlation_id: string | null
   callback_data: unknown | null
-  broadcast_id: string | null
+  broadcast_batch_id: string | null
+  broadcast_group_id: string | null
+  broadcast_answer_mode: string | null
+  broadcast_batch_status: string | null
   state: string
   created_at: Date
   expires_at: Date | null
   answered_at: Date | null
   answered_by_id: number | null
   answered_by_username: string | null
-  answer: { type: string; value: string } | null
+  answer: PromptAnswer | null
 }
 
 export function parsePromptId(promptId: string): number | null {
@@ -63,7 +86,10 @@ export async function createPrompt(
     callbackHeaders: Record<string, string> | null
     correlationId: string | null
     callbackData: unknown | null
-    broadcastId: string | null
+    broadcastBatchId: string | null
+    broadcastGroupId?: string | null
+    broadcastAnswerMode?: string | null
+    broadcastBatchStatus?: string | null
     ttlSec: number
   },
 ): Promise<{ promptId: string; row: PromptRow }> {
@@ -85,9 +111,12 @@ export async function createPrompt(
   const result = await client.query<PromptRow>(
     `INSERT INTO prompts (
        id, organization_id, channel_id, prompt_num, chat_id, text, media_url, options,
-       allow_text, callback_url, callback_headers, correlation_id, callback_data, broadcast_id, state, expires_at
+       allow_text, callback_url, callback_headers, correlation_id, callback_data,
+       broadcast_batch_id, broadcast_group_id, broadcast_answer_mode, broadcast_batch_status,
+       state, expires_at
      )
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, $11, $12::jsonb, $13, $14::jsonb, $15, $16, $17)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, $11, $12::jsonb, $13, $14::jsonb,
+       $15, $16, $17, $18, $19, $20)
      RETURNING *`,
     [
       tempId,
@@ -103,7 +132,10 @@ export async function createPrompt(
       input.callbackHeaders !== null ? JSON.stringify(input.callbackHeaders) : null,
       input.correlationId,
       input.callbackData !== null ? JSON.stringify(input.callbackData) : null,
-      input.broadcastId,
+      input.broadcastBatchId,
+      input.broadcastGroupId ?? null,
+      input.broadcastAnswerMode ?? null,
+      input.broadcastBatchStatus ?? null,
       PENDING,
       expiresAt,
     ],
@@ -160,7 +192,8 @@ export async function listPrompts(
   state: PromptListState,
   limit: number,
   channelId?: string | null,
-  broadcastId?: string | null,
+  broadcastBatchId?: string | null,
+  broadcastGroupId?: string | null,
 ): Promise<PromptRow[]> {
   const stateMap = {
     pending: PENDING,
@@ -168,45 +201,35 @@ export async function listPrompts(
     expired: EXPIRED,
   } as const
 
-  const broadcastClause = broadcastId ? ' AND broadcast_id = $broadcast' : ''
-  const broadcastParam = broadcastId ?? null
-
-  if (state === 'all') {
-    if (channelId) {
-      const result = await client.query<PromptRow>(
-        `SELECT * FROM prompts
-         WHERE organization_id = $1 AND channel_id = $2${broadcastClause.replace('$broadcast', '$3')}
-         ORDER BY created_at DESC LIMIT $${broadcastId ? 4 : 3}`,
-        broadcastId
-          ? [organizationId, channelId, broadcastId, limit]
-          : [organizationId, channelId, limit],
-      )
-      return result.rows
-    }
-    const result = await client.query<PromptRow>(
-      `SELECT * FROM prompts WHERE organization_id = $1${broadcastClause.replace('$broadcast', '$2')} ORDER BY created_at DESC LIMIT $${broadcastId ? 3 : 2}`,
-      broadcastId ? [organizationId, broadcastId, limit] : [organizationId, limit],
-    )
-    return result.rows
-  }
+  const conditions: string[] = ['organization_id = $1']
+  const params: unknown[] = [organizationId]
+  let paramIndex = 2
 
   if (channelId) {
-    const result = await client.query<PromptRow>(
-      `SELECT * FROM prompts
-       WHERE organization_id = $1 AND channel_id = $2 AND state = $3${broadcastClause.replace('$broadcast', '$4')}
-       ORDER BY created_at DESC LIMIT $${broadcastId ? 5 : 4}`,
-      broadcastId
-        ? [organizationId, channelId, stateMap[state], broadcastId, limit]
-        : [organizationId, channelId, stateMap[state], limit],
-    )
-    return result.rows
+    conditions.push(`channel_id = $${paramIndex++}`)
+    params.push(channelId)
   }
 
+  if (state !== 'all') {
+    conditions.push(`state = $${paramIndex++}`)
+    params.push(stateMap[state])
+  }
+
+  if (broadcastBatchId) {
+    conditions.push(`broadcast_batch_id = $${paramIndex++}`)
+    params.push(broadcastBatchId)
+  }
+
+  if (broadcastGroupId) {
+    conditions.push(`broadcast_group_id = $${paramIndex++}`)
+    params.push(broadcastGroupId)
+  }
+
+  params.push(limit)
+
   const result = await client.query<PromptRow>(
-    `SELECT * FROM prompts WHERE organization_id = $1 AND state = $2${broadcastClause.replace('$broadcast', '$3')} ORDER BY created_at DESC LIMIT $${broadcastId ? 4 : 3}`,
-    broadcastId
-      ? [organizationId, stateMap[state], broadcastId, limit]
-      : [organizationId, stateMap[state], limit],
+    `SELECT * FROM prompts WHERE ${conditions.join(' AND ')} ORDER BY created_at DESC LIMIT $${paramIndex}`,
+    params,
   )
   return result.rows
 }
@@ -256,7 +279,11 @@ export interface CallbackInfo {
 }
 
 export type MarkAnsweredResult =
-  | { status: 'recorded'; callbackInfo: CallbackInfo | null }
+  | {
+      status: 'recorded'
+      callbackInfo: CallbackInfo | null
+      batchResolution: import('./broadcast-resolution.js').BatchResolutionResult | null
+    }
   | { status: 'already_answered'; prompt: PromptRow }
   | { status: 'expired'; prompt: PromptRow }
   | { status: 'not_found' }
@@ -275,6 +302,15 @@ export function formatAlreadyAnsweredReply(promptId: string, prompt: PromptRow):
     return `Already answered for ID:${promptId}: ${value}`
   }
   return `Already answered for ID:${promptId}`
+}
+
+export function formatBroadcastAlreadyAnsweredReply(prompt: PromptRow): string {
+  const value = formatStoredAnswerValue(prompt)
+  const source = prompt.answer?.source_channel_id
+  if (source && value) {
+    return `Already answered on ${source}: ${value}`
+  }
+  return formatAlreadyAnsweredReply(formatPromptId(prompt.prompt_num), prompt)
 }
 
 export function formatExpiredPromptReply(promptId: string): string {
@@ -309,6 +345,15 @@ function buildCallbackInfo(
   if (prompt.callback_data !== null && prompt.callback_data !== undefined) {
     payload.callback_data = prompt.callback_data
   }
+  if (prompt.broadcast_batch_id) {
+    payload.broadcast_batch_id = prompt.broadcast_batch_id
+  }
+  if (prompt.broadcast_answer_mode) {
+    payload.broadcast_answer_mode = prompt.broadcast_answer_mode
+  }
+  if (prompt.broadcast_batch_status) {
+    payload.broadcast_batch_status = prompt.broadcast_batch_status
+  }
 
   return {
     callbackUrl: prompt.callback_url,
@@ -335,7 +380,7 @@ export async function markAnswered(
   const updateResult = await client.query(
     `UPDATE prompts
      SET state = $1,
-         answer = jsonb_build_object('type', $2::text, 'value', $3::text),
+         answer = jsonb_build_object('type', $2::text, 'value', $3::text, 'origin', 'direct'),
          answered_by_id = $4,
          answered_by_username = $5,
          answered_at = now()
@@ -354,10 +399,24 @@ export async function markAnswered(
   )
 
   if (updateResult.rowCount && updateResult.rowCount > 0) {
+    const { evaluateBroadcastBatch } = await import('./broadcast-resolution.js')
+    const batchResolution = await evaluateBroadcastBatch(
+      client,
+      organizationId,
+      channelId,
+      promptId,
+      answer,
+    )
+
     const prompt = await getPrompt(client, organizationId, channelId, promptId)
+    const callbackInfo =
+      batchResolution?.callbackInfo ??
+      (prompt ? buildCallbackInfo(promptId, prompt, answer) : null)
+
     return {
       status: 'recorded',
-      callbackInfo: prompt ? buildCallbackInfo(promptId, prompt, answer) : null,
+      callbackInfo,
+      batchResolution,
     }
   }
 

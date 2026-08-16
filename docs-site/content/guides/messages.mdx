@@ -25,7 +25,11 @@ forwards as unsigned `message.created` events. See [Callbacks](/guides/callbacks
 
 ## Send outbound
 
-### Agent API
+Provide **exactly one** target on `POST /v1/messages/send`: `channel_id`,
+`broadcast_group_id` (Enterprise), or inline `broadcast_group` (API only). See
+[Broadcast Groups](/guides/broadcasts).
+
+### Agent API — single channel
 
 ```bash
 POST /v1/messages/send
@@ -38,14 +42,41 @@ POST /v1/messages/send
 }
 ```
 
-Response includes `message_id` when the message was stored (omitted when outbound
+### Agent API — multi-channel fan-out
+
+Inline group (community + enterprise, API only):
+
+```json
+{
+  "broadcast_group": {
+    "channel_ids": ["slack-ops", "telegram-alerts"]
+  },
+  "text": "Deploy finished successfully."
+}
+```
+
+Enterprise saved group:
+
+```json
+{
+  "broadcast_group_id": "brg_…",
+  "text": "Deploy finished successfully."
+}
+```
+
+Fan-out response includes `broadcast_batch_id` and per-channel `message_id` values.
+Filter stored rows with `GET /v1/messages?broadcast_batch_id=brd_…`.
+
+Single-channel response includes `message_id` when the message was stored (omitted when outbound
 zero retention is enabled).
 
 ### Admin UI
 
-1. **Messages → Send message**
-2. Pick a `MESSAGE` channel
-3. Enter text and submit
+**Community:** **Messages → Send message** — pick one `MESSAGE` channel only.
+
+**Enterprise:** single channel, or send from a saved **message** broadcast group
+(**Broadcast Groups** → group detail → **Send message**). Multi-channel inline
+groups are not available in the web UI — use the API.
 
 You can also send from a channel detail page (**Send message**).
 

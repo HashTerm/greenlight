@@ -1,77 +1,139 @@
-# Broadcasts (Enterprise)
+# Broadcast Groups (Enterprise)
 
-Broadcasts fan out **one logical send** to **multiple channels** of the same type.
-Enterprise license with the **broadcast** feature is required for the API and
-admin UI.
+**Broadcast groups** are saved sets of channels used for repeated multi-channel sends.
+Enterprise license with the **broadcast** feature is required for group CRUD, group-scoped
+sends, and the admin **Broadcast Groups** UI.
 
-## Kinds
+Community edition can still fan out without a saved group using the inline `broadcast_group`
+object on send APIs (API only — not in the web UI). See [Prompts](/guides/prompts).
 
-| Kind        | Channels  | Result                                                                                   |
-| ----------- | --------- | ---------------------------------------------------------------------------------------- |
-| **Message** | `MESSAGE` | Same plain text posted to each channel (`POST /v1/messages/send` semantics per channel). |
-| **Prompt**  | `PROMPT`  | One prompt row per channel with shared content; each channel keeps its own `#n`.         |
+## Edition and UI scope
 
-Mixed `MESSAGE` and `PROMPT` channels in one broadcast are not allowed.
+| Capability | Community | Enterprise |
+| ---------- | --------- | ---------- |
+| Inline `broadcast_group` on `POST /v1/prompts/new` and `POST /v1/messages/send` | Yes — **API only** | Yes — **API only** (not in web UI) |
+| Saved groups (`broadcast_groups`, `brg_…`) + CRUD API | No (`404`) | Yes |
+| Send via `broadcast_group_id` | No | Yes |
+| Admin **Broadcast Groups** UI | No | Yes |
+| New Prompt / New Message UI | Single `channel_id` only | Single channel **or** saved group |
 
-## Create
+Neither community nor enterprise web UI submits inline `broadcast_group` — only
+`channel_id` or `broadcast_group_id` from forms.
+
+## Concepts
+
+| Concept | Field | ID prefix | Notes |
+| ------- | ----- | --------- | ----- |
+| **Broadcast group** | `broadcast_group_id` | `brg_…` | Persistent named channel collection |
+| **Fan-out batch** | `broadcast_batch_id` | `brd_…` | Links rows created in one API call |
+| **Batch status** | `broadcast_batch_status` | — | `COLLECTING`, `RESOLVED`, `CONFLICT`, `EXPIRED` (prompt batches) |
+
+A send to a saved broadcast group sets **both** `broadcast_batch_id` and `broadcast_group_id` on each
+prompt or message row.
+
+## Prompt answer modes (prompt groups)
+
+Saved prompt groups require `prompt_answer_mode`:
+
+| Value | Behavior |
+| ----- | -------- |
+| `first_answer` | First channel answer closes the batch |
+| `all_answer_same` | All channels must answer; unanimous required |
+| `all_answer_majority` | Strict majority closes remaining channels |
+
+Mode is snapshotted on each prompt row as `broadcast_answer_mode` at send time.
+
+## Broadcast groups API
 
 ```http
-POST /v1/broadcasts/new
+GET /v1/broadcast-groups
+POST /v1/broadcast-groups
+GET /v1/broadcast-groups/{broadcast_group_id}
+PATCH /v1/broadcast-groups/{broadcast_group_id}
+DELETE /v1/broadcast-groups/{broadcast_group_id}
 ```
 
-Message example:
+Create example (prompt group):
 
 ```json
 {
-  "kind": "message",
+  "name": "Ops prompts",
+  "kind": "prompt",
   "channel_ids": ["slack-ops", "telegram-alerts"],
+  "prompt_answer_mode": "first_answer"
+}
+```
+
+`kind` must match channel types: `message` → `MESSAGE` channels, `prompt` → `PROMPT`
+channels.
+
+## Send via saved group
+
+Use `broadcast_group_id` on the normal send endpoints (exactly one target mode):
+
+```http
+POST /v1/messages/send
+```
+
+```json
+{
+  "broadcast_group_id": "brg_…",
   "text": "Deploy finished successfully."
 }
 ```
 
-Prompt example:
+```http
+POST /v1/prompts/new
+```
 
 ```json
 {
-  "kind": "prompt",
-  "channel_ids": ["telegram-prompts", "slack-prompts"],
+  "broadcast_group_id": "brg_…",
   "text": "Approve deploy?",
-  "options": ["Approve", "Reject"],
-  "correlation_id": "deploy-42"
+  "options": ["Approve", "Reject"]
 }
 ```
 
-Response includes a shared `broadcast_id` (`brd_…`) and per-channel `prompt_id` or
-`message_id`.
+Multi-channel responses include a shared `broadcast_batch_id` and per-channel ids.
 
-## List batches
+## API-only inline fan-out
 
-```http
-GET /v1/broadcasts?limit=50
+Without a saved group, send to multiple channels with inline `broadcast_group` (min 1, max 50 channels):
+
+```json
+{
+  "broadcast_group": {
+    "channel_ids": ["slack-ops", "telegram-alerts"],
+    "prompt_answer_mode": "first_answer"
+  },
+  "text": "Approve deploy?",
+  "options": ["Approve", "Reject"]
+}
 ```
 
-## List children
+Messages omit `prompt_answer_mode`:
 
-Filter existing list endpoints by `broadcast_id` (enterprise license required):
-
-```http
-GET /v1/prompts?broadcast_id=brd_…&state=all
-GET /v1/messages?broadcast_id=brd_…
+```json
+{
+  "broadcast_group": {
+    "channel_ids": ["slack-ops", "telegram-alerts"]
+  },
+  "text": "Hello everyone"
+}
 ```
 
-Single prompt lookup is unchanged: `GET /v1/prompts/{id}?channel_id=…`.
+## Fan-out batch detail
 
-## Callbacks
+```http
+GET /v1/broadcast-batches/{broadcast_batch_id}
+```
 
-- **Prompt broadcasts:** each answer fires its own signed callback (shared
-  `callback_url` / `callback_data` if set on create).
-- **Message broadcasts:** inbound replies still use each MESSAGE channel’s
-  `callback_url` and `callback_data` for `message.created` forwards.
+Returns batch summary, per-channel prompts or messages, and `broadcast_batch_status` for prompt batches.
 
-## Admin UI
+## List filters
 
-Licensed instances show **Broadcasts** in the nav (after Channels). Create
-prompt or message broadcasts from **New broadcast**, then open a batch to see
-per-channel delivery links.
-
-See [Editions](/getting-started/editions) for licensing.
+```http
+GET /v1/prompts?broadcast_batch_id=brd_…
+GET /v1/prompts?broadcast_group_id=brg_…   # enterprise license
+GET /v1/messages?broadcast_batch_id=brd_…
+```

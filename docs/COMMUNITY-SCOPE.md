@@ -11,7 +11,11 @@ What this repository contains and what belongs elsewhere.
 | `docs-site/` | Public product documentation                                  |
 
 **In scope:** BUSL community edition, extension hooks in `core/src/extensions/`,
-single implicit tenant, scoped API keys.
+single implicit tenant, scoped API keys, API-only inline multi-channel fan-out
+(`broadcast_group` on send routes).
+
+**Enterprise (commercial):** saved broadcast groups, group CRUD API, and Broadcast
+Groups admin UI — see [Broadcast Groups](docs-site/content/guides/broadcasts.mdx).
 
 ## Extension hooks (`core/src/extensions/`)
 

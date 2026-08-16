@@ -10,41 +10,78 @@ import { requireScope } from '../middleware/require-scope.js'
 import { recordAuditEvent } from '../../extensions/audit.js'
 import { getAuditEventContext } from '../middleware/audit-actor.js'
 import { getOrganizationId } from '../middleware/org-context.js'
+import { resolveSendTargets } from '../../services/fan-out/targets.js'
+import { fanOutPrompts } from '../../services/fan-out/service.js'
 
 const callbackDataSchema = z.record(z.string(), z.unknown()).or(z.array(z.unknown()))
 const callbackHeadersSchema = z.record(z.string(), z.string())
 
-const promptInSchema = z.object({
-  channel_id: z.string().optional().nullable(),
-  text: z.string().max(4096),
-  media_url: z.string().optional().nullable(),
-  media_path: z.string().optional().nullable(),
-  options: z.array(z.string().max(64)).max(10).optional().nullable(),
-  allow_text: z.boolean().optional().default(false),
-  callback_url: z.string().optional().nullable(),
-  correlation_id: z.string().max(255).optional().nullable(),
-  callback_data: callbackDataSchema.optional().nullable(),
-  callback_headers: callbackHeadersSchema.optional().nullable(),
-  ttl_sec: z
-    .number()
-    .int()
-    .min(0)
-    .max(7 * 24 * 3600)
-    .optional()
-    .nullable(),
+const promptAnswerModeSchema = z.enum(['first_answer', 'all_answer_same', 'all_answer_majority'])
+
+const inlineBroadcastGroupPromptSchema = z.object({
+  channel_ids: z.array(z.string().min(1)).min(1).max(50),
+  prompt_answer_mode: promptAnswerModeSchema,
 })
+
+const sendTargetRefine = (
+  data: {
+    channel_id?: string | null
+    broadcast_group?: { channel_ids: string[] } | null
+    broadcast_group_id?: string | null
+  },
+) => {
+  const modes = [
+    Boolean(data.channel_id?.trim()),
+    Boolean(data.broadcast_group?.channel_ids?.length),
+    Boolean(data.broadcast_group_id?.trim()),
+  ].filter(Boolean).length
+  return modes <= 1
+}
+
+const promptInSchema = z
+  .object({
+    channel_id: z.string().optional().nullable(),
+    broadcast_group: inlineBroadcastGroupPromptSchema.optional().nullable(),
+    broadcast_group_id: z.string().min(1).optional().nullable(),
+    text: z.string().max(4096),
+    media_url: z.string().optional().nullable(),
+    media_path: z.string().optional().nullable(),
+    options: z.array(z.string().max(64)).max(10).optional().nullable(),
+    allow_text: z.boolean().optional().default(false),
+    callback_url: z.string().optional().nullable(),
+    correlation_id: z.string().max(255).optional().nullable(),
+    callback_data: callbackDataSchema.optional().nullable(),
+    callback_headers: callbackHeadersSchema.optional().nullable(),
+    ttl_sec: z
+      .number()
+      .int()
+      .min(0)
+      .max(7 * 24 * 3600)
+      .optional()
+      .nullable(),
+  })
+  .refine(sendTargetRefine, {
+    message: 'Provide at most one of channel_id, broadcast_group, or broadcast_group_id',
+  })
 
 const listQuerySchema = z.object({
   state: z.enum(['pending', 'answered', 'expired', 'all']).default('pending'),
   limit: z.coerce.number().int().min(1).max(200).default(50),
   channel_id: z.string().optional(),
-  broadcast_id: z.string().optional(),
+  broadcast_batch_id: z.string().optional(),
+  broadcast_group_id: z.string().optional(),
 })
 
 export const promptRoutes = new Hono()
 
 type CreatePromptInput = Parameters<typeof createAndPostPrompt>[0]
 type CreatePromptBody = Omit<CreatePromptInput, 'organizationId'>
+type CreatePromptRequest = CreatePromptBody & {
+  broadcastGroupInline?: {
+    channel_ids: string[]
+    prompt_answer_mode: string
+  } | null
+}
 
 function serializePromptRow(row: PromptRow) {
   return {
@@ -63,7 +100,10 @@ function serializePromptRow(row: PromptRow) {
     callback_headers_configured: Boolean(
       row.callback_headers && Object.keys(row.callback_headers).length > 0,
     ),
-    broadcast_id: row.broadcast_id,
+    broadcast_batch_id: row.broadcast_batch_id,
+    broadcast_group_id: row.broadcast_group_id,
+    broadcast_answer_mode: row.broadcast_answer_mode,
+    broadcast_batch_status: row.broadcast_batch_status,
     state: row.state,
     created_at: row.created_at.toISOString(),
     expires_at: row.expires_at?.toISOString() ?? null,
@@ -74,11 +114,93 @@ function serializePromptRow(row: PromptRow) {
   }
 }
 
-async function respondCreatePrompt(c: Context, input: CreatePromptBody) {
+async function respondCreatePrompt(c: Context, input: CreatePromptRequest) {
   try {
+    const organizationId = getOrganizationId(c)
+
+    const hasFanOutTarget = Boolean(input.broadcastGroupInline) || Boolean(input.broadcastGroupId)
+
+    if (hasFanOutTarget) {
+      const targets = await resolveSendTargets(
+        organizationId,
+        {
+          broadcast_group: input.broadcastGroupInline,
+          broadcast_group_id: input.broadcastGroupId,
+        },
+        'PROMPT',
+      )
+
+      if (!targets.isFanOut && targets.channelIds.length === 1) {
+        const { broadcastGroupInline: _inline, ...promptInput } = input
+        const result = await createAndPostPrompt({
+          ...promptInput,
+          organizationId,
+          channelId: targets.channelIds[0],
+          broadcastGroupId: targets.broadcastGroupId,
+        })
+        await recordAuditEvent({
+          ...getAuditEventContext(c),
+          action: 'prompt.created',
+          resource_type: 'prompt',
+          resource_id: result.promptId,
+          metadata: { channel_id: result.channelId },
+        })
+        return c.json({
+          prompt_id: result.promptId,
+          channel_id: result.channelId,
+          message_id: result.messageId,
+        })
+      }
+
+      const fanOut = await fanOutPrompts({
+        organizationId,
+        channelIds: targets.channelIds,
+        broadcastGroupId: targets.broadcastGroupId,
+        promptAnswerMode: targets.promptAnswerMode,
+        text: input.text,
+        options: input.options,
+        allowText: input.allowText,
+        callbackUrl: input.callbackUrl,
+        callbackHeaders: input.callbackHeaders,
+        correlationId: input.correlationId,
+        callbackData: input.callbackData,
+        ttlSec: input.ttlSec,
+        mediaUrl: input.mediaUrl,
+        mediaPath: input.mediaPath,
+        mediaFile: input.mediaFile,
+        mediaFileName: input.mediaFileName,
+      })
+
+      await recordAuditEvent({
+        ...getAuditEventContext(c),
+        action: 'prompt.created',
+        resource_type: 'broadcast',
+        resource_id: fanOut.broadcast_batch_id,
+        metadata: {
+          channel_ids: targets.channelIds,
+          child_count: fanOut.channels.length,
+          broadcast_group_id: targets.broadcastGroupId,
+        },
+      })
+
+      if (fanOut.channels.length === 1) {
+        const single = fanOut.channels[0]!
+        return c.json({
+          prompt_id: single.prompt_id,
+          channel_id: single.channel_id,
+          broadcast_batch_id: fanOut.broadcast_batch_id,
+        })
+      }
+
+      return c.json(fanOut)
+    }
+
     const result = await createAndPostPrompt({
-      ...input,
-      organizationId: getOrganizationId(c),
+      ...(() => {
+        const { broadcastGroupInline: _inline, ...rest } = input
+        return rest
+      })(),
+      organizationId,
     })
     await recordAuditEvent({
       ...getAuditEventContext(c),
@@ -101,7 +223,7 @@ async function respondCreatePrompt(c: Context, input: CreatePromptBody) {
   }
 }
 
-async function parseMultipartPrompt(c: Context): Promise<CreatePromptBody | Response> {
+async function parseMultipartPrompt(c: Context): Promise<CreatePromptRequest | Response> {
   const form = await c.req.parseBody()
   const text = String(form.text ?? '')
   if (!text) return c.json({ detail: 'text is required' }, 400)
@@ -147,8 +269,19 @@ async function parseMultipartPrompt(c: Context): Promise<CreatePromptBody | Resp
     mediaFileName = blob.name
   }
 
+  let broadcastGroupInline: CreatePromptRequest['broadcastGroupInline'] = undefined
+  if (form.broadcast_group) {
+    try {
+      broadcastGroupInline = JSON.parse(String(form.broadcast_group)) as CreatePromptRequest['broadcastGroupInline']
+    } catch {
+      return c.json({ detail: 'Invalid JSON format for broadcast_group' }, 400)
+    }
+  }
+
   return {
     channelId: form.channel_id ? String(form.channel_id) : null,
+    broadcastGroupInline,
+    broadcastGroupId: form.broadcast_group_id ? String(form.broadcast_group_id) : null,
     text,
     mediaPath: form.media_path ? String(form.media_path) : null,
     mediaUrl,
@@ -187,8 +320,22 @@ promptRoutes.post('/prompts/new', requireScope('prompts:write'), async (c) => {
     }
 
     const data = parsed.data
+    const modes = [
+      Boolean(data.channel_id?.trim()),
+      Boolean(data.broadcast_group?.channel_ids?.length),
+      Boolean(data.broadcast_group_id?.trim()),
+    ].filter(Boolean).length
+    if (modes !== 1) {
+      return c.json(
+        { detail: 'Provide exactly one of channel_id, broadcast_group, or broadcast_group_id' },
+        400,
+      )
+    }
+
     return respondCreatePrompt(c, {
       channelId: data.channel_id,
+      broadcastGroupInline: data.broadcast_group,
+      broadcastGroupId: data.broadcast_group_id,
       text: data.text,
       mediaPath: data.media_path,
       mediaUrl: data.media_url,
@@ -213,11 +360,18 @@ promptRoutes.get(
   requireScope('prompts:read'),
   zValidator('query', listQuerySchema),
   async (c) => {
-    const { state, limit, channel_id, broadcast_id } = c.req.valid('query')
-    if (broadcast_id && !licenseGate.isEnabled('broadcast')) {
+    const { state, limit, channel_id, broadcast_batch_id, broadcast_group_id } = c.req.valid('query')
+    if (broadcast_group_id && !licenseGate.isEnabled('broadcast')) {
       return c.json({ detail: 'not found' }, 404)
     }
-    const rows = await listPrompts(getOrganizationId(c), state, limit, channel_id, broadcast_id)
+    const rows = await listPrompts(
+      getOrganizationId(c),
+      state,
+      limit,
+      channel_id,
+      broadcast_batch_id,
+      broadcast_group_id,
+    )
     return c.json(rows.map(serializePromptRow))
   },
 )

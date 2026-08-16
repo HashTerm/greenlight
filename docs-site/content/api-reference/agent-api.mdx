@@ -32,9 +32,9 @@ all permissions.
 | `keys:write`     | `POST /v1/keys/new`, `DELETE /v1/keys/{id}`               |
 | `channels:read`  | `GET /v1/channels`                                        |
 | `channels:write` | `POST /v1/channels/new`, `PATCH/DELETE /v1/channels/{id}` |
-| `prompts:read`   | `GET /v1/prompts`, `GET /v1/prompts/{id}`                 |
+| `prompts:read`   | `GET /v1/prompts`, `GET /v1/prompts/{id}`, `GET /v1/broadcast-batches/{broadcast_batch_id}` |
 | `prompts:write`  | `POST /v1/prompts/new`                                    |
-| `messages:read`  | `GET /v1/messages`, `GET /v1/messages/{id}`               |
+| `messages:read`  | `GET /v1/messages`, `GET /v1/messages/{id}`, `GET /v1/broadcast-batches/{broadcast_batch_id}` |
 | `messages:send`  | `POST /v1/messages/send`                                  |
 | `admin`          | All of the above                                          |
 
@@ -63,9 +63,15 @@ all permissions.
 | `GET`    | `/v1/channels`      | `channels:read`  | List channels (filters)             |
 | `PATCH`  | `/v1/channels/{id}` | `channels:write` | Update a channel                    |
 | `DELETE` | `/v1/channels/{id}` | `channels:write` | Unregister channel                  |
-| `GET`    | `/v1/messages`      | `messages:read`  | List message history                |
-| `GET`    | `/v1/messages/{id}` | `messages:read`  | Get message by UUID                 |
-| `POST`   | `/v1/messages/send` | `messages:send`  | Send chat text on MESSAGE channel   |
+| `GET`    | `/v1/messages`           | `messages:read`  | List message history                |
+| `GET`    | `/v1/messages/{id}`      | `messages:read`  | Get message by UUID                 |
+| `POST`   | `/v1/messages/send`      | `messages:send`  | Send chat text on MESSAGE channel   |
+| `GET`    | `/v1/broadcast-groups`   | `prompts:read` or `messages:read` | List saved broadcast groups (Enterprise) |
+| `POST`   | `/v1/broadcast-groups`   | `prompts:write` or `messages:write` | Create broadcast group (Enterprise) |
+| `GET`    | `/v1/broadcast-groups/{broadcast_group_id}` | `prompts:read` or `messages:read` | Get broadcast group (Enterprise) |
+| `PATCH`  | `/v1/broadcast-groups/{broadcast_group_id}` | `prompts:write` or `messages:write` | Update broadcast group (Enterprise) |
+| `DELETE` | `/v1/broadcast-groups/{broadcast_group_id}` | `prompts:write` or `messages:write` | Delete broadcast group (Enterprise) |
+| `GET`    | `/v1/broadcast-batches/{broadcast_batch_id}` | `prompts:read` or `messages:read` | Fan-out batch detail |
 
 Platforms: `telegram`, `slack`, `teams`, `discord`, `gchat`, `whatsapp`,
 `messenger`.
@@ -114,19 +120,37 @@ API key metadata plus `key` (plaintext, shown once).
 
 Accepts **`application/json`** or **`multipart/form-data`**.
 
+Provide **exactly one** send target: `channel_id`, `broadcast_group_id` (Enterprise),
+or inline `broadcast_group` (API only — see [Broadcast Groups](/guides/broadcasts)).
+
 ### JSON body
 
-| Field            | Type     | Required    | Notes                              |
-| ---------------- | -------- | ----------- | ---------------------------------- |
-| `text`           | string   | Yes         | Max 4096                           |
-| `channel_id`     | string   | Conditional | Or use `DEFAULT_PROMPT_CHANNEL_ID` |
-| `options`        | string[] | No          | Max 10 (3 on WhatsApp/Messenger)   |
-| `allow_text`     | boolean  | No          | Default `false`                    |
-| `callback_url`   | string   | No          | Validated HTTP(S)                  |
-| `correlation_id` | string   | No          | Max 255                            |
-| `ttl_sec`        | int      | No          | Default `3600`, max 604800         |
-| `media_url`      | string   | No          | Mutually exclusive media sources   |
-| `media_path`     | string   | No          | Under `MEDIA_ALLOWED_DIR`          |
+| Field                | Type     | Required    | Notes                                                              |
+| -------------------- | -------- | ----------- | ------------------------------------------------------------------ |
+| `text`               | string   | Yes         | Max 4096                                                           |
+| `channel_id`         | string   | Conditional | Single-channel send; or `DEFAULT_PROMPT_CHANNEL_ID` when omitted   |
+| `broadcast_group`    | object   | Conditional | Inline fan-out: `channel_ids` + `prompt_answer_mode` (API only)    |
+| `broadcast_group_id` | string   | Conditional | Enterprise: saved broadcast group (`brg_…`)                        |
+| `options`            | string[] | No          | Max 10 (3 on WhatsApp/Messenger)                                   |
+| `allow_text`         | boolean  | No          | Default `false`                                                    |
+| `callback_url`       | string   | No          | Validated HTTP(S)                                                  |
+| `correlation_id`     | string   | No          | Max 255                                                            |
+| `callback_data`      | object   | No          | JSON workflow state (max 8192 bytes), echoed in answer callback    |
+| `callback_headers`   | object   | No          | Outbound HTTP headers (max 4096 bytes); not returned on GET        |
+| `ttl_sec`            | int      | No          | Default `3600`, max 604800                                         |
+| `media_url`          | string   | No          | Mutually exclusive media sources                                   |
+| `media_path`         | string   | No          | Under `MEDIA_ALLOWED_DIR`                                          |
+
+Inline `broadcast_group` for prompts:
+
+```json
+{
+  "channel_ids": ["slack-ops", "telegram-alerts"],
+  "prompt_answer_mode": "first_answer"
+}
+```
+
+`prompt_answer_mode`: `first_answer` \| `all_answer_same` \| `all_answer_majority`.
 
 ### Multipart form
 
@@ -134,6 +158,8 @@ Same fields as form parts. Send attachments as `file`. `options` may be a JSON
 string. Do not combine `file` and `media_url`.
 
 ### Response `200`
+
+Single channel:
 
 ```json
 {
@@ -143,14 +169,39 @@ string. Do not combine `file` and `media_url`.
 }
 ```
 
+Multi-channel fan-out:
+
+```json
+{
+  "broadcast_batch_id": "brd_abc123",
+  "channels": [
+    { "channel_id": "slack-ops", "prompt_id": "#1", "message_id": "uuid-1" },
+    { "channel_id": "telegram-alerts", "prompt_id": "#2", "message_id": "uuid-2" }
+  ]
+}
+```
+
+Each prompt row stores `broadcast_batch_id`, optional `broadcast_group_id`,
+snapshotted `broadcast_answer_mode`, and `broadcast_batch_status` (`COLLECTING` at
+create). Community rejects `broadcast_group_id` (Enterprise license required).
+
 ## `GET /v1/prompts`
 
 ### Query
 
-| Param   | Type   | Default   | Notes                                         |
-| ------- | ------ | --------- | --------------------------------------------- |
-| `state` | string | `pending` | `pending` \| `answered` \| `expired` \| `all` |
-| `limit` | int    | `50`      | 1–200                                         |
+| Param                 | Type   | Default   | Notes                                         |
+| --------------------- | ------ | --------- | --------------------------------------------- |
+| `state`               | string | `pending` | `pending` \| `answered` \| `expired` \| `all` |
+| `limit`               | int    | `50`      | 1–200                                         |
+| `channel_id`          | string | —         | Filter to one PROMPT channel                  |
+| `broadcast_batch_id`  | string | —         | Rows from one fan-out batch (`brd_…`)         |
+| `broadcast_group_id`  | string | —         | Enterprise: filter by saved group (`brg_…`)   |
+
+## `GET /v1/prompts/{id}`
+
+Returns prompt state including `answer`, timestamps, options, and broadcast fields
+(`broadcast_batch_id`, `broadcast_group_id`, `broadcast_answer_mode`,
+`broadcast_batch_status`). Encode `#` as `%23`. Query `channel_id` is required.
 
 ## `POST /v1/channels/new`
 
@@ -186,22 +237,20 @@ deactivated channel. `platform` and `channel_type` cannot be changed.
 { "status": "Channel ops-slack updated." }
 ```
 
-## `GET /v1/prompts/{id}`
-
-Returns prompt state including `answer`, timestamps, and options. Encode `#` as
-`%23`.
-
 ## `GET /v1/messages`
 
 ### Query
 
-| Param        | Type   | Default | Notes                            |
-| ------------ | ------ | ------- | -------------------------------- |
-| `direction`  | string | `all`   | `inbound` \| `outbound` \| `all` |
-| `channel_id` | string | —       | Filter by channel                |
-| `limit`      | int    | `50`    | 1–200                            |
+| Param                 | Type   | Default | Notes                            |
+| --------------------- | ------ | ------- | -------------------------------- |
+| `direction`           | string | `all`   | `inbound` \| `outbound` \| `all` |
+| `channel_id`          | string | —       | Filter by channel                |
+| `broadcast_batch_id`  | string | —       | Rows from one fan-out batch      |
+| `broadcast_group_id`  | string | —       | Enterprise: filter by saved group |
+| `limit`               | int    | `50`    | 1–200                            |
 
-Outbound messages include `api_key_id` when stored.
+Outbound messages include `api_key_id` and optional `broadcast_batch_id` /
+`broadcast_group_id` when stored.
 
 ## `GET /v1/messages/{id}`
 
@@ -209,16 +258,59 @@ Returns a single message record by UUID.
 
 ## `POST /v1/messages/send`
 
-Deliver plain chat text on a `MESSAGE` channel. When retention allows,
-returns the full stored message record (`201`). When zero retention is enabled,
-returns `{ "status": "sent", "stored": false, ... }`.
+Deliver plain chat text on `MESSAGE` channel(s). Provide **exactly one** target:
+`channel_id`, `broadcast_group_id` (Enterprise), or inline `broadcast_group` (API only).
+
+When retention allows, returns the full stored message record (`201`). When zero
+retention is enabled, returns `{ "status": "sent", "stored": false, ... }`.
 
 ### Request body
 
-| Field        | Type   | Required | Notes           |
-| ------------ | ------ | -------- | --------------- |
-| `channel_id` | string | Yes      | MESSAGE channel |
-| `text`       | string | Yes      | Message body    |
+| Field                | Type   | Required    | Notes                                           |
+| -------------------- | ------ | ----------- | ----------------------------------------------- |
+| `text`               | string | Yes         | Message body                                    |
+| `channel_id`         | string | Conditional | Single MESSAGE channel                          |
+| `broadcast_group`    | object | Conditional | Inline fan-out: `{ "channel_ids": [...] }` only |
+| `broadcast_group_id` | string | Conditional | Enterprise: saved message group (`brg_…`)       |
+
+### Response
+
+Single channel: stored message record or `{ "status": "sent", "stored": false }`.
+
+Multi-channel fan-out (`200`):
+
+```json
+{
+  "broadcast_batch_id": "brd_abc123",
+  "channels": [
+    { "channel_id": "slack-ops", "message_id": "uuid-1" },
+    { "channel_id": "telegram-alerts", "message_id": "uuid-2" }
+  ]
+}
+```
+
+## Broadcast groups (Enterprise)
+
+Requires Enterprise license with the **broadcast** feature. Community returns
+`404` for these routes.
+
+| Method   | Path                         | Body / notes                                      |
+| -------- | ---------------------------- | ------------------------------------------------- |
+| `GET`    | `/v1/broadcast-groups`       | Query: `kind` (`prompt` \| `message`), `limit`    |
+| `POST`   | `/v1/broadcast-groups`       | `name`, `kind`, `channel_ids`; `prompt_answer_mode` required for `kind: prompt` |
+| `GET`    | `/v1/broadcast-groups/{broadcast_group_id}`  | Path `broadcast_group_id` is `brg_…`         |
+| `PATCH`  | `/v1/broadcast-groups/{broadcast_group_id}`  | `name`, `channel_ids`, `prompt_answer_mode`       |
+| `DELETE` | `/v1/broadcast-groups/{broadcast_group_id}`  |                                                   |
+
+See [Broadcast Groups](/guides/broadcasts) for examples and edition scope.
+
+## `GET /v1/broadcast-batches/{broadcast_batch_id}`
+
+Returns batch summary plus per-channel `prompts` and `messages` arrays. Prompt
+batches include `broadcast_batch_status` (`COLLECTING`, `RESOLVED`, `CONFLICT`,
+`EXPIRED`).
+
+Narrative: [Broadcast Groups](/guides/broadcasts).
 
 ## Common errors
 

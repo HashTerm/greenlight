@@ -157,7 +157,7 @@ export async function sendToChannel(
   channelId: string,
   text: string,
   apiKeyId: string | null = null,
-  options?: { broadcastId?: string | null },
+  options?: { broadcastBatchId?: string | null; broadcastGroupId?: string | null },
 ): Promise<{ messageId?: string }> {
   return withClient(async (client) => {
     const channel = await channelModels.getChannel(client, organizationId, channelId)
@@ -185,7 +185,8 @@ export async function sendToChannel(
       platform: channel.platform,
       apiKeyId,
       platformMessageId: platformMessageId ?? null,
-      broadcastId: options?.broadcastId ?? null,
+      broadcastBatchId: options?.broadcastBatchId ?? null,
+      broadcastGroupId: options?.broadcastGroupId ?? null,
     })
     return { messageId: row.id }
   })

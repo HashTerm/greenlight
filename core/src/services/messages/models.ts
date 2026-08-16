@@ -13,7 +13,8 @@ export interface MessageRow {
   from_user: string | null
   api_key_id: string | null
   platform_message_id: string | null
-  broadcast_id: string | null
+  broadcast_batch_id: string | null
+  broadcast_group_id: string | null
   created_at: Date
 }
 
@@ -28,13 +29,14 @@ export async function createMessage(
     fromUser?: string | null
     apiKeyId?: string | null
     platformMessageId?: string | null
-    broadcastId?: string | null
+    broadcastBatchId?: string | null
+    broadcastGroupId?: string | null
   },
 ): Promise<MessageRow> {
   const id = randomUUID()
   const result = await client.query<MessageRow>(
-    `INSERT INTO messages (id, organization_id, channel_id, direction, text, platform, from_user, api_key_id, platform_message_id, broadcast_id)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+    `INSERT INTO messages (id, organization_id, channel_id, direction, text, platform, from_user, api_key_id, platform_message_id, broadcast_batch_id, broadcast_group_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
      RETURNING *`,
     [
       id,
@@ -46,7 +48,8 @@ export async function createMessage(
       input.fromUser ?? null,
       input.apiKeyId ?? null,
       input.platformMessageId ?? null,
-      input.broadcastId ?? null,
+      input.broadcastBatchId ?? null,
+      input.broadcastGroupId ?? null,
     ],
   )
   return result.rows[0]!
@@ -61,7 +64,8 @@ export async function listMessages(
     limit: number
     channelId?: string
     direction?: MessageListDirection
-    broadcastId?: string
+    broadcastBatchId?: string
+    broadcastGroupId?: string
   },
 ): Promise<MessageRow[]> {
   const conditions: string[] = ['organization_id = $1']
@@ -73,9 +77,14 @@ export async function listMessages(
     params.push(options.channelId)
   }
 
-  if (options.broadcastId) {
-    conditions.push(`broadcast_id = $${paramIndex++}`)
-    params.push(options.broadcastId)
+  if (options.broadcastBatchId) {
+    conditions.push(`broadcast_batch_id = $${paramIndex++}`)
+    params.push(options.broadcastBatchId)
+  }
+
+  if (options.broadcastGroupId) {
+    conditions.push(`broadcast_group_id = $${paramIndex++}`)
+    params.push(options.broadcastGroupId)
   }
 
   if (options.direction && options.direction !== 'all') {

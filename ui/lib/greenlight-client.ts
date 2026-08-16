@@ -86,14 +86,22 @@ export interface Prompt {
   correlation_id: string | null
   callback_data: unknown | null
   callback_headers_configured: boolean
-  broadcast_id: string | null
+  broadcast_batch_id: string | null
+  broadcast_group_id: string | null
+  broadcast_answer_mode: string | null
+  broadcast_batch_status: string | null
   state: string
   created_at: string
   expires_at: string | null
   answered_at: string | null
   answered_by_id: number | null
   answered_by_username: string | null
-  answer: { type: string; value: string } | null
+  answer: {
+    type: string
+    value: string
+    origin?: string
+    source_channel_id?: string
+  } | null
 }
 
 export interface Message {
@@ -105,7 +113,8 @@ export interface Message {
   from_user: string | null
   api_key_id: string | null
   platform_message_id: string | null
-  broadcast_id: string | null
+  broadcast_batch_id: string | null
+  broadcast_group_id: string | null
   created_at: string
 }
 

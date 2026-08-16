@@ -16,7 +16,10 @@ CREATE TABLE IF NOT EXISTS prompts (
   callback_headers JSONB,
   correlation_id TEXT,
   callback_data JSONB,
-  broadcast_id TEXT,
+  broadcast_batch_id TEXT,
+  broadcast_group_id TEXT,
+  broadcast_answer_mode TEXT,
+  broadcast_batch_status TEXT,
   state TEXT NOT NULL DEFAULT 'PENDING',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   expires_at TIMESTAMPTZ,
@@ -28,8 +31,8 @@ CREATE TABLE IF NOT EXISTS prompts (
 
 CREATE INDEX IF NOT EXISTS idx_prompts_state ON prompts(state);
 CREATE INDEX IF NOT EXISTS idx_prompts_created ON prompts(created_at);
--- idx_prompts_org_channel_num and idx_prompts_broadcast are created after channel_id /
--- broadcast_id columns exist (see per-channel prompt migration below).
+-- idx_prompts_org_channel_num and idx_prompts_broadcast_batch are created after
+-- channel_id / broadcast_batch_id columns exist (see per-channel prompt migration below).
 
 CREATE TABLE IF NOT EXISTS prompt_options (
   prompt_id TEXT NOT NULL REFERENCES prompts(id) ON DELETE CASCADE,
@@ -97,7 +100,8 @@ CREATE TABLE IF NOT EXISTS messages (
   from_user TEXT,
   api_key_id TEXT REFERENCES api_keys(id),
   platform_message_id TEXT,
-  broadcast_id TEXT,
+  broadcast_batch_id TEXT,
+  broadcast_group_id TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   FOREIGN KEY (organization_id, channel_id) REFERENCES channels(organization_id, channel_id)
 );
@@ -106,7 +110,7 @@ CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at);
 CREATE INDEX IF NOT EXISTS idx_messages_channel ON messages(organization_id, channel_id);
 CREATE INDEX IF NOT EXISTS idx_messages_direction ON messages(direction);
 CREATE INDEX IF NOT EXISTS idx_messages_org ON messages(organization_id);
--- idx_messages_broadcast is created after broadcast_id column exists (see below).
+-- idx_messages_broadcast_batch is created after broadcast_batch_id column exists (see below).
 
 CREATE TABLE IF NOT EXISTS app_settings (
   organization_id TEXT PRIMARY KEY,
@@ -245,7 +249,7 @@ CREATE TABLE IF NOT EXISTS organization_licenses (
 -- Per-channel prompt ids + callback_data (upgrade from org-wide SERIAL prompt_num)
 ALTER TABLE prompts ADD COLUMN IF NOT EXISTS channel_id TEXT;
 ALTER TABLE prompts ADD COLUMN IF NOT EXISTS callback_data JSONB;
-ALTER TABLE prompts ADD COLUMN IF NOT EXISTS broadcast_id TEXT;
+ALTER TABLE prompts ADD COLUMN IF NOT EXISTS broadcast_batch_id TEXT;
 
 UPDATE prompts p
 SET channel_id = c.channel_id
@@ -303,10 +307,10 @@ DO $$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'prompts' AND column_name = 'broadcast_id'
+    WHERE table_schema = 'public' AND table_name = 'prompts' AND column_name = 'broadcast_batch_id'
   ) THEN
-    CREATE INDEX IF NOT EXISTS idx_prompts_broadcast ON prompts(broadcast_id)
-      WHERE broadcast_id IS NOT NULL;
+    CREATE INDEX IF NOT EXISTS idx_prompts_broadcast_batch ON prompts(broadcast_batch_id)
+      WHERE broadcast_batch_id IS NOT NULL;
   END IF;
 END $$;
 
@@ -340,15 +344,113 @@ ALTER TABLE prompts ADD COLUMN IF NOT EXISTS callback_headers JSONB;
 ALTER TABLE channels ADD COLUMN IF NOT EXISTS callback_headers JSONB;
 ALTER TABLE channels ADD COLUMN IF NOT EXISTS callback_data JSONB;
 
-ALTER TABLE messages ADD COLUMN IF NOT EXISTS broadcast_id TEXT;
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS broadcast_batch_id TEXT;
 
 DO $$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
-    WHERE table_schema = 'public' AND table_name = 'messages' AND column_name = 'broadcast_id'
+    WHERE table_schema = 'public' AND table_name = 'messages' AND column_name = 'broadcast_batch_id'
   ) THEN
-    CREATE INDEX IF NOT EXISTS idx_messages_broadcast ON messages(broadcast_id)
-      WHERE broadcast_id IS NOT NULL;
+    CREATE INDEX IF NOT EXISTS idx_messages_broadcast_batch ON messages(broadcast_batch_id)
+      WHERE broadcast_batch_id IS NOT NULL;
   END IF;
+END $$;
+
+-- Broadcast groups (enterprise): persistent channel collections for fan-out sends
+CREATE TABLE IF NOT EXISTS broadcast_groups (
+  organization_id TEXT NOT NULL,
+  broadcast_group_id TEXT NOT NULL,
+  name TEXT NOT NULL,
+  kind TEXT NOT NULL CHECK (kind IN ('prompt', 'message')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  PRIMARY KEY (organization_id, broadcast_group_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_broadcast_groups_org ON broadcast_groups(organization_id);
+
+CREATE TABLE IF NOT EXISTS broadcast_group_channels (
+  organization_id TEXT NOT NULL,
+  broadcast_group_id TEXT NOT NULL,
+  channel_id TEXT NOT NULL,
+  PRIMARY KEY (organization_id, broadcast_group_id, channel_id),
+  FOREIGN KEY (organization_id, channel_id)
+    REFERENCES channels(organization_id, channel_id),
+  FOREIGN KEY (organization_id, broadcast_group_id)
+    REFERENCES broadcast_groups(organization_id, broadcast_group_id)
+);
+
+ALTER TABLE prompts ADD COLUMN IF NOT EXISTS broadcast_group_id TEXT;
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS broadcast_group_id TEXT;
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'prompts' AND column_name = 'broadcast_group_id'
+  ) THEN
+    CREATE INDEX IF NOT EXISTS idx_prompts_broadcast_group ON prompts(broadcast_group_id)
+      WHERE broadcast_group_id IS NOT NULL;
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'messages' AND column_name = 'broadcast_group_id'
+  ) THEN
+    CREATE INDEX IF NOT EXISTS idx_messages_broadcast_group ON messages(broadcast_group_id)
+      WHERE broadcast_group_id IS NOT NULL;
+  END IF;
+END $$;
+
+-- Prompt answer modes on broadcast groups and fan-out prompt rows
+ALTER TABLE broadcast_groups
+  ADD COLUMN IF NOT EXISTS prompt_answer_mode TEXT NOT NULL DEFAULT 'first_answer';
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'broadcast_groups_prompt_answer_mode_check'
+  ) THEN
+    ALTER TABLE broadcast_groups
+      ADD CONSTRAINT broadcast_groups_prompt_answer_mode_check
+      CHECK (prompt_answer_mode IN ('first_answer', 'all_answer_same', 'all_answer_majority'));
+  END IF;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+ALTER TABLE prompts ADD COLUMN IF NOT EXISTS broadcast_answer_mode TEXT;
+ALTER TABLE prompts ADD COLUMN IF NOT EXISTS broadcast_batch_status TEXT;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'prompts_broadcast_answer_mode_check'
+  ) THEN
+    ALTER TABLE prompts
+      ADD CONSTRAINT prompts_broadcast_answer_mode_check
+      CHECK (
+        broadcast_answer_mode IS NULL OR
+        broadcast_answer_mode IN ('first_answer', 'all_answer_same', 'all_answer_majority')
+      );
+  END IF;
+EXCEPTION WHEN duplicate_object THEN NULL;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'prompts_broadcast_batch_status_check'
+  ) THEN
+    ALTER TABLE prompts
+      ADD CONSTRAINT prompts_broadcast_batch_status_check
+      CHECK (
+        broadcast_batch_status IS NULL OR
+        broadcast_batch_status IN ('COLLECTING', 'RESOLVED', 'CONFLICT', 'EXPIRED')
+      );
+  END IF;
+EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
