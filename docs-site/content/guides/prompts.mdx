@@ -47,6 +47,13 @@ Also accepted: `ID:123 …`, `ID #123 …`, `ID-123 …` (case-insensitive).
 
 Greenlight records `answer.type = "text"` and posts a confirmation in the thread.
 
+Prompts appear in chat with a **Prompt #n** title (matching the API id). After a
+button tap or text reply, Greenlight posts a confirmation in the thread:
+
+- First answer: `Recorded answer for ID:#2 Approve`
+- Repeat tap on the same prompt: `Already answered for ID:#2: Approve` (no duplicate callback)
+- Expired prompt: `Prompt expired for ID:#2`
+
 ## States
 
 | State      | Meaning                       |

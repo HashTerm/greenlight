@@ -34,7 +34,7 @@ async function handlePromptAnswer(
   },
   thread: { post: (msg: string) => Promise<unknown> } | null,
 ): Promise<void> {
-  const callbackInfo = await withClient((client) =>
+  const result = await withClient((client) =>
     promptModels.markAnswered(client, organizationId, promptId, {
       type: answer.type,
       value: answer.value,
@@ -43,25 +43,46 @@ async function handlePromptAnswer(
     }),
   )
 
-  if (callbackInfo) {
-    scheduleCallback(callbackInfo.callbackUrl, callbackInfo.payload)
-  }
+  switch (result.status) {
+    case 'recorded': {
+      if (result.callbackInfo) {
+        scheduleCallback(result.callbackInfo.callbackUrl, result.callbackInfo.payload)
+      }
 
-  await recordAuditEvent({
-    actor_type: 'system',
-    action: 'prompt.answered',
-    resource_type: 'prompt',
-    resource_id: promptId,
-    metadata: {
-      organization_id: organizationId,
-      answer_type: answer.type,
-      answered_by_id: answer.userId,
-      answered_by_username: answer.username,
-    },
-  })
+      await recordAuditEvent({
+        actor_type: 'system',
+        action: 'prompt.answered',
+        resource_type: 'prompt',
+        resource_id: promptId,
+        metadata: {
+          organization_id: organizationId,
+          answer_type: answer.type,
+          answered_by_id: answer.userId,
+          answered_by_username: answer.username,
+        },
+      })
 
-  if (thread) {
-    await thread.post(`Recorded answer for ID:${promptId}`)
+      if (thread) {
+        await thread.post(promptModels.formatRecordedReply(promptId, answer.value))
+      }
+      break
+    }
+    case 'already_answered': {
+      if (thread) {
+        await thread.post(
+          promptModels.formatAlreadyAnsweredReply(promptId, result.prompt),
+        )
+      }
+      break
+    }
+    case 'expired': {
+      if (thread) {
+        await thread.post(promptModels.formatExpiredPromptReply(promptId))
+      }
+      break
+    }
+    case 'not_found':
+      break
   }
 }
 

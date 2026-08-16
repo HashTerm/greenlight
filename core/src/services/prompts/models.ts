@@ -192,6 +192,61 @@ export interface CallbackInfo {
   payload: Record<string, unknown>
 }
 
+export type MarkAnsweredResult =
+  | { status: 'recorded'; callbackInfo: CallbackInfo | null }
+  | { status: 'already_answered'; prompt: PromptRow }
+  | { status: 'expired'; prompt: PromptRow }
+  | { status: 'not_found' }
+
+export function formatStoredAnswerValue(prompt: PromptRow): string | null {
+  return prompt.answer?.value ?? null
+}
+
+export function formatRecordedReply(promptId: string, answerValue: string): string {
+  return `Recorded answer for ID:${promptId} ${answerValue}`
+}
+
+export function formatAlreadyAnsweredReply(promptId: string, prompt: PromptRow): string {
+  const value = formatStoredAnswerValue(prompt)
+  if (value) {
+    return `Already answered for ID:${promptId}: ${value}`
+  }
+  return `Already answered for ID:${promptId}`
+}
+
+export function formatExpiredPromptReply(promptId: string): string {
+  return `Prompt expired for ID:${promptId}`
+}
+
+function buildCallbackInfo(
+  promptId: string,
+  prompt: PromptRow,
+  answer: {
+    type: string
+    value: string
+    userId: number | null
+    username: string | null
+  },
+): CallbackInfo | null {
+  if (!prompt.callback_url) return null
+
+  return {
+    callbackUrl: prompt.callback_url,
+    payload: {
+      prompt_id: promptId,
+      correlation_id: prompt.correlation_id,
+      text: prompt.text,
+      answer: {
+        type: answer.type,
+        value: answer.value,
+        user_id: answer.userId,
+        username: answer.username,
+      },
+      answered_at: prompt.answered_at?.toISOString() ?? new Date().toISOString(),
+    },
+  }
+}
+
 export async function markAnswered(
   client: pg.PoolClient,
   organizationId: string,
@@ -202,11 +257,11 @@ export async function markAnswered(
     userId: number | null
     username: string | null
   },
-): Promise<CallbackInfo | null> {
+): Promise<MarkAnsweredResult> {
   const promptNum = parsePromptId(promptId)
-  if (!promptNum) return null
+  if (!promptNum) return { status: 'not_found' }
 
-  await client.query(
+  const updateResult = await client.query(
     `UPDATE prompts
      SET state = $1,
          answer = jsonb_build_object('type', $2::text, 'value', $3::text),
@@ -226,24 +281,19 @@ export async function markAnswered(
     ],
   )
 
-  const prompt = await getPrompt(client, organizationId, promptId)
-  if (!prompt?.callback_url) return null
-
-  return {
-    callbackUrl: prompt.callback_url,
-    payload: {
-      prompt_id: promptId,
-      correlation_id: prompt.correlation_id,
-      text: prompt.text,
-      answer: {
-        type: answer.type,
-        value: answer.value,
-        user_id: answer.userId,
-        username: answer.username,
-      },
-      answered_at: prompt.answered_at?.toISOString() ?? new Date().toISOString(),
-    },
+  if (updateResult.rowCount && updateResult.rowCount > 0) {
+    const prompt = await getPrompt(client, organizationId, promptId)
+    return {
+      status: 'recorded',
+      callbackInfo: prompt ? buildCallbackInfo(promptId, prompt, answer) : null,
+    }
   }
+
+  const prompt = await getPrompt(client, organizationId, promptId)
+  if (!prompt) return { status: 'not_found' }
+  if (prompt.state === ANSWERED) return { status: 'already_answered', prompt }
+  if (prompt.state === EXPIRED) return { status: 'expired', prompt }
+  return { status: 'not_found' }
 }
 
 export async function expireOld(client: pg.PoolClient): Promise<number> {

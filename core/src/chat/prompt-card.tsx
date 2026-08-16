@@ -7,9 +7,9 @@ export interface PromptCardOption {
   actionKey: string
 }
 
-export function buildPromptCard(text: string, options: PromptCardOption[]) {
+export function buildPromptCard(promptId: string, text: string, options: PromptCardOption[]) {
   return (
-    <Card title="Prompt">
+    <Card title={`Prompt ${promptId}`}>
       <CardText>{text}</CardText>
       {options.length > 0 ? (
         <Actions>

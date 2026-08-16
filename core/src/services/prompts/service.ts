@@ -100,7 +100,7 @@ export async function createAndPostPrompt(
 
     await ensureBotForChannel(channel)
 
-    const card = buildPromptCard(input.text, cardOptions)
+    const card = buildPromptCard(promptId, input.text, cardOptions)
     let messageToSend: unknown = card
 
     if (input.mediaFile) {
