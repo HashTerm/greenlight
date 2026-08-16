@@ -28,10 +28,8 @@ CREATE TABLE IF NOT EXISTS prompts (
 
 CREATE INDEX IF NOT EXISTS idx_prompts_state ON prompts(state);
 CREATE INDEX IF NOT EXISTS idx_prompts_created ON prompts(created_at);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_prompts_org_channel_num
-  ON prompts(organization_id, channel_id, prompt_num);
-CREATE INDEX IF NOT EXISTS idx_prompts_broadcast ON prompts(broadcast_id)
-  WHERE broadcast_id IS NOT NULL;
+-- idx_prompts_org_channel_num and idx_prompts_broadcast are created after channel_id /
+-- broadcast_id columns exist (see per-channel prompt migration below).
 
 CREATE TABLE IF NOT EXISTS prompt_options (
   prompt_id TEXT NOT NULL REFERENCES prompts(id) ON DELETE CASCADE,
@@ -108,8 +106,7 @@ CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at);
 CREATE INDEX IF NOT EXISTS idx_messages_channel ON messages(organization_id, channel_id);
 CREATE INDEX IF NOT EXISTS idx_messages_direction ON messages(direction);
 CREATE INDEX IF NOT EXISTS idx_messages_org ON messages(organization_id);
-CREATE INDEX IF NOT EXISTS idx_messages_broadcast ON messages(broadcast_id)
-  WHERE broadcast_id IS NOT NULL;
+-- idx_messages_broadcast is created after broadcast_id column exists (see below).
 
 CREATE TABLE IF NOT EXISTS app_settings (
   organization_id TEXT PRIMARY KEY,
@@ -143,25 +140,53 @@ ALTER TABLE messages ADD COLUMN IF NOT EXISTS organization_id TEXT;
 UPDATE messages SET organization_id = 'default' WHERE organization_id IS NULL;
 ALTER TABLE messages ALTER COLUMN organization_id SET NOT NULL;
 
-ALTER TABLE messages DROP CONSTRAINT IF EXISTS messages_channel_id_fkey;
-ALTER TABLE messages DROP CONSTRAINT IF EXISTS messages_organization_id_channel_id_fkey;
+-- Upgrade channels PK from legacy single-column to (organization_id, channel_id).
+-- Idempotent: skip when composite PK already exists; drop dependent FKs only when
+-- recreating a legacy PK.
+DO $$
+DECLARE
+  pk_cols text[];
+BEGIN
+  IF to_regclass('public.channels') IS NULL THEN
+    RETURN;
+  END IF;
+
+  SELECT array_agg(a.attname ORDER BY array_position(c.conkey, a.attnum))
+  INTO pk_cols
+  FROM pg_constraint c
+  JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = ANY(c.conkey)
+  WHERE c.contype = 'p' AND c.conrelid = 'channels'::regclass;
+
+  IF pk_cols IS DISTINCT FROM ARRAY['organization_id', 'channel_id']::text[] THEN
+    ALTER TABLE prompts DROP CONSTRAINT IF EXISTS prompts_organization_id_channel_id_fkey;
+    ALTER TABLE messages DROP CONSTRAINT IF EXISTS messages_channel_id_fkey;
+    ALTER TABLE messages DROP CONSTRAINT IF EXISTS messages_organization_id_channel_id_fkey;
+
+    IF pk_cols IS NOT NULL THEN
+      ALTER TABLE channels DROP CONSTRAINT channels_pkey;
+    END IF;
+
+    ALTER TABLE channels ADD CONSTRAINT channels_pkey PRIMARY KEY (organization_id, channel_id);
+  END IF;
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+  WHEN undefined_table THEN NULL;
+END $$;
 
 DO $$
 BEGIN
-  IF EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'channels_pkey' AND conrelid = 'channels'::regclass
-  ) THEN
-    ALTER TABLE channels DROP CONSTRAINT channels_pkey;
+  IF to_regclass('public.messages') IS NOT NULL
+     AND NOT EXISTS (
+       SELECT 1 FROM pg_constraint
+       WHERE conname = 'messages_organization_id_channel_id_fkey'
+     ) THEN
+    ALTER TABLE messages
+      ADD CONSTRAINT messages_organization_id_channel_id_fkey
+      FOREIGN KEY (organization_id, channel_id)
+      REFERENCES channels(organization_id, channel_id);
   END IF;
 EXCEPTION WHEN undefined_table THEN NULL;
 END $$;
-
-ALTER TABLE channels ADD CONSTRAINT channels_pkey PRIMARY KEY (organization_id, channel_id);
-
-ALTER TABLE messages
-  ADD CONSTRAINT messages_organization_id_channel_id_fkey
-  FOREIGN KEY (organization_id, channel_id)
-  REFERENCES channels(organization_id, channel_id);
 
 -- Migrate app_settings singleton to per-org
 DO $$
@@ -251,13 +276,39 @@ SET prompt_num = r.new_num
 FROM ranked r
 WHERE p.id = r.id;
 
-ALTER TABLE prompts ALTER COLUMN channel_id SET NOT NULL;
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'prompts' AND column_name = 'channel_id'
+  ) THEN
+    ALTER TABLE prompts ALTER COLUMN channel_id SET NOT NULL;
+  END IF;
+END $$;
 
 DROP INDEX IF EXISTS idx_prompts_org_prompt_num;
-CREATE UNIQUE INDEX IF NOT EXISTS idx_prompts_org_channel_num
-  ON prompts(organization_id, channel_id, prompt_num);
-CREATE INDEX IF NOT EXISTS idx_prompts_broadcast ON prompts(broadcast_id)
-  WHERE broadcast_id IS NOT NULL;
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'prompts' AND column_name = 'channel_id'
+  ) THEN
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_prompts_org_channel_num
+      ON prompts(organization_id, channel_id, prompt_num);
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'prompts' AND column_name = 'broadcast_id'
+  ) THEN
+    CREATE INDEX IF NOT EXISTS idx_prompts_broadcast ON prompts(broadcast_id)
+      WHERE broadcast_id IS NOT NULL;
+  END IF;
+END $$;
 
 DO $$
 BEGIN
@@ -290,5 +341,14 @@ ALTER TABLE channels ADD COLUMN IF NOT EXISTS callback_headers JSONB;
 ALTER TABLE channels ADD COLUMN IF NOT EXISTS callback_data JSONB;
 
 ALTER TABLE messages ADD COLUMN IF NOT EXISTS broadcast_id TEXT;
-CREATE INDEX IF NOT EXISTS idx_messages_broadcast ON messages(broadcast_id)
-  WHERE broadcast_id IS NOT NULL;
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'messages' AND column_name = 'broadcast_id'
+  ) THEN
+    CREATE INDEX IF NOT EXISTS idx_messages_broadcast ON messages(broadcast_id)
+      WHERE broadcast_id IS NOT NULL;
+  END IF;
+END $$;
