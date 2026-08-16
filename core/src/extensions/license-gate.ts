@@ -1,4 +1,4 @@
-export type EnterpriseFeature = 'audit' | 'sso' | 'multi_user_admin' | 'rbac'
+export type EnterpriseFeature = 'audit' | 'sso' | 'multi_user_admin' | 'rbac' | 'broadcast'
 
 export interface LicenseGate {
   isEnabled(feature: EnterpriseFeature): boolean

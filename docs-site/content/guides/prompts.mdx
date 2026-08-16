@@ -111,5 +111,8 @@ GET /v1/prompts/%231?channel_id=telegram-prompts
 
 `channel_id` is required. Without it the API returns 400.
 
+Enterprise **prompt broadcasts** fan the same question to multiple PROMPT channels
+with a shared `broadcast_id`. See [Broadcasts](/guides/broadcasts).
+
 Prompt ids are not access control — set `USE_AUTH=true` in production and protect
 the Agent API with scoped API keys.

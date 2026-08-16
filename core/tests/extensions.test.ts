@@ -4,7 +4,7 @@ import { resetConfigForTests } from '../src/core/config.js'
 import { licenseGate, type EnterpriseFeature } from '../src/extensions/license-gate.js'
 import { onEnterpriseBoot, recordAuditEvent } from '../src/extensions/index.js'
 
-const FEATURES: EnterpriseFeature[] = ['audit', 'sso', 'multi_user_admin', 'rbac']
+const FEATURES: EnterpriseFeature[] = ['audit', 'sso', 'multi_user_admin', 'rbac', 'broadcast']
 
 function baseEnv(): void {
   process.env.DATABASE_URL = 'postgresql://greenlight:greenlight@localhost:5432/greenlight'

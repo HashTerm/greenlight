@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { createAndPostPrompt, getPrompt, listPrompts } from '../../services/prompts/service.js'
 import { formatPromptId, type PromptRow } from '../../services/prompts/models.js'
 import { ValueError } from '../../core/security.js'
+import { licenseGate } from '../../extensions/license-gate.js'
 import { requireScope } from '../middleware/require-scope.js'
 import { recordAuditEvent } from '../../extensions/audit.js'
 import { getAuditEventContext } from '../middleware/audit-actor.js'
@@ -37,6 +38,7 @@ const listQuerySchema = z.object({
   state: z.enum(['pending', 'answered', 'expired', 'all']).default('pending'),
   limit: z.coerce.number().int().min(1).max(200).default(50),
   channel_id: z.string().optional(),
+  broadcast_id: z.string().optional(),
 })
 
 export const promptRoutes = new Hono()
@@ -211,8 +213,17 @@ promptRoutes.get(
   requireScope('prompts:read'),
   zValidator('query', listQuerySchema),
   async (c) => {
-    const { state, limit, channel_id } = c.req.valid('query')
-    const rows = await listPrompts(getOrganizationId(c), state, limit, channel_id)
+    const { state, limit, channel_id, broadcast_id } = c.req.valid('query')
+    if (broadcast_id && !licenseGate.isEnabled('broadcast')) {
+      return c.json({ detail: 'not found' }, 404)
+    }
+    const rows = await listPrompts(
+      getOrganizationId(c),
+      state,
+      limit,
+      channel_id,
+      broadcast_id,
+    )
     return c.json(rows.map(serializePromptRow))
   },
 )

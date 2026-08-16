@@ -105,6 +105,7 @@ export interface Message {
   from_user: string | null
   api_key_id: string | null
   platform_message_id: string | null
+  broadcast_id: string | null
   created_at: string
 }
 

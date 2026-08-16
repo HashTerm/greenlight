@@ -1,5 +1,5 @@
 /** Serializable icon id — resolved to a Lucide component in client nav. */
-export const ENTERPRISE_NAV_ICONS = ['clipboard-list'] as const
+export const ENTERPRISE_NAV_ICONS = ['clipboard-list', 'megaphone'] as const
 export type EnterpriseNavIcon = (typeof ENTERPRISE_NAV_ICONS)[number]
 
 export type EnterpriseNavItem = {
@@ -7,6 +7,7 @@ export type EnterpriseNavItem = {
   label: string
   icon: EnterpriseNavIcon
   roles?: string[]
+  requiredFeature?: EnterpriseLicensedFeature
 }
 
 export function registerEnterpriseNav(role?: string): EnterpriseNavItem[] {
@@ -14,7 +15,7 @@ export function registerEnterpriseNav(role?: string): EnterpriseNavItem[] {
   return []
 }
 
-export type EnterpriseLicensedFeature = 'audit' | 'sso' | 'multi_user_admin' | 'rbac'
+export type EnterpriseLicensedFeature = 'audit' | 'sso' | 'multi_user_admin' | 'rbac' | 'broadcast'
 
 export type EnterpriseSettingsSection = {
   id: string

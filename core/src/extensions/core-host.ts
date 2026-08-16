@@ -9,8 +9,11 @@ import type { Context } from 'hono'
 import { getApiKey } from '../api/middleware/auth.js'
 import { loadConfig } from '../core/config.js'
 import { DEFAULT_ORG_ID } from '../core/org.js'
+import { hasAnyScope, type Scope } from '../services/api-keys/scopes.js'
 
 export { requireScope } from '../api/middleware/require-scope.js'
+export { getApiKeyId, getApiKey } from '../api/middleware/auth.js'
+export { hasAnyScope, type Scope }
 export { getOrganizationId } from '../api/middleware/org-context.js'
 export {
   getAuditActor,

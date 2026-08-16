@@ -315,7 +315,76 @@ export function getOpenApiDocument(): Record<string, unknown> {
             from_user: { type: 'string', nullable: true },
             api_key_id: { type: 'string', nullable: true, description: 'Outbound API key id' },
             platform_message_id: { type: 'string', nullable: true },
+            broadcast_id: {
+              type: 'string',
+              nullable: true,
+              description: 'Shared batch id when sent via enterprise broadcast fan-out.',
+            },
             created_at: { type: 'string', format: 'date-time' },
+          },
+        },
+        BroadcastKind: {
+          type: 'string',
+          enum: ['prompt', 'message'],
+        },
+        BroadcastSummary: {
+          type: 'object',
+          description: 'Enterprise broadcast batch summary.',
+          properties: {
+            broadcast_id: { type: 'string' },
+            kind: { $ref: '#/components/schemas/BroadcastKind' },
+            text: { type: 'string' },
+            correlation_id: { type: 'string', nullable: true },
+            created_at: { type: 'string', format: 'date-time' },
+            channel_count: { type: 'integer' },
+            pending_count: { type: 'integer', nullable: true },
+            answered_count: { type: 'integer', nullable: true },
+            expired_count: { type: 'integer', nullable: true },
+          },
+        },
+        CreateBroadcastRequest: {
+          type: 'object',
+          required: ['kind', 'channel_ids', 'text'],
+          properties: {
+            kind: { $ref: '#/components/schemas/BroadcastKind' },
+            channel_ids: {
+              type: 'array',
+              minItems: 2,
+              maxItems: 50,
+              items: { type: 'string' },
+            },
+            text: { type: 'string', maxLength: 4096 },
+            options: { type: 'array', items: { type: 'string', maxLength: 64 }, maxItems: 10 },
+            allow_text: { type: 'boolean', default: false },
+            callback_url: { type: 'string', nullable: true },
+            correlation_id: { type: 'string', maxLength: 255, nullable: true },
+            callback_data: { nullable: true },
+            callback_headers: {
+              type: 'object',
+              additionalProperties: { type: 'string' },
+              nullable: true,
+            },
+            ttl_sec: { type: 'integer', minimum: 0, maximum: 604800, nullable: true },
+            media_url: { type: 'string', nullable: true },
+            media_path: { type: 'string', nullable: true },
+          },
+        },
+        CreateBroadcastResponse: {
+          type: 'object',
+          properties: {
+            broadcast_id: { type: 'string' },
+            kind: { $ref: '#/components/schemas/BroadcastKind' },
+            channels: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  channel_id: { type: 'string' },
+                  prompt_id: { type: 'string' },
+                  message_id: { type: 'string' },
+                },
+              },
+            },
           },
         },
         ApiKey: {
@@ -502,6 +571,13 @@ export function getOpenApiDocument(): Record<string, unknown> {
               schema: { type: 'string' },
               description: 'Filter by Greenlight PROMPT channel id.',
             },
+            {
+              name: 'broadcast_id',
+              in: 'query',
+              schema: { type: 'string' },
+              description:
+                'Enterprise: list all prompt rows from one broadcast batch (requires broadcast license).',
+            },
           ],
           responses: {
             '200': {
@@ -566,6 +642,136 @@ export function getOpenApiDocument(): Record<string, unknown> {
             },
             '404': {
               description: 'Not found',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/v1/broadcasts': {
+        get: {
+          tags: ['Broadcasts'],
+          summary: 'List broadcast batches (Enterprise)',
+          description:
+            'Requires enterprise license with the `broadcast` feature. Returns prompt and message fan-out batches.',
+          security: [{ ApiKeyAuth: [] }],
+          parameters: [
+            {
+              name: 'limit',
+              in: 'query',
+              schema: { type: 'integer', minimum: 1, maximum: 200, default: 50 },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Broadcast list',
+              content: {
+                'application/json': {
+                  schema: {
+                    type: 'array',
+                    items: { $ref: '#/components/schemas/BroadcastSummary' },
+                  },
+                },
+              },
+            },
+            '404': {
+              description: 'Not licensed',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/v1/broadcasts/new': {
+        post: {
+          tags: ['Broadcasts'],
+          summary: 'Create a broadcast (Enterprise)',
+          description:
+            'Fan out one prompt or message to multiple channels of the same type. Requires `prompts:write` for prompt kind or `messages:send` for message kind.',
+          security: [{ ApiKeyAuth: [] }],
+          requestBody: {
+            required: true,
+            content: {
+              'application/json': {
+                schema: { $ref: '#/components/schemas/CreateBroadcastRequest' },
+              },
+            },
+          },
+          responses: {
+            '201': {
+              description: 'Broadcast created',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/CreateBroadcastResponse' },
+                },
+              },
+            },
+            '400': {
+              description: 'Validation error',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
+                },
+              },
+            },
+            '404': {
+              description: 'Not licensed',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/Error' },
+                },
+              },
+            },
+          },
+        },
+      },
+      '/v1/broadcasts/{id}': {
+        get: {
+          tags: ['Broadcasts'],
+          summary: 'Get broadcast batch (Enterprise)',
+          security: [{ ApiKeyAuth: [] }],
+          parameters: [
+            {
+              name: 'id',
+              in: 'path',
+              required: true,
+              schema: { type: 'string' },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Broadcast detail with per-channel children',
+              content: {
+                'application/json': {
+                  schema: {
+                    allOf: [
+                      { $ref: '#/components/schemas/BroadcastSummary' },
+                      {
+                        type: 'object',
+                        properties: {
+                          prompts: {
+                            type: 'array',
+                            items: { $ref: '#/components/schemas/Prompt' },
+                          },
+                          messages: {
+                            type: 'array',
+                            items: { $ref: '#/components/schemas/Message' },
+                          },
+                        },
+                      },
+                    ],
+                  },
+                },
+              },
+            },
+            '404': {
+              description: 'Not found or not licensed',
               content: {
                 'application/json': {
                   schema: { $ref: '#/components/schemas/Error' },
@@ -755,6 +961,13 @@ export function getOpenApiDocument(): Record<string, unknown> {
               name: 'channel_id',
               in: 'query',
               schema: { type: 'string' },
+            },
+            {
+              name: 'broadcast_id',
+              in: 'query',
+              schema: { type: 'string' },
+              description:
+                'Enterprise: list outbound messages from one broadcast batch (requires broadcast license).',
             },
             {
               name: 'limit',

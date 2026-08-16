@@ -1,0 +1,77 @@
+# Broadcasts (Enterprise)
+
+Broadcasts fan out **one logical send** to **multiple channels** of the same type.
+Enterprise license with the **broadcast** feature is required for the API and
+admin UI.
+
+## Kinds
+
+| Kind | Channels | Result |
+| ---- | -------- | ------ |
+| **Message** | `MESSAGE` | Same plain text posted to each channel (`POST /v1/messages/send` semantics per channel). |
+| **Prompt** | `PROMPT` | One prompt row per channel with shared content; each channel keeps its own `#n`. |
+
+Mixed `MESSAGE` and `PROMPT` channels in one broadcast are not allowed.
+
+## Create
+
+```http
+POST /v1/broadcasts/new
+```
+
+Message example:
+
+```json
+{
+  "kind": "message",
+  "channel_ids": ["slack-ops", "telegram-alerts"],
+  "text": "Deploy finished successfully."
+}
+```
+
+Prompt example:
+
+```json
+{
+  "kind": "prompt",
+  "channel_ids": ["telegram-prompts", "slack-prompts"],
+  "text": "Approve deploy?",
+  "options": ["Approve", "Reject"],
+  "correlation_id": "deploy-42"
+}
+```
+
+Response includes a shared `broadcast_id` (`brd_…`) and per-channel `prompt_id` or
+`message_id`.
+
+## List batches
+
+```http
+GET /v1/broadcasts?limit=50
+```
+
+## List children
+
+Filter existing list endpoints by `broadcast_id` (enterprise license required):
+
+```http
+GET /v1/prompts?broadcast_id=brd_…&state=all
+GET /v1/messages?broadcast_id=brd_…
+```
+
+Single prompt lookup is unchanged: `GET /v1/prompts/{id}?channel_id=…`.
+
+## Callbacks
+
+- **Prompt broadcasts:** each answer fires its own signed callback (shared
+  `callback_url` / `callback_data` if set on create).
+- **Message broadcasts:** inbound replies still use each MESSAGE channel’s
+  `callback_url` and `callback_data` for `message.created` forwards.
+
+## Admin UI
+
+Licensed instances show **Broadcasts** in the nav (after Channels). Create
+prompt or message broadcasts from **New broadcast**, then open a batch to see
+per-channel delivery links.
+
+See [Editions](/getting-started/editions) for licensing.

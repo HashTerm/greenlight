@@ -26,6 +26,7 @@ export interface CreatePromptInput {
   ttlSec?: number | null
   mediaFile?: Buffer | null
   mediaFileName?: string | null
+  broadcastId?: string | null
 }
 
 function countMediaSources(input: CreatePromptInput): number {
@@ -104,7 +105,7 @@ export async function createAndPostPrompt(
       callbackHeaders,
       correlationId: input.correlationId ?? null,
       callbackData,
-      broadcastId: null,
+      broadcastId: input.broadcastId ?? null,
       ttlSec,
     })
 
@@ -197,9 +198,10 @@ export async function listPrompts(
   state: PromptListState,
   limit: number,
   channelId?: string | null,
+  broadcastId?: string | null,
 ) {
   return withClient((client) =>
-    promptModels.listPrompts(client, organizationId, state, limit, channelId),
+    promptModels.listPrompts(client, organizationId, state, limit, channelId, broadcastId),
   )
 }
 

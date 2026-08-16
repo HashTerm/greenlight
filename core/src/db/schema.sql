@@ -99,6 +99,7 @@ CREATE TABLE IF NOT EXISTS messages (
   from_user TEXT,
   api_key_id TEXT REFERENCES api_keys(id),
   platform_message_id TEXT,
+  broadcast_id TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   FOREIGN KEY (organization_id, channel_id) REFERENCES channels(organization_id, channel_id)
 );
@@ -107,6 +108,8 @@ CREATE INDEX IF NOT EXISTS idx_messages_created ON messages(created_at);
 CREATE INDEX IF NOT EXISTS idx_messages_channel ON messages(organization_id, channel_id);
 CREATE INDEX IF NOT EXISTS idx_messages_direction ON messages(direction);
 CREATE INDEX IF NOT EXISTS idx_messages_org ON messages(organization_id);
+CREATE INDEX IF NOT EXISTS idx_messages_broadcast ON messages(broadcast_id)
+  WHERE broadcast_id IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS app_settings (
   organization_id TEXT PRIMARY KEY,
@@ -285,3 +288,7 @@ END $$;
 ALTER TABLE prompts ADD COLUMN IF NOT EXISTS callback_headers JSONB;
 ALTER TABLE channels ADD COLUMN IF NOT EXISTS callback_headers JSONB;
 ALTER TABLE channels ADD COLUMN IF NOT EXISTS callback_data JSONB;
+
+ALTER TABLE messages ADD COLUMN IF NOT EXISTS broadcast_id TEXT;
+CREATE INDEX IF NOT EXISTS idx_messages_broadcast ON messages(broadcast_id)
+  WHERE broadcast_id IS NOT NULL;

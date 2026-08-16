@@ -3,6 +3,7 @@
 import {
   ClipboardList,
   LayoutDashboard,
+  Megaphone,
   MenuIcon,
   MessageCircleQuestion,
   MessageSquare,
@@ -22,15 +23,16 @@ import { cn } from '@/lib/utils'
 
 const primaryLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/channels', label: 'Channels', icon: Radio },
-  { href: '/messages', label: 'Messages', icon: MessageSquare },
   { href: '/prompts', label: 'Prompts', icon: MessageCircleQuestion },
+  { href: '/messages', label: 'Messages', icon: MessageSquare },
+  { href: '/channels', label: 'Channels', icon: Radio },
 ] as const
 
 const settingsLink = { href: '/settings', label: 'Settings', icon: Settings } as const
 
 const enterpriseIconMap: Record<EnterpriseNavIcon, LucideIcon> = {
   'clipboard-list': ClipboardList,
+  megaphone: Megaphone,
 }
 
 type NavLink = {

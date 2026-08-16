@@ -160,6 +160,7 @@ export async function listPrompts(
   state: PromptListState,
   limit: number,
   channelId?: string | null,
+  broadcastId?: string | null,
 ): Promise<PromptRow[]> {
   const stateMap = {
     pending: PENDING,
@@ -167,19 +168,24 @@ export async function listPrompts(
     expired: EXPIRED,
   } as const
 
+  const broadcastClause = broadcastId ? ' AND broadcast_id = $broadcast' : ''
+  const broadcastParam = broadcastId ?? null
+
   if (state === 'all') {
     if (channelId) {
       const result = await client.query<PromptRow>(
         `SELECT * FROM prompts
-         WHERE organization_id = $1 AND channel_id = $2
-         ORDER BY created_at DESC LIMIT $3`,
-        [organizationId, channelId, limit],
+         WHERE organization_id = $1 AND channel_id = $2${broadcastClause.replace('$broadcast', '$3')}
+         ORDER BY created_at DESC LIMIT $${broadcastId ? 4 : 3}`,
+        broadcastId
+          ? [organizationId, channelId, broadcastId, limit]
+          : [organizationId, channelId, limit],
       )
       return result.rows
     }
     const result = await client.query<PromptRow>(
-      'SELECT * FROM prompts WHERE organization_id = $1 ORDER BY created_at DESC LIMIT $2',
-      [organizationId, limit],
+      `SELECT * FROM prompts WHERE organization_id = $1${broadcastClause.replace('$broadcast', '$2')} ORDER BY created_at DESC LIMIT $${broadcastId ? 3 : 2}`,
+      broadcastId ? [organizationId, broadcastId, limit] : [organizationId, limit],
     )
     return result.rows
   }
@@ -187,16 +193,20 @@ export async function listPrompts(
   if (channelId) {
     const result = await client.query<PromptRow>(
       `SELECT * FROM prompts
-       WHERE organization_id = $1 AND channel_id = $2 AND state = $3
-       ORDER BY created_at DESC LIMIT $4`,
-      [organizationId, channelId, stateMap[state], limit],
+       WHERE organization_id = $1 AND channel_id = $2 AND state = $3${broadcastClause.replace('$broadcast', '$4')}
+       ORDER BY created_at DESC LIMIT $${broadcastId ? 5 : 4}`,
+      broadcastId
+        ? [organizationId, channelId, stateMap[state], broadcastId, limit]
+        : [organizationId, channelId, stateMap[state], limit],
     )
     return result.rows
   }
 
   const result = await client.query<PromptRow>(
-    'SELECT * FROM prompts WHERE organization_id = $1 AND state = $2 ORDER BY created_at DESC LIMIT $3',
-    [organizationId, stateMap[state], limit],
+    `SELECT * FROM prompts WHERE organization_id = $1 AND state = $2${broadcastClause.replace('$broadcast', '$3')} ORDER BY created_at DESC LIMIT $${broadcastId ? 4 : 3}`,
+    broadcastId
+      ? [organizationId, stateMap[state], broadcastId, limit]
+      : [organizationId, stateMap[state], limit],
   )
   return result.rows
 }

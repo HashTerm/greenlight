@@ -32,12 +32,14 @@ export async function listMessages(options: {
   limit: number
   channelId?: string
   direction?: messageModels.MessageListDirection
+  broadcastId?: string
 }) {
   const rows = await withClient((client) =>
     messageModels.listMessages(client, options.organizationId, {
       limit: options.limit,
       channelId: options.channelId,
       direction: options.direction,
+      broadcastId: options.broadcastId,
     }),
   )
   return rows
