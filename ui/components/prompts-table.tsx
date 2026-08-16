@@ -21,7 +21,7 @@ export function PromptsTable({ prompts }: { prompts: Prompt[] }) {
           <TableHead>State</TableHead>
           <TableHead>Channel</TableHead>
           <TableHead>Correlation</TableHead>
-          <TableHead>Broadcast</TableHead>
+          <TableHead>Batch</TableHead>
           <TableHead>Group</TableHead>
           <TableHead>Created</TableHead>
         </TableRow>

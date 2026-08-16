@@ -35,7 +35,7 @@ export function MessagesTable({ messages }: { messages: Message[] }) {
           <TableHead>Channel</TableHead>
           <TableHead>Direction</TableHead>
           <TableHead>From / API key</TableHead>
-          <TableHead>Broadcast</TableHead>
+          <TableHead>Batch</TableHead>
           <TableHead>Group</TableHead>
           <TableHead>Text</TableHead>
         </TableRow>

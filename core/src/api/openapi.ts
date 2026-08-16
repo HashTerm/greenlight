@@ -36,8 +36,11 @@ export function getOpenApiDocument(): Record<string, unknown> {
     tags: [
       { name: 'Health' },
       { name: 'Prompts' },
-      { name: 'Channels' },
       { name: 'Messages' },
+      { name: 'Channels' },
+      { name: 'Broadcast groups' },
+      { name: 'Broadcast batches' },
+      { name: 'Audit log' },
       { name: 'Webhooks' },
       { name: 'Status' },
       { name: 'Settings' },
@@ -467,6 +470,30 @@ export function getOpenApiDocument(): Record<string, unknown> {
             expired_count: { type: 'integer', nullable: true },
           },
         },
+        AuditEvent: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', format: 'uuid' },
+            organization_id: { type: 'string' },
+            actor_type: { type: 'string', enum: ['api_key', 'user', 'system'] },
+            actor_id: { type: 'string', nullable: true },
+            action: { type: 'string' },
+            resource_type: { type: 'string', nullable: true },
+            resource_id: { type: 'string', nullable: true },
+            metadata: { type: 'object', nullable: true, additionalProperties: true },
+            created_at: { type: 'string', format: 'date-time' },
+          },
+        },
+        AuditEventList: {
+          type: 'object',
+          properties: {
+            events: {
+              type: 'array',
+              items: { $ref: '#/components/schemas/AuditEvent' },
+            },
+            next_cursor: { type: 'string', nullable: true },
+          },
+        },
         ApiKey: {
           type: 'object',
           properties: {
@@ -662,7 +689,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
               in: 'query',
               schema: { type: 'string' },
               description:
-                'Enterprise: filter by broadcast group (requires broadcast license).',
+                'Enterprise: filter by broadcast group (requires broadcast_groups license).',
             },
           ],
           responses: {
@@ -796,7 +823,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
           },
         },
       },
-      '/v1/broadcast-groups/{broadcast_group_id}': {
+      '/v1/broadcast-groups/{id}': {
         get: {
           tags: ['Broadcast groups'],
           summary: 'Get broadcast group (Enterprise)',
@@ -804,7 +831,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
           security: [{ ApiKeyAuth: [] }],
           parameters: [
             {
-              name: 'broadcast_group_id',
+              name: 'id',
               in: 'path',
               required: true,
               schema: { type: 'string' },
@@ -828,7 +855,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
           security: [{ ApiKeyAuth: [] }],
           parameters: [
             {
-              name: 'broadcast_group_id',
+              name: 'id',
               in: 'path',
               required: true,
               schema: { type: 'string' },
@@ -860,7 +887,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
           security: [{ ApiKeyAuth: [] }],
           parameters: [
             {
-              name: 'broadcast_group_id',
+              name: 'id',
               in: 'path',
               required: true,
               schema: { type: 'string' },
@@ -872,7 +899,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
           },
         },
       },
-      '/v1/broadcast-batches/{broadcast_batch_id}': {
+      '/v1/broadcast-batches/{id}': {
         get: {
           tags: ['Broadcast batches'],
           summary: 'Get fan-out batch',
@@ -881,7 +908,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
           security: [{ ApiKeyAuth: [] }],
           parameters: [
             {
-              name: 'broadcast_batch_id',
+              name: 'id',
               in: 'path',
               required: true,
               schema: { type: 'string' },
@@ -921,6 +948,95 @@ export function getOpenApiDocument(): Record<string, unknown> {
                 },
               },
             },
+          },
+        },
+      },
+      '/v1/audit-log': {
+        get: {
+          tags: ['Audit log'],
+          summary: 'List audit events (Enterprise)',
+          description:
+            'Requires `audit_log` license and `audit_log:read` scope. Returns paginated audit events.',
+          security: [{ ApiKeyAuth: [] }],
+          parameters: [
+            {
+              name: 'limit',
+              in: 'query',
+              schema: { type: 'integer', minimum: 1, maximum: 200, default: 50 },
+            },
+            {
+              name: 'cursor',
+              in: 'query',
+              schema: { type: 'string' },
+              description: 'Pagination cursor from previous response `next_cursor`.',
+            },
+            {
+              name: 'action',
+              in: 'query',
+              schema: { type: 'string' },
+            },
+            {
+              name: 'actor_id',
+              in: 'query',
+              schema: { type: 'string' },
+            },
+            {
+              name: 'resource_type',
+              in: 'query',
+              schema: { type: 'string' },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Audit event list',
+              content: {
+                'application/json': {
+                  schema: { $ref: '#/components/schemas/AuditEventList' },
+                },
+              },
+            },
+            '404': { description: 'Not licensed' },
+          },
+        },
+      },
+      '/v1/audit-log/export': {
+        get: {
+          tags: ['Audit log'],
+          summary: 'Export audit events (Enterprise)',
+          description:
+            'Requires `audit_log` license and `audit_log:read` scope. Download as JSONL or CSV.',
+          security: [{ ApiKeyAuth: [] }],
+          parameters: [
+            {
+              name: 'format',
+              in: 'query',
+              schema: { type: 'string', enum: ['jsonl', 'csv'], default: 'jsonl' },
+            },
+            {
+              name: 'action',
+              in: 'query',
+              schema: { type: 'string' },
+            },
+            {
+              name: 'actor_id',
+              in: 'query',
+              schema: { type: 'string' },
+            },
+            {
+              name: 'resource_type',
+              in: 'query',
+              schema: { type: 'string' },
+            },
+          ],
+          responses: {
+            '200': {
+              description: 'Audit export file',
+              content: {
+                'application/x-ndjson': { schema: { type: 'string' } },
+                'text/csv': { schema: { type: 'string' } },
+              },
+            },
+            '404': { description: 'Not licensed' },
           },
         },
       },
@@ -1116,7 +1232,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
               in: 'query',
               schema: { type: 'string' },
               description:
-                'Enterprise: filter by broadcast group (requires broadcast license).',
+                'Enterprise: filter by broadcast group (requires broadcast_groups license).',
             },
             {
               name: 'limit',
@@ -1612,7 +1728,7 @@ export function getOpenApiDocument(): Record<string, unknown> {
     },
   }
   const paths = doc.paths as Record<string, unknown>
-  doc.paths = orderOpenApiPaths(paths)
+  doc.paths = orderOpenApiPaths(paths) as typeof doc.paths
   return doc
 }
 
@@ -1628,8 +1744,10 @@ const OPENAPI_PATH_ORDER = [
   '/v1/channels/new',
   '/v1/channels/{id}',
   '/v1/broadcast-groups',
-  '/v1/broadcast-groups/{broadcast_group_id}',
-  '/v1/broadcast-batches/{broadcast_batch_id}',
+  '/v1/broadcast-groups/{id}',
+  '/v1/broadcast-batches/{id}',
+  '/v1/audit-log',
+  '/v1/audit-log/export',
   '/v1/status',
   '/v1/settings',
   '/v1/keys',

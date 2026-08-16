@@ -24,7 +24,7 @@ Community ships **no-op stubs** that licensed builds replace at image build time
 | Module            | Community behavior                                    |
 | ----------------- | ----------------------------------------------------- |
 | `license-gate.ts` | `licenseGate.isEnabled()` always `false`              |
-| `audit.ts`        | `recordAuditEvent(event)` — no-op in community        |
+| `audit-log.ts`        | `recordAuditEvent(event)` — no-op in community        |
 | `register.ts`     | `registerEnterpriseRoutes`, `onEnterpriseBoot` no-ops |
 
 Optional headers (community accepts; licensed editions may use them):

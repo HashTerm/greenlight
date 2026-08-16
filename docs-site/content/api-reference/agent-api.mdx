@@ -34,9 +34,9 @@ all permissions.
 | `messages:send`  | `POST /v1/messages/send`                                  |
 | `channels:read`  | `GET /v1/channels`                                        |
 | `channels:write` | `POST /v1/channels/new`, `PATCH/DELETE /v1/channels/{id}` |
-| `broadcast_groups:read` | `GET /v1/broadcast-groups`, `GET /v1/broadcast-groups/{broadcast_group_id}` (Enterprise) |
+| `broadcast_groups:read` | `GET /v1/broadcast-groups`, `GET /v1/broadcast-groups/{id}` (Enterprise) |
 | `broadcast_groups:write` | `POST/PATCH/DELETE /v1/broadcast-groups*` (Enterprise) |
-| `broadcast_batches:read` | `GET /v1/broadcast-batches/{broadcast_batch_id}` |
+| `broadcast_batches:read` | `GET /v1/broadcast-batches/{id}` |
 | `audit_log:read` | `GET /v1/audit-log`, `GET /v1/audit-log/export` (Enterprise) |
 | `settings:read`  | `GET /v1/settings`                                        |
 | `settings:write` | `PATCH /v1/settings`                                      |
@@ -53,29 +53,36 @@ all permissions.
 | Method   | Path                | Scope(s)         | Description                         |
 | -------- | ------------------- | ---------------- | ----------------------------------- |
 | `GET`    | `/healthz`          | —                | Health check (**no auth**)          |
+| `POST`   | `/v1/prompts/new`   | `prompts:write`  | Create a prompt (JSON or multipart) |
+| `GET`    | `/v1/prompts`       | `prompts:read`   | List prompts (`state` filter)       |
+| `GET`    | `/v1/prompts/{id}`  | `prompts:read`   | Get prompt (`%23123` for `#123`)    |
+| `GET`    | `/v1/messages`      | `messages:read`  | List message history                |
+| `GET`    | `/v1/messages/{id}` | `messages:read`  | Get message by UUID                 |
+| `POST`   | `/v1/messages/send` | `messages:send`  | Send chat text on MESSAGE channel   |
+| `POST`   | `/v1/channels/new`  | `channels:write` | Create a channel                    |
+| `GET`    | `/v1/channels`      | `channels:read`  | List channels (filters)             |
+| `PATCH`  | `/v1/channels/{id}` | `channels:write` | Update a channel                    |
+| `DELETE` | `/v1/channels/{id}` | `channels:write` | Unregister channel                  |
+| `GET`    | `/v1/broadcast-groups` | `broadcast_groups:read` | List saved broadcast groups (Enterprise) |
+| `POST`   | `/v1/broadcast-groups` | `broadcast_groups:write` | Create broadcast group (Enterprise) |
+| `GET`    | `/v1/broadcast-groups/{id}` | `broadcast_groups:read` | Get broadcast group (`brg_…`) (Enterprise) |
+| `PATCH`  | `/v1/broadcast-groups/{id}` | `broadcast_groups:write` | Update broadcast group (Enterprise) |
+| `DELETE` | `/v1/broadcast-groups/{id}` | `broadcast_groups:write` | Delete broadcast group (Enterprise) |
+| `GET`    | `/v1/broadcast-batches/{id}` | `broadcast_batches:read` | Fan-out batch detail (`brd_…`) |
+| `GET`    | `/v1/audit-log`     | `audit_log:read` | List audit events (Enterprise)      |
+| `GET`    | `/v1/audit-log/export` | `audit_log:read` | Export audit events (Enterprise)    |
+| `GET`    | `/v1/settings`      | `settings:read`  | Retention settings                  |
+| `PATCH`  | `/v1/settings`      | `settings:write` | Update retention settings           |
+
+### Operator
+
+| Method   | Path                | Scope(s)         | Description                         |
+| -------- | ------------------- | ---------------- | ----------------------------------- |
 | `GET`    | `/v1/status`        | `status:read`    | Operator status / dashboard         |
 | `GET`    | `/v1/keys`          | `keys:read`      | List API keys                       |
 | `GET`    | `/v1/keys/{id}`     | `keys:read`      | Get API key metadata                |
 | `POST`   | `/v1/keys/new`      | `keys:write`     | Create API key (plaintext once)     |
 | `DELETE` | `/v1/keys/{id}`     | `keys:write`     | Revoke API key                      |
-| `POST`   | `/v1/prompts/new`   | `prompts:write`  | Create a prompt (JSON or multipart) |
-| `GET`    | `/v1/prompts`       | `prompts:read`   | List prompts (`state` filter)       |
-| `GET`    | `/v1/prompts/{id}`  | `prompts:read`   | Get prompt (`%23123` for `#123`)    |
-| `GET`    | `/v1/messages`           | `messages:read`  | List message history                |
-| `GET`    | `/v1/messages/{id}`      | `messages:read`  | Get message by UUID                 |
-| `POST`   | `/v1/messages/send`      | `messages:send`  | Send chat text on MESSAGE channel   |
-| `POST`   | `/v1/channels/new`  | `channels:write` | Create a channel                    |
-| `GET`    | `/v1/channels`      | `channels:read`  | List channels (filters)             |
-| `PATCH`  | `/v1/channels/{id}` | `channels:write` | Update a channel                    |
-| `DELETE` | `/v1/channels/{id}` | `channels:write` | Unregister channel                  |
-| `GET`    | `/v1/broadcast-groups`   | `broadcast_groups:read` | List saved broadcast groups (Enterprise) |
-| `POST`   | `/v1/broadcast-groups`   | `broadcast_groups:write` | Create broadcast group (Enterprise) |
-| `GET`    | `/v1/broadcast-groups/{broadcast_group_id}` | `broadcast_groups:read` | Get broadcast group (Enterprise) |
-| `PATCH`  | `/v1/broadcast-groups/{broadcast_group_id}` | `broadcast_groups:write` | Update broadcast group (Enterprise) |
-| `DELETE` | `/v1/broadcast-groups/{broadcast_group_id}` | `broadcast_groups:write` | Delete broadcast group (Enterprise) |
-| `GET`    | `/v1/broadcast-batches/{broadcast_batch_id}` | `broadcast_batches:read` | Fan-out batch detail |
-| `GET`    | `/v1/settings`      | `settings:read`  | Retention settings                  |
-| `PATCH`  | `/v1/settings`      | `settings:write` | Update retention settings           |
 
 Platforms: `telegram`, `slack`, `teams`, `discord`, `gchat`, `whatsapp`,
 `messenger`.
@@ -293,28 +300,35 @@ Multi-channel fan-out (`200`):
 }
 ```
 
-## Broadcast groups (Enterprise)
+## Broadcast Groups (Enterprise)
 
 Requires Enterprise license with the **broadcast_groups** feature. Community returns
-`404` for these routes.
+`404` for these routes. Path `{id}` is the group id (`brg_…`).
 
-| Method   | Path                         | Body / notes                                      |
-| -------- | ---------------------------- | ------------------------------------------------- |
-| `GET`    | `/v1/broadcast-groups`       | Query: `kind` (`prompt` \| `message`), `limit`    |
-| `POST`   | `/v1/broadcast-groups`       | `name`, `kind`, `channel_ids`; `prompt_answer_mode` required for `kind: prompt` |
-| `GET`    | `/v1/broadcast-groups/{broadcast_group_id}`  | Path `broadcast_group_id` is `brg_…`         |
-| `PATCH`  | `/v1/broadcast-groups/{broadcast_group_id}`  | `name`, `channel_ids`, `prompt_answer_mode`       |
-| `DELETE` | `/v1/broadcast-groups/{broadcast_group_id}`  |                                                   |
+- **List / create:** `GET` and `POST /v1/broadcast-groups` — query `kind` (`prompt` \| `message`), `limit`; create body: `name`, `kind`, `channel_ids`; `prompt_answer_mode` required for `kind: prompt`.
+- **Get / update / delete:** `GET`, `PATCH`, `DELETE /v1/broadcast-groups/{id}`.
 
 See [Broadcast Groups](/guides/broadcast-groups) for examples and edition scope.
 
-## `GET /v1/broadcast-batches/{broadcast_batch_id}`
+## `GET /v1/broadcast-batches/{id}`
 
-Returns batch summary plus per-channel `prompts` and `messages` arrays. Prompt
+Path `{id}` is the batch id (`brd_…`). Returns batch summary plus per-channel `prompts` and `messages` arrays. Prompt
 batches include `broadcast_batch_status` (`COLLECTING`, `RESOLVED`, `CONFLICT`,
 `EXPIRED`).
 
-Narrative: [Broadcast Groups](/guides/broadcast-groups).
+## Audit log (Enterprise)
+
+Requires Enterprise license with the **audit_log** feature and `audit_log:read` scope.
+
+### `GET /v1/audit-log`
+
+Query: `limit` (1–200), `cursor`, `action`, `actor_id`, `resource_type`. Returns
+`{ "events": [...], "next_cursor": "..." }`.
+
+### `GET /v1/audit-log/export`
+
+Query: `format` (`jsonl` \| `csv`), `action`, `actor_id`, `resource_type`. Downloads
+audit events as JSONL or CSV.
 
 ## Common errors
 

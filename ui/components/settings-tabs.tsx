@@ -9,7 +9,6 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 const ENTERPRISE_TAB_LABELS: Record<string, string> = {
   license: 'License',
   users: 'Users',
-  sso: 'SSO',
 }
 
 type SettingsTabsShellProps = {
