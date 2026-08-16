@@ -53,7 +53,7 @@ describe('fan-out targets', () => {
   it('rejects broadcast_group_id without enterprise license', async () => {
     await expect(
       resolveSendTargets('default', { broadcast_group_id: 'brg_test' }),
-    ).rejects.toThrow(/broadcast feature/)
+    ).rejects.toThrow(/broadcast_groups feature/)
   })
 })
 

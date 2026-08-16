@@ -112,7 +112,7 @@ messageRoutes.post(
       await recordAuditEvent({
         ...getAuditEventContext(c),
         action: 'message.sent',
-        resource_type: 'broadcast',
+        resource_type: 'broadcast_batch',
         resource_id: fanOut.broadcast_batch_id,
         metadata: {
           channel_ids: targets.channelIds,
@@ -178,7 +178,7 @@ messageRoutes.get(
       broadcast_group_id,
       limit,
     } = c.req.valid('query')
-    if (broadcast_group_id && !licenseGate.isEnabled('broadcast')) {
+    if (broadcast_group_id && !licenseGate.isEnabled('broadcast_groups')) {
       return c.json({ detail: 'not found' }, 404)
     }
     const rows = await listMessages({

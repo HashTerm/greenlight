@@ -174,7 +174,7 @@ async function respondCreatePrompt(c: Context, input: CreatePromptRequest) {
       await recordAuditEvent({
         ...getAuditEventContext(c),
         action: 'prompt.created',
-        resource_type: 'broadcast',
+        resource_type: 'broadcast_batch',
         resource_id: fanOut.broadcast_batch_id,
         metadata: {
           channel_ids: targets.channelIds,
@@ -361,7 +361,7 @@ promptRoutes.get(
   zValidator('query', listQuerySchema),
   async (c) => {
     const { state, limit, channel_id, broadcast_batch_id, broadcast_group_id } = c.req.valid('query')
-    if (broadcast_group_id && !licenseGate.isEnabled('broadcast')) {
+    if (broadcast_group_id && !licenseGate.isEnabled('broadcast_groups')) {
       return c.json({ detail: 'not found' }, 404)
     }
     const rows = await listPrompts(

@@ -15,7 +15,12 @@ export function registerEnterpriseNav(role?: string): EnterpriseNavItem[] {
   return []
 }
 
-export type EnterpriseLicensedFeature = 'audit' | 'sso' | 'multi_user_admin' | 'rbac' | 'broadcast'
+export type EnterpriseLicensedFeature =
+  | 'broadcast_groups'
+  | 'audit_log'
+  | 'multi_user_admin'
+  | 'role_based_access'
+  | 'single_sign_on'
 
 export type EnterpriseSettingsSection = {
   id: string

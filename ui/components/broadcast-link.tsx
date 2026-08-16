@@ -27,7 +27,7 @@ export function BroadcastGroupIdLink({
   return (
     <Link
       className="font-mono text-xs text-primary hover:underline"
-      href={`/broadcasts/${encodeURIComponent(broadcastGroupId)}`}
+      href={`/broadcast-groups/${encodeURIComponent(broadcastGroupId)}`}
     >
       {broadcastGroupId}
     </Link>

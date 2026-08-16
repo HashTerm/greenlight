@@ -129,9 +129,9 @@ export async function resolveSendTargets(
     }
   }
 
-  if (!licenseGate.isEnabled('broadcast')) {
+  if (!licenseGate.isEnabled('broadcast_groups')) {
     throw new ValueError(
-      'broadcast_group_id requires an enterprise license with the broadcast feature',
+      'broadcast_group_id requires an enterprise license with the broadcast_groups feature',
     )
   }
 

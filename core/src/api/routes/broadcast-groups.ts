@@ -47,7 +47,7 @@ const listQuerySchema = z.object({
 })
 
 function broadcastGate(c: Context): Response | null {
-  if (!licenseGate.isEnabled('broadcast')) {
+  if (!licenseGate.isEnabled('broadcast_groups')) {
     return c.json({ detail: 'not found' }, 404)
   }
   return null
