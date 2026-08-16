@@ -82,9 +82,7 @@ async function handlePromptAnswer(
     }
     case 'already_answered': {
       if (thread) {
-        await thread.post(
-          promptModels.formatAlreadyAnsweredReply(promptId, result.prompt),
-        )
+        await thread.post(promptModels.formatAlreadyAnsweredReply(promptId, result.prompt))
       }
       break
     }
@@ -219,12 +217,7 @@ export function wireHandlers(
       const replyText = idMatch[2]
 
       const prompt = await withClient((client) =>
-        promptModels.getPrompt(
-          client,
-          channel.organization_id,
-          channel.channel_id,
-          promptId,
-        ),
+        promptModels.getPrompt(client, channel.organization_id, channel.channel_id, promptId),
       )
       if (!promptModels.canAcceptTextReply(prompt)) return
 

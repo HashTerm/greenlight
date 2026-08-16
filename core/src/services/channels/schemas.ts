@@ -112,7 +112,11 @@ export function getCredentialsValidationError(
 }
 
 const callbackHeadersSchema = z.record(z.string(), z.string()).optional().nullable()
-const callbackDataSchema = z.record(z.string(), z.unknown()).or(z.array(z.unknown())).optional().nullable()
+const callbackDataSchema = z
+  .record(z.string(), z.unknown())
+  .or(z.array(z.unknown()))
+  .optional()
+  .nullable()
 
 export const createChannelSchema = z
   .object({

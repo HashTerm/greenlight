@@ -1,9 +1,6 @@
 /** @jsxImportSource chat */
 import { Actions, Button, Card, CardText } from 'chat'
-import {
-  TEXT_OPTION_ID,
-  TYPE_ANSWER_BUTTON_LABEL,
-} from '../services/prompts/pending-text.js'
+import { TEXT_OPTION_ID, TYPE_ANSWER_BUTTON_LABEL } from '../services/prompts/pending-text.js'
 
 export interface PromptCardOption {
   optionId: string

@@ -117,8 +117,8 @@ export function ChannelForm({ initial, lockChannelId }: ChannelFormProps) {
 
               {isEditMode ? (
                 <p className="text-xs text-muted-foreground">
-                  Platform and channel type cannot be changed after registration. Create a new channel
-                  to use a different platform or mode.
+                  Platform and channel type cannot be changed after registration. Create a new
+                  channel to use a different platform or mode.
                 </p>
               ) : null}
 

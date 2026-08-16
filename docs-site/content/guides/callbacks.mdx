@@ -35,12 +35,12 @@ Secret: `CALLBACK_SIGNING_SECRET`. Retries up to 5 times with exponential backof
 }
 ```
 
-| Field             | Notes                                                                 |
-| ----------------- | --------------------------------------------------------------------- |
-| `prompt_id`       | Per-channel id (`#n`)                                                 |
-| `channel_id`      | Greenlight PROMPT channel id                                          |
-| `correlation_id`  | Short label from create (optional)                                    |
-| `callback_data`   | JSON object or array from create (optional), echoed for workflow resume |
+| Field            | Notes                                                                   |
+| ---------------- | ----------------------------------------------------------------------- |
+| `prompt_id`      | Per-channel id (`#n`)                                                   |
+| `channel_id`     | Greenlight PROMPT channel id                                            |
+| `correlation_id` | Short label from create (optional)                                      |
+| `callback_data`  | JSON object or array from create (optional), echoed for workflow resume |
 
 ### Outbound headers (`callback_headers`)
 

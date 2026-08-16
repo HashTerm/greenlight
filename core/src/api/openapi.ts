@@ -168,7 +168,8 @@ export function getOpenApiDocument(): Record<string, unknown> {
             },
             callback_headers_configured: {
               type: 'boolean',
-              description: 'Whether outbound callback_headers were set at create (values not exposed).',
+              description:
+                'Whether outbound callback_headers were set at create (values not exposed).',
             },
             broadcast_id: {
               type: 'string',

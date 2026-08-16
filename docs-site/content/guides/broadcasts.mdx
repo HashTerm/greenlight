@@ -6,10 +6,10 @@ admin UI.
 
 ## Kinds
 
-| Kind | Channels | Result |
-| ---- | -------- | ------ |
+| Kind        | Channels  | Result                                                                                   |
+| ----------- | --------- | ---------------------------------------------------------------------------------------- |
 | **Message** | `MESSAGE` | Same plain text posted to each channel (`POST /v1/messages/send` semantics per channel). |
-| **Prompt** | `PROMPT` | One prompt row per channel with shared content; each channel keeps its own `#n`. |
+| **Prompt**  | `PROMPT`  | One prompt row per channel with shared content; each channel keeps its own `#n`.         |
 
 Mixed `MESSAGE` and `PROMPT` channels in one broadcast are not allowed.
 

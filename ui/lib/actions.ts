@@ -294,14 +294,20 @@ export async function updateChannelAction(
   if (formData.has('callback_url')) body.callback_url = callbackUrl
   if (Object.keys(credentials).length > 0) body.credentials = credentials
 
-  if (channelType === 'MESSAGE' || formData.has('callback_headers') || formData.has('callback_data')) {
+  if (
+    channelType === 'MESSAGE' ||
+    formData.has('callback_headers') ||
+    formData.has('callback_data')
+  ) {
     const headersRaw = String(formData.get('callback_headers') ?? '')
     const dataRaw = String(formData.get('callback_data') ?? '')
     if (headersRaw.trim()) {
       body.callback_headers = parseOptionalChannelJson(headersRaw, 'callback headers')
     }
     if (formData.has('callback_data')) {
-      body.callback_data = dataRaw.trim() ? parseOptionalChannelJson(dataRaw, 'callback data') : null
+      body.callback_data = dataRaw.trim()
+        ? parseOptionalChannelJson(dataRaw, 'callback data')
+        : null
     }
   }
 
@@ -400,7 +406,11 @@ export async function createPromptAction(formData: FormData) {
   if (callbackHeadersRaw) {
     try {
       callbackHeaders = JSON.parse(callbackHeadersRaw) as Record<string, string>
-      if (typeof callbackHeaders !== 'object' || callbackHeaders === null || Array.isArray(callbackHeaders)) {
+      if (
+        typeof callbackHeaders !== 'object' ||
+        callbackHeaders === null ||
+        Array.isArray(callbackHeaders)
+      ) {
         throw new Error('Callback headers must be a JSON object')
       }
     } catch (err) {
@@ -421,7 +431,8 @@ export async function createPromptAction(formData: FormData) {
     if (callbackUrl) upload.append('callback_url', callbackUrl)
     if (correlationId) upload.append('correlation_id', correlationId)
     if (callbackData !== undefined) upload.append('callback_data', JSON.stringify(callbackData))
-    if (callbackHeaders !== undefined) upload.append('callback_headers', JSON.stringify(callbackHeaders))
+    if (callbackHeaders !== undefined)
+      upload.append('callback_headers', JSON.stringify(callbackHeaders))
 
     const key = process.env.GREENLIGHT_API_KEY
     if (!key) {

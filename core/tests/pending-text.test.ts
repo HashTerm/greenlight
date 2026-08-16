@@ -114,7 +114,9 @@ describe('pending text replies', () => {
     })
 
     it('clears pending replies', async () => {
-      const client = { query: vi.fn().mockResolvedValue({ rowCount: 1 }) } as unknown as pg.PoolClient
+      const client = {
+        query: vi.fn().mockResolvedValue({ rowCount: 1 }),
+      } as unknown as pg.PoolClient
 
       await clearPendingTextReply(client, 'org-1', '-100', 42)
       await clearPendingTextRepliesForPrompt(client, 'org-1', '-100', '#2')

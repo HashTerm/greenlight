@@ -82,9 +82,15 @@ describe('prompt models', () => {
       answer: null,
     } satisfies Omit<PromptRow, 'allow_text' | 'state' | 'organization_id'>
 
-    expect(canAcceptTextReply({ ...base, organization_id: 'org', allow_text: true, state: PENDING })).toBe(true)
-    expect(canAcceptTextReply({ ...base, organization_id: 'org', allow_text: false, state: PENDING })).toBe(false)
-    expect(canAcceptTextReply({ ...base, organization_id: 'org', allow_text: true, state: ANSWERED })).toBe(false)
+    expect(
+      canAcceptTextReply({ ...base, organization_id: 'org', allow_text: true, state: PENDING }),
+    ).toBe(true)
+    expect(
+      canAcceptTextReply({ ...base, organization_id: 'org', allow_text: false, state: PENDING }),
+    ).toBe(false)
+    expect(
+      canAcceptTextReply({ ...base, organization_id: 'org', allow_text: true, state: ANSWERED }),
+    ).toBe(false)
     expect(canAcceptTextReply(null)).toBe(false)
   })
 

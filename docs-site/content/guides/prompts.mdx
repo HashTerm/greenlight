@@ -12,19 +12,19 @@ Send **`application/json`** or **`multipart/form-data`** to the same path.
 
 ### JSON body
 
-| Field            | Type     | Default                     | Notes                                                     |
-| ---------------- | -------- | --------------------------- | --------------------------------------------------------- |
-| `channel_id`     | string   | `DEFAULT_PROMPT_CHANNEL_ID` | Required unless default set                               |
-| `text`           | string   | —                           | Required, max 4096                                        |
-| `options`        | string[] | `[]`                        | Max 10 items (3 on WhatsApp/Messenger), each max 64 chars |
-| `allow_text`     | boolean  | `false`                     | Allow free-text replies                                   |
-| `callback_url`   | string   | —                           | Validated HTTP(S) URL                                     |
-| `correlation_id` | string   | —                           | Short label echoed in answer callback (logs, dashboards)  |
-| `callback_data`  | object   | —                           | Optional JSON workflow state (max 8192 bytes), echoed in answer callback |
-| `callback_headers` | object | —                           | Optional outbound HTTP headers (max 4096 bytes); not returned on GET |
-| `ttl_sec`        | int      | `3600`                      | 0–604800 (7 days)                                         |
-| `media_url`      | string   | —                           | Remote attachment URL                                     |
-| `media_path`     | string   | —                           | Local path under `MEDIA_ALLOWED_DIR`                      |
+| Field              | Type     | Default                     | Notes                                                                    |
+| ------------------ | -------- | --------------------------- | ------------------------------------------------------------------------ |
+| `channel_id`       | string   | `DEFAULT_PROMPT_CHANNEL_ID` | Required unless default set                                              |
+| `text`             | string   | —                           | Required, max 4096                                                       |
+| `options`          | string[] | `[]`                        | Max 10 items (3 on WhatsApp/Messenger), each max 64 chars                |
+| `allow_text`       | boolean  | `false`                     | Allow free-text replies                                                  |
+| `callback_url`     | string   | —                           | Validated HTTP(S) URL                                                    |
+| `correlation_id`   | string   | —                           | Short label echoed in answer callback (logs, dashboards)                 |
+| `callback_data`    | object   | —                           | Optional JSON workflow state (max 8192 bytes), echoed in answer callback |
+| `callback_headers` | object   | —                           | Optional outbound HTTP headers (max 4096 bytes); not returned on GET     |
+| `ttl_sec`          | int      | `3600`                      | 0–604800 (7 days)                                                        |
+| `media_url`        | string   | —                           | Remote attachment URL                                                    |
+| `media_path`       | string   | —                           | Local path under `MEDIA_ALLOWED_DIR`                                     |
 
 ### Multipart form (file upload)
 

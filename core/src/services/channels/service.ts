@@ -1,9 +1,5 @@
 import { withClient } from '../../db/client.js'
-import {
-  validateCallbackData,
-  validateCallbackHeaders,
-  ValueError,
-} from '../../core/security.js'
+import { validateCallbackData, validateCallbackHeaders, ValueError } from '../../core/security.js'
 import {
   ensureBotForChannel,
   postToChat,
@@ -129,9 +125,7 @@ export async function updateChannel(
     let callbackData = existing.callback_data
     if (patch.callbackData !== undefined) {
       callbackData =
-        existing.channel_type === 'MESSAGE'
-          ? validateCallbackData(patch.callbackData)
-          : null
+        existing.channel_type === 'MESSAGE' ? validateCallbackData(patch.callbackData) : null
     }
 
     const credentialError = getCredentialsValidationError(existing.platform, credentials)

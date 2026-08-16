@@ -30,7 +30,11 @@ function buildHeaders(
 async function postWithRetries(
   url: string,
   body: string,
-  options: { sign?: boolean; maxAttempts?: number; extraHeaders?: Record<string, string> | null } = {},
+  options: {
+    sign?: boolean
+    maxAttempts?: number
+    extraHeaders?: Record<string, string> | null
+  } = {},
 ): Promise<void> {
   const { sign = true, maxAttempts = 5, extraHeaders = null } = options
   const headers = buildHeaders(body, sign, extraHeaders)

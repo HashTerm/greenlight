@@ -217,13 +217,7 @@ promptRoutes.get(
     if (broadcast_id && !licenseGate.isEnabled('broadcast')) {
       return c.json({ detail: 'not found' }, 404)
     }
-    const rows = await listPrompts(
-      getOrganizationId(c),
-      state,
-      limit,
-      channel_id,
-      broadcast_id,
-    )
+    const rows = await listPrompts(getOrganizationId(c), state, limit, channel_id, broadcast_id)
     return c.json(rows.map(serializePromptRow))
   },
 )

@@ -32,9 +32,13 @@ describe('callbacks', () => {
 
   it('sends custom callback headers on prompt callbacks', async () => {
     const { notifyCallback } = await import('../src/core/callbacks.js')
-    await notifyCallback('https://example.com/hook', { prompt_id: '#1' }, {
-      Authorization: 'Bearer test-token',
-    })
+    await notifyCallback(
+      'https://example.com/hook',
+      { prompt_id: '#1' },
+      {
+        Authorization: 'Bearer test-token',
+      },
+    )
 
     const fetchMock = vi.mocked(fetch)
     const [, init] = fetchMock.mock.calls[0]

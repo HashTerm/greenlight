@@ -10,11 +10,7 @@ import { getApiKey, getApiKeyId } from '../middleware/auth.js'
 import { loadConfig } from '../../core/config.js'
 import { hasAnyScope, type Scope } from '../../services/api-keys/scopes.js'
 import { ValueError } from '../../core/security.js'
-import {
-  createBroadcast,
-  listBroadcasts,
-  getBroadcast,
-} from '../../services/broadcasts/service.js'
+import { createBroadcast, listBroadcasts, getBroadcast } from '../../services/broadcasts/service.js'
 import { formatPromptId, type PromptRow } from '../../services/prompts/models.js'
 import type { MessageRow } from '../../services/messages/models.js'
 
@@ -175,10 +171,7 @@ broadcastRoutes.get('/broadcasts', requireScope('prompts:read', 'messages:read')
   if (blocked) return blocked
 
   const limit = Number(c.req.query('limit') ?? '50')
-  const rows = await listBroadcasts(
-    getOrganizationId(c),
-    Number.isFinite(limit) ? limit : 50,
-  )
+  const rows = await listBroadcasts(getOrganizationId(c), Number.isFinite(limit) ? limit : 50)
   return c.json(rows)
 })
 

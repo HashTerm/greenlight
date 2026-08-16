@@ -51,13 +51,7 @@ export async function armPendingTextReply(
      VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT (organization_id, chat_id, user_id)
      DO UPDATE SET prompt_id = EXCLUDED.prompt_id, expires_at = EXCLUDED.expires_at, created_at = now()`,
-    [
-      input.organizationId,
-      input.chatId,
-      input.userId,
-      input.promptId,
-      input.expiresAt,
-    ],
+    [input.organizationId, input.chatId, input.userId, input.promptId, input.expiresAt],
   )
 
   if (previousPromptId && previousPromptId !== input.promptId) {

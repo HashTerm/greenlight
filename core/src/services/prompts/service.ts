@@ -1,7 +1,13 @@
 /** @jsxImportSource chat */
 import { readFile } from 'node:fs/promises'
 import { withClient } from '../../db/client.js'
-import { validateCallbackUrl, validateCallbackData, validateCallbackHeaders, validateMediaPath, ValueError } from '../../core/security.js'
+import {
+  validateCallbackUrl,
+  validateCallbackData,
+  validateCallbackHeaders,
+  validateMediaPath,
+  ValueError,
+} from '../../core/security.js'
 import * as channelModels from '../channels/models.js'
 import type { PromptListState } from './models.js'
 import * as promptModels from './models.js'
@@ -9,7 +15,10 @@ import { ensureBotForChannel, postToChat } from '../../chat/bot-manager.js'
 import { buildPromptCard } from '../../chat/prompt-card.js'
 import * as pendingText from './pending-text.js'
 import { loadConfig } from '../../core/config.js'
-import { maxPromptOptionsForPlatform, maxPromptOptionLabelsForPlatform } from '../../core/platform.js'
+import {
+  maxPromptOptionsForPlatform,
+  maxPromptOptionLabelsForPlatform,
+} from '../../core/platform.js'
 
 export interface CreatePromptInput {
   organizationId: string

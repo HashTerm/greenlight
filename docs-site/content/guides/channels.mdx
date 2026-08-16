@@ -24,16 +24,16 @@ resource). Outbound chat on MESSAGE channels uses `POST /v1/messages/send`, not
 }
 ```
 
-| Field            | Type   | Notes                                                          |
-| ---------------- | ------ | -------------------------------------------------------------- |
-| `channel_id`     | string | Required, stable slug                                          |
-| `platform`       | enum   | `telegram` \| `slack` \| … — **immutable after creation**      |
-| `target_chat_id` | string | Platform-specific chat / channel / space / PSID                |
-| `credentials`    | object | Platform-specific strings                                      |
-| `callback_url`   | string | Required for `MESSAGE`                                         |
+| Field              | Type   | Notes                                                                     |
+| ------------------ | ------ | ------------------------------------------------------------------------- |
+| `channel_id`       | string | Required, stable slug                                                     |
+| `platform`         | enum   | `telegram` \| `slack` \| … — **immutable after creation**                 |
+| `target_chat_id`   | string | Platform-specific chat / channel / space / PSID                           |
+| `credentials`      | object | Platform-specific strings                                                 |
+| `callback_url`     | string | Required for `MESSAGE`                                                    |
 | `callback_headers` | object | Optional — outbound HTTP headers (Bearer, X-Api-Key) for MESSAGE forwards |
-| `callback_data`  | object | Optional — static JSON merged into each `message.created` (MESSAGE only) |
-| `channel_type`   | enum   | `MESSAGE` (default) or `PROMPT` — **immutable after creation** |
+| `callback_data`    | object | Optional — static JSON merged into each `message.created` (MESSAGE only)  |
+| `channel_type`     | enum   | `MESSAGE` (default) or `PROMPT` — **immutable after creation**            |
 
 Returns `409` if `channel_id` already exists. To reuse an id after
 `DELETE /v1/channels/{id}`, call `PATCH /v1/channels/{id}` (not

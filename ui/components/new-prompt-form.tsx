@@ -110,8 +110,8 @@ export function NewPromptForm({ channels, hasPromptChannels }: NewPromptFormProp
             rows={3}
           />
           <p className="text-sm text-muted-foreground">
-            Optional outbound headers (Bearer, X-Api-Key) for your answer webhook. Not echoed in
-            the callback body.
+            Optional outbound headers (Bearer, X-Api-Key) for your answer webhook. Not echoed in the
+            callback body.
           </p>
         </div>
         <div className="space-y-2 md:col-span-2">
