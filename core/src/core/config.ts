@@ -39,6 +39,9 @@ const envSchema = z
     CHANNEL_OFFLINE_NOTIFICATION: z
       .string()
       .default('Assistant offline, could not deliver message.'),
+    TELEGRAM_CHANNEL_START_REPLY: z
+      .string()
+      .default("Greenlight is connected. You'll receive prompts here."),
     TEXT_REPLY_ARM_TTL_SEC: z
       .string()
       .optional()

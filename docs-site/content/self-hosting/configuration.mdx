@@ -46,11 +46,12 @@ Environment variables for `core` and `ui`. Copy `.env.example` as a starting poi
 
 ## Channel callbacks
 
-| Variable                       | Used by | Default                                    |
-| ------------------------------ | ------- | ------------------------------------------ |
-| `CHANNEL_CALLBACK_MAX_RETRIES` | core    | `3`                                        |
-| `CHANNEL_CALLBACK_RETRY_DELAY` | core    | `5` (seconds)                              |
-| `CHANNEL_OFFLINE_NOTIFICATION` | core    | Message posted when channel callbacks fail |
+| Variable                       | Used by | Default                                                             |
+| ------------------------------ | ------- | ------------------------------------------------------------------- |
+| `CHANNEL_CALLBACK_MAX_RETRIES` | core    | `3`                                                                 |
+| `CHANNEL_CALLBACK_RETRY_DELAY` | core    | `5` (seconds)                                                       |
+| `CHANNEL_OFFLINE_NOTIFICATION` | core    | Message posted when channel callbacks fail                          |
+| `TELEGRAM_CHANNEL_START_REPLY` | core    | Reply in private Telegram PROMPT chats on `/start` (empty disables) |
 
 ## Server / boot
 

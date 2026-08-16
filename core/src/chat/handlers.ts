@@ -10,6 +10,7 @@ import { recordInboundMessage } from '../services/messages/service.js'
 import { recordAuditEvent } from '../extensions/audit.js'
 import { getBotByKey } from './bot-registry.js'
 import { instanceKey } from '../core/platform.js'
+import { isTelegramPrivateChat, isTelegramStartCommand } from './telegram-start.js'
 
 const ID_REPLY_RE = /^ID\s*[:#-]?\s*(#?\w+)\s+(.+)$/i
 
@@ -211,6 +212,20 @@ export function wireHandlers(
     if (!channel) return
 
     const trimmed = text.trim()
+
+    if (
+      platform === 'telegram' &&
+      channel.channel_type === 'PROMPT' &&
+      isTelegramPrivateChat(channel.target_chat_id) &&
+      isTelegramStartCommand(trimmed)
+    ) {
+      const startReply = loadConfig().TELEGRAM_CHANNEL_START_REPLY
+      if (startReply && thread) {
+        await thread.post(startReply)
+      }
+      return
+    }
+
     const idMatch = ID_REPLY_RE.exec(trimmed)
     if (idMatch && channel.channel_type === 'PROMPT') {
       const promptId = idMatch[1]
