@@ -64,37 +64,11 @@ describe('prompt models', () => {
   })
 
   it('gates text replies on allow_text and pending state', () => {
-    const base = {
-      id: 'uuid',
-      channel_id: 'telegram-prompts',
-      prompt_num: 1,
-      chat_id: '-100',
-      message_id: 1,
-      text: 'test',
-      media_url: null,
-      options: [],
-      callback_url: null,
-      correlation_id: null,
-      callback_data: null,
-      broadcast_batch_id: null,
-      broadcast_group_id: null,
-      created_at: new Date(),
-      expires_at: null,
-      answered_at: null,
-      answered_by_id: null,
-      answered_by_username: null,
-      answer: null,
-    } satisfies Omit<PromptRow, 'allow_text' | 'state' | 'organization_id'>
+    const base = basePromptRow()
 
-    expect(
-      canAcceptTextReply({ ...base, organization_id: 'org', allow_text: true, state: PENDING }),
-    ).toBe(true)
-    expect(
-      canAcceptTextReply({ ...base, organization_id: 'org', allow_text: false, state: PENDING }),
-    ).toBe(false)
-    expect(
-      canAcceptTextReply({ ...base, organization_id: 'org', allow_text: true, state: ANSWERED }),
-    ).toBe(false)
+    expect(canAcceptTextReply({ ...base, allow_text: true, state: PENDING })).toBe(true)
+    expect(canAcceptTextReply({ ...base, allow_text: false, state: PENDING })).toBe(false)
+    expect(canAcceptTextReply({ ...base, allow_text: true, state: ANSWERED })).toBe(false)
     expect(canAcceptTextReply(null)).toBe(false)
   })
 
